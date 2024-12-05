@@ -3,7 +3,12 @@ import Link from 'next/link';
 import React from 'react';
 
 interface Product {
-  produt: Product;
+  _id: string;
+  image: string;
+  title: string;
+  category: string;
+  currency: string;
+  currentPrice: number;
 }
 
 interface Props {
