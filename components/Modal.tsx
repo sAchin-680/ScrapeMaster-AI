@@ -1,3 +1,5 @@
+'use client';
+
 import { addUserEmailToProduct } from '@/lib/actions';
 import { Dialog, Transition } from '@headlessui/react';
 import Image from 'next/image';

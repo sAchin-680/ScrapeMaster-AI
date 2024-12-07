@@ -4,6 +4,10 @@ import { generateEmailBody, sendEmail } from "@/lib/nodemailer";
 import { getAveragePrice, getEmailNotifType, getHighestPrice, getLowestPrice } from "@/lib/utils";
 import { NextResponse } from "next/server";
 
+export const maxDuration = 300; // 5min
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET() {
     try {
         await connectDB();
@@ -30,7 +34,7 @@ export async function GET() {
                 };
 
                 const updatedProduct = await Product.findOneAndUpdate(
-                    { url: scrappedProduct.url },
+                    { url: product.url },
                     product
                 );
 
