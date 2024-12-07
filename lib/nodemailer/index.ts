@@ -1,7 +1,7 @@
+'use server'
 import { EmailContent, EmailProductInfo, NotificationType } from '@/types';
 import nodemailer from 'nodemailer';
 
-export const THRESHOLD_PERCENTAGE = 40;
 export const Notification = {
     WELCOME: 'Welcome',
     CHANGE_OF_STOCK: 'CHANGE_OF_STOCK',
@@ -12,7 +12,8 @@ export const Notification = {
 export async function generateEmailBody(
     product: EmailProductInfo,
     type: NotificationType
-    ) {
+) {
+    const THRESHOLD_PERCENTAGE = 40;
     // Shorten the product title
     const shortenedTitle =
       product.title.length > 20
@@ -27,7 +28,7 @@ export async function generateEmailBody(
         subject = `Welcome to Price Tracking for ${shortenedTitle}`;
         body = `
           <div>
-            <h2>Welcome to PriceWise 🚀</h2>
+            <h2>Welcome to ScraperMaster 🚀</h2>
             <p>You are now tracking ${product.title}.</p>
             <p>Here's an example of how you'll receive updates:</p>
             <div style="border: 1px solid #ccc; padding: 10px; background-color: #f8f8f8;">
