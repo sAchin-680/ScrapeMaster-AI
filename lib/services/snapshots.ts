@@ -10,10 +10,15 @@ export type FeedResult<T> = {
   stale: boolean;
 };
 
+/** Store a snapshot; throws on failure (use saveSnapshot for fire-and-forget). */
+export async function writeSnapshot(key: string, data: unknown) {
+  await connectDB();
+  await FeedSnapshot.updateOne({ key }, { $set: { data } }, { upsert: true });
+}
+
 export async function saveSnapshot(key: string, data: unknown) {
   try {
-    await connectDB();
-    await FeedSnapshot.updateOne({ key }, { $set: { data } }, { upsert: true });
+    await writeSnapshot(key, data);
   } catch (error) {
     console.error('[snapshots] save failed', key, error);
   }
@@ -48,6 +53,8 @@ export function withSnapshot<T>(
   load: (key: string) => Promise<T>,
   isEmpty: (data: T) => boolean,
   storage: SnapshotStorage = { save: saveSnapshot, load: loadSnapshot },
+  /** Ignore snapshots older than this (for data that shouldn't linger). */
+  maxAgeMs = Infinity,
 ) {
   return async (key: string): Promise<FeedResult<T>> => {
     const id = `${name}:${key}`;
@@ -63,7 +70,8 @@ export function withSnapshot<T>(
     }
 
     const snapshot = (await storage.load(id)) as { data: T; updatedAt: string } | null;
-    if (snapshot && !isEmpty(snapshot.data)) return { ...snapshot, stale: true };
+    const fresh = snapshot && Date.now() - Date.parse(snapshot.updatedAt) < maxAgeMs;
+    if (snapshot && fresh && !isEmpty(snapshot.data)) return { ...snapshot, stale: true };
     throw failure ?? new Error(`${name} feed returned no data`);
   };
 }

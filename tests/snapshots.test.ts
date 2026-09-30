@@ -52,4 +52,17 @@ describe('withSnapshot', () => {
     );
     await expect(feed('in')).rejects.toThrow('blocked');
   });
+
+  it('ignores snapshots older than the maximum age', async () => {
+    const old = new Date(Date.now() - 13 * 60 * 60_000).toISOString();
+    const storage = memory({ data: ['old'], updatedAt: old });
+    const feed = withSnapshot(
+      'sales',
+      async () => [],
+      isEmpty,
+      storage,
+      12 * 60 * 60_000,
+    );
+    await expect(feed('in')).rejects.toThrow('no data');
+  });
 });
