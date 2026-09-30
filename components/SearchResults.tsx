@@ -6,21 +6,30 @@ import type { Region } from '@/lib/scraper/stores';
 import { searchStores } from '@/lib/scraper/search';
 import { cn } from '@/lib/utils';
 
-export default async function SearchResults({ query, region }: { query: string; region: Region }) {
+export default async function SearchResults({
+  query,
+  region,
+}: {
+  query: string;
+  region: Region;
+}) {
   const { results, failedStores } = await searchStores(query, region);
 
   return (
     <>
       {failedStores.length > 0 && (
         <p className="mb-6 rounded-lg border border-line bg-surface px-4 py-3 text-sm text-muted">
-          Could not reach {failedStores.join(', ')} right now. Showing results from the other stores.
+          Could not reach {failedStores.join(', ')} right now. Showing results from the
+          other stores.
         </p>
       )}
 
       {results.length === 0 ? (
         <div className="card px-6 py-16 text-center">
           <h2 className="text-lg font-semibold">No matching products found</h2>
-          <p className="mt-2 text-sm text-muted">Try a shorter name, a model number, or paste a product link.</p>
+          <p className="mt-2 text-sm text-muted">
+            Try a shorter name, a model number, or paste a product link.
+          </p>
         </div>
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -37,9 +46,12 @@ export default async function SearchResults({ query, region }: { query: string; 
                   />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="line-clamp-3 text-sm font-medium leading-snug">{result.title}</h3>
+                  <h3 className="line-clamp-3 text-sm font-medium leading-snug">
+                    {result.title}
+                  </h3>
                   <p className="mt-2 text-xs text-muted">
-                    Best price on <span className="font-medium text-ink">{result.best.storeName}</span>
+                    Best price on{' '}
+                    <span className="font-medium text-ink">{result.best.storeName}</span>
                   </p>
                   <Money
                     amount={result.best.price}
@@ -63,9 +75,16 @@ export default async function SearchResults({ query, region }: { query: string; 
                     >
                       <span className="flex-1 font-medium">{offer.storeName}</span>
                       {i === 0 && result.offers.length > 1 && (
-                        <Trophy className="size-3.5 text-down" aria-label="Lowest price" />
+                        <Trophy
+                          className="size-3.5 text-down"
+                          aria-label="Lowest price"
+                        />
                       )}
-                      <Money amount={offer.price} currency={offer.currency} className="num font-semibold" />
+                      <Money
+                        amount={offer.price}
+                        currency={offer.currency}
+                        className="num font-semibold"
+                      />
                       <ExternalLink className="size-3.5 text-muted" aria-hidden />
                     </a>
                   </li>

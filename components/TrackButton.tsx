@@ -6,7 +6,13 @@ import { Loader2, Plus } from 'lucide-react';
 import { scrapeAndStoreProduct } from '@/lib/actions';
 
 /** Start tracking a listing, then open its product page. */
-export default function TrackButton({ url, label = 'Track price' }: { url: string; label?: string }) {
+export default function TrackButton({
+  url,
+  label = 'Track price',
+}: {
+  url: string;
+  label?: string;
+}) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -26,7 +32,11 @@ export default function TrackButton({ url, label = 'Track price' }: { url: strin
           })
         }
       >
-        {isPending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Plus className="size-4" aria-hidden />}
+        {isPending ? (
+          <Loader2 className="size-4 animate-spin" aria-hidden />
+        ) : (
+          <Plus className="size-4" aria-hidden />
+        )}
         {isPending ? 'Reading live price' : label}
       </button>
       {error && (

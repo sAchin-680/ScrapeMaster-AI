@@ -64,7 +64,8 @@ export async function refreshIfStale(id: string) {
   inFlight.add(id);
   try {
     const product = await ProductModel.findById(id).select('updatedAt').lean();
-    if (!product || Date.now() - new Date(product.updatedAt).getTime() < STALE_AFTER_MS) return;
+    if (!product || Date.now() - new Date(product.updatedAt).getTime() < STALE_AFTER_MS)
+      return;
     await refreshProduct(id);
   } catch (error) {
     console.error('[refresh] on-view refresh failed', id, error);

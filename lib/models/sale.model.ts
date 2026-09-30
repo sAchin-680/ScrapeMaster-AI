@@ -20,6 +20,7 @@ saleSchema.index({ end: 1 });
 export type SaleDocument = InferSchemaType<typeof saleSchema>;
 
 const Sale: Model<SaleDocument> =
-  (mongoose.models.Sale as Model<SaleDocument>) || mongoose.model<SaleDocument>('Sale', saleSchema);
+  (mongoose.models.Sale as Model<SaleDocument>) ||
+  mongoose.model<SaleDocument>('Sale', saleSchema);
 
 export default Sale;
