@@ -13,9 +13,24 @@ const userSchema = new mongoose.Schema(
   { _id: false },
 );
 
+const offerSchema = new mongoose.Schema(
+  {
+    store: { type: String, required: true },
+    storeName: { type: String, required: true },
+    title: { type: String, required: true },
+    url: { type: String, required: true },
+    price: { type: Number, required: true },
+    currency: { type: String, required: true },
+    image: String,
+  },
+  { _id: false },
+);
+
 const productSchema = new mongoose.Schema(
   {
     url: { type: String, required: true, unique: true },
+    store: { type: String, default: 'amazon' },
+    storeName: { type: String, default: 'Amazon' },
     currency: { type: String, required: true },
     image: { type: String, required: true },
     title: { type: String, required: true },
@@ -32,11 +47,14 @@ const productSchema = new mongoose.Schema(
     stars: Number,
     isOutOfStock: { type: Boolean, default: false },
     users: { type: [userSchema], default: [] },
+    offers: { type: [offerSchema], default: [] },
+    offersCheckedAt: Date,
   },
   { timestamps: true },
 );
 
 productSchema.index({ updatedAt: -1 });
+productSchema.index({ store: 1, updatedAt: -1 });
 // Serves the similar products query (category match, newest first).
 productSchema.index({ category: 1, updatedAt: -1 });
 
