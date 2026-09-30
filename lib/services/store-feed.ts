@@ -51,7 +51,7 @@ function trendingSources(region: Region): Source[] {
 
 export type TrendingItem = Offer & { source: string; rank?: number };
 
-async function loadTrending(region: string): Promise<TrendingItem[]> {
+export async function loadTrending(region: string): Promise<TrendingItem[]> {
   const sources = trendingSources(region as Region);
   const settled = await Promise.allSettled(
     sources.map((s) => loadAndParse(s.adapter, s.url, (html) => s.parse(html, s.url))),
@@ -113,7 +113,7 @@ export type SaleFeed = {
   checked: { id: string; name: string; url: string; ok: boolean }[];
 };
 
-async function loadSaleSignals(region: string): Promise<SaleFeed> {
+export async function loadSaleSignals(region: string): Promise<SaleFeed> {
   const sources = SALE_SOURCES[region as Region] ?? SALE_SOURCES.in;
   // Homepages render banners with JavaScript, so use the browser when available.
   const homepage = {
@@ -172,7 +172,7 @@ export type DealItem = Offer & { discount: number };
  * Biggest discounts right now: store search results where the selling price
  * is well below the list price the store itself shows.
  */
-async function loadDeals(region: string): Promise<DealItem[]> {
+export async function loadDeals(region: string): Promise<DealItem[]> {
   const categories = DEAL_CATEGORIES[region as Region] ?? DEAL_CATEGORIES.in;
   const settled = await Promise.allSettled(
     categories.map((q) => {
@@ -258,6 +258,10 @@ export const saleSignalFeed = swrMap(
   withSnapshot(
     'sale-signals',
     shared('sale-signals', 1800, loadSaleSignals),
-    (feed) => !feed.checked.some((c) => c.ok),
+    // Without a browser, homepages often omit their JavaScript-rendered
+    // banners, so "no banners" falls back to a recent snapshot that had some.
+    (feed) => !feed.signals.length,
+    undefined,
+    12 * 60 * 60_000,
   ),
 );
