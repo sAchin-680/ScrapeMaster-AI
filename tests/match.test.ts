@@ -85,6 +85,7 @@ describe('parseAmazonSearch', () => {
       <div data-component-type="s-search-result" data-asin="B0CHX1W1XY">
         <h2><span>Apple iPhone 15 (128 GB) - Black</span></h2>
         <span class="a-price"><span class="a-offscreen">₹69,900</span><span class="a-price-symbol">₹</span></span>
+        <span class="a-price a-text-price"><span class="a-offscreen">₹79,900</span></span>
       </div>
       <div data-component-type="s-search-result" data-asin="B0SPONSORED">
         <span class="puis-sponsored-label-text">Sponsored</span>
@@ -95,6 +96,7 @@ describe('parseAmazonSearch', () => {
       expect.objectContaining({
         url: 'https://www.amazon.in/dp/B0CHX1W1XY',
         price: 69900,
+        originalPrice: 79900,
         currency: '₹',
       }),
     ]);

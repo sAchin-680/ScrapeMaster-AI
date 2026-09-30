@@ -82,6 +82,8 @@ export type Offer = {
   title: string;
   url: string;
   price: number;
+  /** List price (MRP) shown by the store, when available. */
+  originalPrice?: number;
   currency: string;
   image?: string;
 };

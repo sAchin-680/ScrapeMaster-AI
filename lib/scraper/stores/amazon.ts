@@ -92,6 +92,9 @@ export function parseAmazonSearch(html: string, pageUrl: string): Offer[] {
         .join(' ')
         .replace(/\s+/g, ' ');
       const price = parsePrice(item.find('.a-price .a-offscreen').first().text());
+      const listPrice = parsePrice(
+        item.find('.a-price.a-text-price .a-offscreen').first().text(),
+      );
       if (!asin || !title || !price || item.find('.puis-sponsored-label-text').length)
         return [];
       return [
@@ -101,6 +104,7 @@ export function parseAmazonSearch(html: string, pageUrl: string): Offer[] {
           title,
           url: `${origin}/dp/${asin}`,
           price,
+          originalPrice: listPrice > price ? listPrice : undefined,
           currency: item.find('.a-price-symbol').first().text().trim() || '$',
           image: item.find('img.s-image').attr('src'),
         },
