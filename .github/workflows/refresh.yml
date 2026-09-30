@@ -1,0 +1,46 @@
+name: Refresh store data
+
+# Keeps the live site current: refreshes deals, bestsellers and sale banners,
+# and re-checks every tracked product's price (sending price-drop alerts).
+# Runs here because stores block requests from the hosting provider.
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: refresh-store-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      APP_SECRET: ${{ secrets.APP_SECRET }}
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      NEXT_PUBLIC_SITE_URL: https://scrape-master-ai.vercel.app
+      # Preinstalled on GitHub's Ubuntu runners; renders Flipkart and homepages.
+      CHROME_EXECUTABLE_PATH: /usr/bin/google-chrome
+    steps:
+      - name: Check configuration
+        run: |
+          if [ -z "$MONGODB_URI" ]; then
+            echo "::error::Add the MONGODB_URI repository secret to enable data refreshes."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run feeds:refresh
