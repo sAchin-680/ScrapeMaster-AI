@@ -18,43 +18,45 @@ export default async function Home() {
     <LiveProvider>
       <Ticker products={products} />
 
-      <section id="track" className="relative scroll-mt-24 overflow-hidden">
-        <div className="dot-grid absolute inset-0 -z-10 [mask-image:radial-gradient(ellipse_at_top_left,#000_20%,transparent_70%)]" />
-        <div className="container grid items-center gap-14 py-16 lg:grid-cols-[1.1fr_1fr] lg:py-24">
+      <section id="track" className="relative scroll-mt-24 overflow-hidden border-b border-line bg-surface">
+        <div
+          className="dot-grid absolute inset-0 -z-0 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_30%,transparent_100%)]"
+          aria-hidden
+        />
+        <div className="container relative grid items-center gap-16 py-16 lg:grid-cols-[1.1fr_1fr] lg:py-28">
           <div className="flex animate-rise flex-col items-start">
             <LiveBadge />
-            <h1 className="mt-6 text-[clamp(2.5rem,6vw,4.5rem)] font-semibold leading-[1.02] tracking-[-0.035em]">
-              Prices move.
+            <h1 className="mt-6 text-[clamp(2.4rem,5.5vw,4rem)] font-semibold leading-[1.05] tracking-[-0.03em]">
+              Track Amazon prices.
               <br />
-              <span className="relative inline-block">
-                <span className="relative z-10">Know first.</span>
-                <span className="absolute inset-x-0 bottom-[0.08em] -z-0 h-[0.32em] -rotate-1 bg-accent" aria-hidden />
+              <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-violet-400">
+                Buy at the right time.
               </span>
             </h1>
-            <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted">
-              Paste any Amazon link. See its full price history, watch updates stream in live, and get
-              an email the second it drops.
+            <p className="mt-5 max-w-lg text-lg leading-relaxed text-muted">
+              Paste a product link to see its full price history, watch updates arrive live, and get an
+              email the moment it drops.
             </p>
 
             <div className="mt-8 w-full max-w-xl">
               <Searchbar />
             </div>
 
-            <dl className="mt-6 flex gap-8 border-t border-line pt-6">
+            <dl className="mt-8 grid w-full max-w-xl grid-cols-3 divide-x divide-line rounded-xl border border-line bg-paper/60">
               {[
-                ['Products', stats.products],
-                ['Snapshots', stats.datapoints],
-                ['Watchers', stats.watchers],
+                ['Products tracked', stats.products],
+                ['Price snapshots', stats.datapoints],
+                ['Active watchers', stats.watchers],
               ].map(([label, value]) => (
-                <div key={label}>
-                  <dt className="eyebrow">{label}</dt>
-                  <dd className="num mt-1 text-2xl font-semibold">{formatNumber(Number(value))}</dd>
+                <div key={label} className="px-4 py-3">
+                  <dt className="text-xs text-muted">{label}</dt>
+                  <dd className="num mt-0.5 text-xl font-semibold">{formatNumber(Number(value))}</dd>
                 </div>
               ))}
             </dl>
           </div>
 
-          <div className="animate-rise [animation-delay:.15s]">
+          <div className="animate-rise pb-6 [animation-delay:.15s]">
             <HeroVisual />
           </div>
         </div>
@@ -63,11 +65,11 @@ export default async function Home() {
       <section id="trending" className="container scroll-mt-24 py-16">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">Recently tracked</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">On the radar</h2>
+            <p className="text-sm font-medium text-accent">Recently tracked</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight">Trending products</h2>
           </div>
           {products.length > 0 && (
-            <p className="hidden text-sm text-muted sm:block">Updates stream in automatically.</p>
+            <p className="hidden text-sm text-muted sm:block">Prices update live as we re-check them.</p>
           )}
         </div>
         {products.length ? (
