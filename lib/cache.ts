@@ -8,7 +8,10 @@ const RETRY_AFTER_MS = 60_000;
  * start; `peek` never blocks and returns whatever is cached (refreshing it in
  * the background when stale), so layouts can use it without delaying pages.
  */
-export function swr<T>(ttlMs: number, load: () => Promise<T>) {
+type Ttl<T> = number | ((value: T) => number);
+
+export function swr<T>(ttl: Ttl<T>, load: () => Promise<T>) {
+  const ttlOf = (value: T) => (typeof ttl === 'function' ? ttl(value) : ttl);
   const entry: Entry<T> = { at: 0 };
 
   const refresh = () => {
@@ -31,7 +34,8 @@ export function swr<T>(ttlMs: number, load: () => Promise<T>) {
 
   return {
     async get() {
-      if (entry.value !== undefined && Date.now() - entry.at < ttlMs) return entry.value;
+      if (entry.value !== undefined && Date.now() - entry.at < ttlOf(entry.value))
+        return entry.value;
       const coolingDown = entry.failedAt && Date.now() - entry.failedAt < RETRY_AFTER_MS;
       if (entry.value !== undefined) {
         if (!coolingDown) refresh().catch(() => {});
@@ -42,7 +46,10 @@ export function swr<T>(ttlMs: number, load: () => Promise<T>) {
     },
     peek() {
       const coolingDown = entry.failedAt && Date.now() - entry.failedAt < RETRY_AFTER_MS;
-      if (!coolingDown && (entry.value === undefined || Date.now() - entry.at >= ttlMs)) {
+      if (
+        !coolingDown &&
+        (entry.value === undefined || Date.now() - entry.at >= ttlOf(entry.value!))
+      ) {
         refresh().catch(() => {});
       }
       return entry.value;
@@ -61,7 +68,7 @@ const registry = ((
  */
 export function swrMap<T>(
   name: string,
-  ttlMs: number,
+  ttlMs: Ttl<T>,
   load: (key: string) => Promise<T>,
 ) {
   return (key: string) => {
