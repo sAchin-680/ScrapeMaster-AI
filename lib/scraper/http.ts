@@ -64,7 +64,11 @@ export async function assertPublicURL(input: string | URL) {
   return url;
 }
 
-function requestConfig(): AxiosRequestConfig {
+// Set when the proxy rejects our credentials, so later requests go direct
+// instead of failing one by one.
+let proxyDisabled = false;
+
+function requestConfig(useProxy: boolean): AxiosRequestConfig {
   const config: AxiosRequestConfig = {
     timeout: 20_000,
     maxRedirects: 3,
@@ -83,11 +87,11 @@ function requestConfig(): AxiosRequestConfig {
     },
   };
 
-  if (isProxyConfigured) {
+  if (useProxy) {
     config.proxy = {
       protocol: 'http',
       host: 'brd.superproxy.io',
-      port: 22225,
+      port: env.BRIGHTDATA_PORT ?? 33335,
       auth: {
         username: `${env.BRIGHTDATA_USERNAME}-session-${Math.floor(Math.random() * 1_000_000)}`,
         password: env.BRIGHTDATA_PASSWORD!,
@@ -100,12 +104,23 @@ function requestConfig(): AxiosRequestConfig {
 export async function fetchHtml(url: string) {
   await assertPublicURL(url);
   await throttle(url);
+  const useProxy = isProxyConfigured && !proxyDisabled;
   try {
-    const response = await axios.get<string>(url, requestConfig());
+    const response = await axios.get<string>(url, requestConfig(useProxy));
     return response.data;
   } catch (error) {
     if (error instanceof ScrapeError) throw error;
     const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+
+    // 407: the proxy rejected the credentials. Stop using it and retry directly.
+    if (useProxy && status === 407) {
+      proxyDisabled = true;
+      console.warn(
+        '[scraper] Proxy rejected credentials (HTTP 407); falling back to direct requests',
+      );
+      return fetchHtml(url);
+    }
+
     throw new ScrapeError(
       status === 403 || status === 503
         ? 'The store blocked the request. Try again shortly.'
