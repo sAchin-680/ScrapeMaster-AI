@@ -14,7 +14,9 @@ describe('unsubscribe links', () => {
   it('rejects tampered emails, products and tokens', () => {
     const t = new URL(unsubscribeUrl(id, 'buyer@example.com')).searchParams.get('t')!;
     expect(verifyUnsubscribe(id, 'someone@example.com', t)).toBe(false);
-    expect(verifyUnsubscribe('66f0c1a2b3c4d5e6f7a8b9c1', 'buyer@example.com', t)).toBe(false);
+    expect(verifyUnsubscribe('66f0c1a2b3c4d5e6f7a8b9c1', 'buyer@example.com', t)).toBe(
+      false,
+    );
     expect(verifyUnsubscribe(id, 'buyer@example.com', `${t.slice(0, -1)}x`)).toBe(false);
   });
 });
