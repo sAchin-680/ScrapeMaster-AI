@@ -25,11 +25,13 @@ export const dynamic = 'force-dynamic';
 async function LiveSales({
   region,
   ...props
-}: Omit<ComponentProps<typeof SalesSection>, 'signals'> & { region: Region }) {
-  const signals = await saleSignalFeed(region)
+}: Omit<ComponentProps<typeof SalesSection>, 'signals' | 'checked'> & {
+  region: Region;
+}) {
+  const feed = await saleSignalFeed(region)
     .get()
-    .catch(() => []);
-  return <SalesSection {...props} signals={signals} />;
+    .catch(() => ({ signals: [], checked: [] }));
+  return <SalesSection {...props} signals={feed.signals} checked={feed.checked} />;
 }
 
 export default async function Home() {

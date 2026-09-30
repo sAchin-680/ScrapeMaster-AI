@@ -22,6 +22,8 @@ type Props = {
   sales: (Sale & { status: SaleStatus })[];
   /** Banners detected live on store homepages. */
   signals: SaleSignal[];
+  /** Every homepage checked, including stores with no sale right now. */
+  checked: { id: string; name: string; url: string; ok: boolean }[];
 };
 
 const steps = [
@@ -149,8 +151,9 @@ function CalendarSale({ sale }: { sale: Sale & { status: SaleStatus } }) {
   );
 }
 
-export default function SalesSection({ country, sales, signals }: Props) {
+export default function SalesSection({ country, sales, signals, checked }: Props) {
   if (!sales.length && !signals.length) return null;
+  const quiet = checked.filter((c) => c.ok && !signals.some((s) => s.store === c.id));
 
   const byStore = new Map<string, SaleSignal[]>();
   for (const signal of signals)
@@ -213,6 +216,33 @@ export default function SalesSection({ country, sales, signals }: Props) {
               <CalendarSale key={sale.id} sale={sale} />
             ))}
           </div>
+
+          {quiet.length > 0 && (
+            <div className="lg:col-start-2">
+              <p className="mb-2 text-xs font-medium text-muted">
+                Also checked, no sale promoted right now
+              </p>
+              <ul className="flex flex-wrap gap-2">
+                {quiet.map((store) => (
+                  <li key={store.id}>
+                    <a
+                      href={store.url}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow"
+                      className="flex items-center gap-2 rounded-full border border-line bg-paper py-1 pl-1 pr-3 text-xs font-medium transition-colors hover:border-accent/40"
+                    >
+                      <StoreLogo
+                        url={store.url}
+                        name={store.name}
+                        className="size-6 rounded-full"
+                      />
+                      {store.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </section>
