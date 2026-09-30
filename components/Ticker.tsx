@@ -19,14 +19,18 @@ function Change({ product }: { product: Product }) {
   );
 }
 
-/** Stock-ticker style marquee of recently tracked products. */
+/**
+ * Stock-ticker style marquee of recently tracked products. Only shown on
+ * devices with hover, where it pauses under the pointer; on touch screens a
+ * moving link is too easy to mis-tap.
+ */
 export default function Ticker({ products }: { products: Product[] }) {
   if (products.length < 3) return null;
   const items = [...products, ...products];
 
   return (
-    <div className="mask-fade-x group overflow-hidden border-b border-line bg-paper" aria-label="Recently tracked prices">
-      <ul className="flex w-max animate-ticker gap-10 py-2 group-hover:[animation-play-state:paused]">
+    <div className="mask-fade-x group hidden overflow-hidden border-b border-line bg-paper [@media(hover:hover)]:block" aria-label="Recently tracked prices">
+      <ul className="flex w-max animate-ticker gap-10 py-2 group-hover:[animation-play-state:paused] group-focus-within:[animation-play-state:paused] group-active:[animation-play-state:paused] motion-reduce:animate-none">
         {items.map((product, i) => (
           <li key={`${product._id}-${i}`} aria-hidden={i >= products.length}>
             <Link
