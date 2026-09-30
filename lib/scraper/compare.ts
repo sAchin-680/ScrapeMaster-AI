@@ -1,6 +1,6 @@
 import 'server-only';
 import type { Offer, ScrapedProduct } from '@/types';
-import { fetchHtml } from './http';
+import { loadAndParse } from './load';
 import {
   isAccessory,
   isPlausiblePrice,
@@ -27,7 +27,9 @@ export async function findOffers(
   const results = await Promise.allSettled(
     stores.map(async (adapter) => {
       const url = adapter.search!.url(query, region);
-      const offers = adapter.search!.parse(await fetchHtml(url), url);
+      const offers = await loadAndParse(adapter, url, (html) =>
+        adapter.search!.parse(html, url),
+      );
       const ranked = offers
         .map((offer) => ({ offer, score: titleSimilarity(product.title, offer.title) }))
         .filter(

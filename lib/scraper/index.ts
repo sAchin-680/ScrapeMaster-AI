@@ -1,5 +1,5 @@
 import 'server-only';
-import { fetchHtml } from './http';
+import { loadAndParse } from './load';
 import { resolveStore } from './stores';
 
 export { ScrapeError } from './errors';
@@ -13,6 +13,5 @@ export function normalizeProductURL(input: string) {
 /** Fetch and parse a product page from any supported store. */
 export async function scrapeProduct(url: string) {
   const adapter = resolveStore(new URL(url));
-  const html = await fetchHtml(url);
-  return adapter.parse(html, url);
+  return loadAndParse(adapter, url, (html) => adapter.parse(html, url));
 }
