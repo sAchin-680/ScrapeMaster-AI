@@ -97,7 +97,7 @@ export default async function ProductPage({ params }: Props) {
                     <span className="num text-ink">{formatNumber(product.reviewsCount)}</span> reviews
                   </span>
                 )}
-                <LiveWatchers productId={product._id} initial={0} />
+                <LiveWatchers productId={product._id} initial={product.watchers ?? 0} />
               </div>
             </header>
 

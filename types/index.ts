@@ -26,6 +26,7 @@ export type Product = {
   stars: number;
   isOutOfStock: boolean;
   users?: User[];
+  watchers?: number;
   createdAt?: string;
   updatedAt?: string;
 };

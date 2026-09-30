@@ -31,8 +31,11 @@ export const getProductById = cache(async (id: string): Promise<Product | null> 
   if (!isValidObjectId(id)) return null;
   try {
     await connectDB();
-    const product = await ProductModel.findById(id).select(PUBLIC_FIELDS).lean();
-    return product ? (serialize(product) as unknown as Product) : null;
+    const product = await ProductModel.findById(id).select('-__v').lean();
+    if (!product) return null;
+    // Expose how many people are watching without leaking who they are.
+    const { users, ...rest } = product;
+    return serialize({ ...rest, watchers: users?.length ?? 0 }) as unknown as Product;
   } catch (error) {
     console.error('[data] getProductById failed', error);
     return null;
