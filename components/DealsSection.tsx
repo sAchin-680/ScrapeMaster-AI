@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Flame, ShieldCheck } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import TrackButton from '@/components/TrackButton';
+import FeedUnavailable from '@/components/ui/FeedUnavailable';
 import Money from '@/components/ui/Money';
 import ProductTile from '@/components/ui/ProductTile';
 import type { Region } from '@/lib/scraper/stores';
@@ -27,11 +28,14 @@ function GridSkeleton({ count = 4 }: { count?: number }) {
 async function StoreDeals({ region }: { region: Region }) {
   // Time-boxed so slow stores can't hold the page past the function limit;
   // loading continues in the background and fills the cache.
-  const deals = await withTimeout(dealsFeed(region).get(), FEED_TIMEOUT_MS, []);
+  // null means the stores couldn't be reached, [] means no qualifying deals.
+  const deals = await withTimeout(dealsFeed(region).get(), FEED_TIMEOUT_MS, null);
+  if (!deals) return <FeedUnavailable what="live discounts" />;
   if (!deals.length) {
     return (
       <p className="text-sm text-muted">
-        No big store discounts found right now. Check back soon.
+        No discounts of 20% or more against the store&apos;s own price right now. Check
+        back soon.
       </p>
     );
   }

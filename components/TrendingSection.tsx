@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { Crown, ExternalLink, TrendingUp } from 'lucide-react';
 import TrackButton from '@/components/TrackButton';
+import FeedUnavailable from '@/components/ui/FeedUnavailable';
 import Money from '@/components/ui/Money';
 import ProductTile from '@/components/ui/ProductTile';
 import { SEARCHABLE_STORES } from '@/lib/locale';
@@ -10,11 +11,12 @@ import { FEED_TIMEOUT_MS, withTimeout } from '@/lib/utils/timeout';
 
 /** Store bestseller grid; streams in once the stores have responded. */
 async function TrendingGrid({ region }: { region: Region }) {
-  const items = await withTimeout(trendingFeed(region).get(), FEED_TIMEOUT_MS, []);
+  const items = await withTimeout(trendingFeed(region).get(), FEED_TIMEOUT_MS, null);
+  if (!items) return <FeedUnavailable what="bestseller lists" />;
   if (!items.length) {
     return (
       <p className="text-sm text-muted">
-        Store bestseller lists are unavailable right now. Check back soon.
+        The stores returned no bestsellers right now. Check back soon.
       </p>
     );
   }
