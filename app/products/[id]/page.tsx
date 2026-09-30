@@ -32,6 +32,8 @@ import { refreshIfStale } from '@/lib/services/refresh';
 import { formatNumber, formatPrice, truncate } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
+// Room for streamed store data; Vercel Hobby defaults to 10 seconds.
+export const maxDuration = 60;
 
 type Props = { params: Promise<{ id: string }> };
 

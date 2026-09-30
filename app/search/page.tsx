@@ -6,6 +6,9 @@ import Searchbar from '@/components/Searchbar';
 import { getCountry, regionForCountry, SEARCHABLE_STORES } from '@/lib/locale';
 import { getPreferences } from '@/lib/preferences';
 
+// Room for streamed store data; Vercel Hobby defaults to 10 seconds.
+export const maxDuration = 60;
+
 type Props = { searchParams: Promise<{ q?: string }> };
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
