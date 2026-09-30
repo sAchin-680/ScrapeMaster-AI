@@ -1,0 +1,35 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.adminCommand("ping")']
+      interval: 10s
+      retries: 5
+
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    env_file: .env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/scrapemaster
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # Triggers the price refresh every 6 hours when not running on Vercel.
+  cron:
+    image: curlimages/curl:8.10.1
+    restart: unless-stopped
+    env_file: .env
+    depends_on: [app]
+    entrypoint: >
+      sh -c 'while true; do sleep 21600;
+      curl -fsS -H "Authorization: Bearer $$CRON_SECRET" http://app:3000/api/cron || true; done'
+
+volumes:
+  mongo-data:
