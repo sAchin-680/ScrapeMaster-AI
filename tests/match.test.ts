@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { searchQuery, titleSimilarity } from '@/lib/scraper/match';
-import { MATCH_THRESHOLD } from '@/lib/scraper/compare';
+import { isAccessory, searchQuery, titleSimilarity } from '@/lib/scraper/match';
+import { isPlausiblePrice, MATCH_THRESHOLD } from '@/lib/scraper/compare';
 import { parseAmazonSearch } from '@/lib/scraper/stores/amazon';
 
 describe('titleSimilarity', () => {
@@ -19,6 +19,44 @@ describe('titleSimilarity', () => {
     expect(titleSimilarity(source, 'Samsung Galaxy S24 Ultra')).toBeLessThan(
       MATCH_THRESHOLD,
     );
+  });
+
+  // Real title pairs observed on Amazon.in and Flipkart.
+  it.each([
+    [
+      'Sony WH-1000XM5 Best Active Noise Cancelling Wireless Bluetooth Over Ear Headphones with Mic',
+      'SONY WH-1000XM5 Wireless Noise Cancellation Headphones',
+    ],
+    [
+      'Logitech MX Master 3S Bluetooth Edition Wireless Mouse, Ultra-fast Scrolling',
+      'Logitech MX Master 3s Ergonomic Optical Mouse',
+    ],
+    [
+      'JBL Flip 6 Wireless Portable Bluetooth Speaker Pro Sound, Upto 12 Hours Playtime',
+      'JBL Flip 6 with 12Hr Playtime, Customizable Sound 30 W Bluetooth Speaker',
+    ],
+  ])('matches verbose and terse listings of the same product', (a, b) => {
+    expect(titleSimilarity(a, b)).toBeGreaterThanOrEqual(MATCH_THRESHOLD);
+  });
+
+  it('flags accessories that mention the product', () => {
+    expect(
+      isAccessory('OnePlus Nord CE4 Sandstone Bumper Case Black', 'OnePlus Nord CE4 5G'),
+    ).toBe(true);
+    expect(
+      isAccessory(
+        'Cartoon Silicone Case Compatible with Apple AirPods Pro',
+        'AirPods Pro',
+      ),
+    ).toBe(true);
+    expect(
+      isAccessory('OnePlus Nord CE4 (Dark Chrome, 128 GB)', 'OnePlus Nord CE4 5G'),
+    ).toBe(false);
+  });
+
+  it('rejects implausible prices', () => {
+    expect(isPlausiblePrice(199, 24999)).toBe(false);
+    expect(isPlausiblePrice(23999, 24999)).toBe(true);
   });
 
   it('builds a short search query', () => {
