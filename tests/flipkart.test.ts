@@ -71,7 +71,7 @@ describe('flipkart search parsing is class-agnostic', () => {
         <div class="r1"><div class="r2">₹59,900</div><div class="r3">₹69,900</div></div>
       </div></div>
       <div class="zz1"><div class="zz2">
-        <a href="/apple-iphone-15-pink-128-gb/p/itm7579ed94ca647?pid=MOBGTAGPNMZA5PU5"><img alt="Apple iPhone 15 (Pink, 128 GB)" /></a>
+        <a href="/apple-iphone-15-pink-128-gb/p/itm7579ed94ca647?pid=MOBGTAGPNMZA5PU5"><img alt="Apple iPhone 15 (Pink, 128 GB)" src="//static-assets-web.flixcart.com/img/placeholder_fcebae.svg" /></a>
         <a href="/apple-iphone-15-pink-128-gb/p/itm7579ed94ca647?pid=MOBGTAGPNMZA5PU5&ref=x">Apple iPhone 15 (Pink, 128 GB)</a>
         <span>₹61,499</span>
       </div></div>`;
@@ -80,6 +80,8 @@ describe('flipkart search parsing is class-agnostic', () => {
       ['Apple iPhone 15 (Green, 128 GB)', 59900],
       ['Apple iPhone 15 (Pink, 128 GB)', 61499],
     ]);
+    expect(offers[0].image).toBe('https://rukminim2.flixcart.com/g.jpg');
+    expect(offers[1].image).toBeUndefined();
     expect(offers[0].url).toBe(
       'https://www.flipkart.com/apple-iphone-15-green-128-gb/p/itm235cd318bde73?pid=MOBGTAGPYYWZRUJX',
     );

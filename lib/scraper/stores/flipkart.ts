@@ -126,7 +126,11 @@ export function parseFlipkartSearch(html: string): Offer[] {
       url: url.toString(),
       price: prices[0],
       currency: '₹',
-      image: card.find('img').first().attr('src'),
+      image: card
+        .find('img')
+        .map((_, img) => $(img).attr('src') ?? '')
+        .get()
+        .find((src) => /^https?:\/\//.test(src) && !/placeholder/i.test(src)),
     });
   });
 
