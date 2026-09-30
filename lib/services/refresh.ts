@@ -1,4 +1,5 @@
 import 'server-only';
+import { connectDB } from '@/lib/db';
 import ProductModel from '@/lib/models/product.model';
 import { getEmailNotifType } from '@/lib/notifications';
 import { generateEmailBody, sendEmail } from '@/lib/nodemailer';
@@ -7,6 +8,16 @@ import { appendPrice, getPriceStats } from '@/lib/utils';
 import { offersAreStale, updateOffers } from './offers';
 
 /** Re-scrape a stored product, append a price snapshot and send any alerts. */
+/** Every tracked product, least recently refreshed first. */
+export async function staleProductIds() {
+  await connectDB();
+  const products = await ProductModel.find({})
+    .select('_id')
+    .sort({ updatedAt: 1 })
+    .lean();
+  return products.map((p) => String(p._id));
+}
+
 export async function refreshProduct(id: string) {
   const product = await ProductModel.findById(id);
   if (!product) return { id, status: 'missing' as const };

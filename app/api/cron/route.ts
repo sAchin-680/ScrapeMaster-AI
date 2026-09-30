@@ -1,8 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { connectDB } from '@/lib/db';
 import { env } from '@/lib/env';
-import ProductModel from '@/lib/models/product.model';
-import { refreshProduct } from '@/lib/services/refresh';
+import { refreshProduct, staleProductIds } from '@/lib/services/refresh';
 
 // Vercel's Hobby plan caps functions at 60 seconds.
 export const maxDuration = 60;
@@ -23,11 +21,8 @@ export async function GET(request: NextRequest) {
   }
 
   const startedAt = Date.now();
-  await connectDB();
   // Stalest first, so runs that hit the time budget still rotate through everything.
-  const ids = (
-    await ProductModel.find({}).select('_id').sort({ updatedAt: 1 }).lean()
-  ).map((p) => String(p._id));
+  const ids = await staleProductIds();
 
   const results: PromiseSettledResult<Awaited<ReturnType<typeof refreshProduct>>>[] = [];
   // Process in small batches so one slow page or a rate limit can't sink the run.
