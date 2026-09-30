@@ -5,6 +5,9 @@ import { formatPrice, truncate } from '@/lib/utils/format';
 const escapeHtml = (value: string) =>
   value.replace(/[&<>"']/g, (char) => `&#${char.charCodeAt(0)};`);
 
+/** Replaced per recipient with a signed unsubscribe link. */
+export const UNSUBSCRIBE_PLACEHOLDER = '{{UNSUBSCRIBE_URL}}';
+
 function layout(heading: string, message: string, product: EmailProductInfo) {
   const title = escapeHtml(product.title);
   const url = escapeHtml(product.url);
@@ -31,7 +34,7 @@ function layout(heading: string, message: string, product: EmailProductInfo) {
       <a href="${url}" style="display:inline-block;background:#0a0a0a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600;font-size:14px">View product</a>
     </td></tr>
   </table>
-  <p style="text-align:center;margin:20px 0 0;font-size:12px;color:#8a8a8a">You are receiving this because you asked to track this product.</p>
+  <p style="text-align:center;margin:20px 0 0;font-size:12px;color:#8a8a8a">You are receiving this because you asked to track this product. <a href="{{UNSUBSCRIBE_URL}}" style="color:#8a8a8a">Unsubscribe</a></p>
 </body></html>`;
 }
 

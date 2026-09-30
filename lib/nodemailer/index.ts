@@ -2,6 +2,8 @@ import 'server-only';
 import nodemailer, { type Transporter } from 'nodemailer';
 import { env, isEmailConfigured } from '@/lib/env';
 import type { EmailContent } from '@/types';
+import { oneClickUnsubscribeUrl, unsubscribeUrl } from '@/lib/unsubscribe';
+import { UNSUBSCRIBE_PLACEHOLDER } from './templates';
 
 export { generateEmailBody } from './templates';
 
@@ -19,19 +21,40 @@ function getTransporter() {
   return transporter;
 }
 
-export async function sendEmail(content: EmailContent, recipients: string[]) {
+/**
+ * Send one message per recipient so each gets a personal unsubscribe link
+ * (required by anti-spam rules) and addresses are never shared.
+ */
+export async function sendEmail(
+  content: EmailContent,
+  recipients: string[],
+  productId: string,
+) {
   if (!recipients.length) return;
   if (!isEmailConfigured) {
     console.warn('[mail] SMTP is not configured, skipping email:', content.subject);
     return;
   }
 
-  // BCC keeps subscriber addresses private from each other.
-  await getTransporter().sendMail({
-    from: env.EMAIL_FROM ?? env.SMTP_USER,
-    to: env.EMAIL_FROM ?? env.SMTP_USER,
-    bcc: recipients,
-    subject: content.subject,
-    html: content.body,
-  });
+  const results = await Promise.allSettled(
+    recipients.map((to) => {
+      const link = unsubscribeUrl(productId, to);
+      return getTransporter().sendMail({
+        from: env.EMAIL_FROM ?? env.SMTP_USER,
+        to,
+        subject: content.subject,
+        html: content.body.replaceAll(UNSUBSCRIBE_PLACEHOLDER, link),
+        headers: {
+          'List-Unsubscribe': `<${oneClickUnsubscribeUrl(productId, to)}>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
+      });
+    }),
+  );
+  const failed = results.filter((r) => r.status === 'rejected').length;
+  if (failed)
+    console.error(
+      `[mail] ${failed}/${recipients.length} emails failed:`,
+      content.subject,
+    );
 }
