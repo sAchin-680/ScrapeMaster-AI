@@ -233,15 +233,17 @@ function shared<T>(
 // hosting provider, where stores often block requests.
 const JOB_FRESH_MS = 45 * 60_000;
 
-// In-memory cache per server instance: short, so new snapshots from the job
-// show up within minutes; stale fallbacks even shorter so live data is retried.
+// Pages re-fetch every 60 seconds, so a new snapshot is visible within a minute.
+const FEED_CACHE_MS = 60_000;
+
+// In-memory cache per server instance, kept short so new data appears quickly.
 const ttl = (freshMs: number) => (result: FeedResult<unknown>) =>
-  result.stale ? 2 * 60_000 : freshMs;
+  result.stale ? Math.min(freshMs, 60_000) : freshMs;
 
 /** Live store discounts, refreshed hourly. */
 export const dealsFeed = swrMap(
   'deals',
-  ttl(10 * 60_000),
+  ttl(FEED_CACHE_MS),
   withSnapshot('deals', shared('deals', 3600, loadDeals), (deals) => !deals.length, {
     preferWithinMs: JOB_FRESH_MS,
   }),
@@ -250,7 +252,7 @@ export const dealsFeed = swrMap(
 /** Store bestsellers and popular lists, refreshed hourly. */
 export const trendingFeed = swrMap(
   'trending',
-  ttl(10 * 60_000),
+  ttl(FEED_CACHE_MS),
   withSnapshot(
     'trending',
     shared('trending', 3600, loadTrending),
@@ -264,7 +266,7 @@ export const trendingFeed = swrMap(
 /** Sale banners detected on store homepages, refreshed every 30 minutes. */
 export const saleSignalFeed = swrMap(
   'sale-signals',
-  ttl(10 * 60_000),
+  ttl(FEED_CACHE_MS),
   withSnapshot(
     'sale-signals',
     shared('sale-signals', 1800, loadSaleSignals),
