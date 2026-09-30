@@ -1,13 +1,15 @@
 import { BellRing, Headphones, TrendingDown } from 'lucide-react';
+import Money from '@/components/ui/Money';
 
 const PATH =
   'M0,60 C30,60 40,34 70,40 C100,46 110,20 140,26 C170,32 180,56 210,52 C240,48 250,74 280,90 C300,100 310,118 340,122';
 
+// Illustrative USD figures, shown in the viewer's currency.
 const stats = [
-  ['Lowest', '$248'],
-  ['Average', '$321'],
-  ['Highest', '$399'],
-];
+  ['Lowest', 248],
+  ['Average', 321],
+  ['Highest', 399],
+] as const;
 
 /** Decorative product card illustrating a detected price drop. */
 export default function HeroVisual() {
@@ -26,7 +28,7 @@ export default function HeroVisual() {
             </span>
             <div>
               <p className="text-sm text-muted">Sony WH-1000XM5</p>
-              <p className="num text-2xl font-semibold">$248.00</p>
+              <Money amount={248} currency="$" approximate={false} className="num block text-2xl font-semibold" />
             </div>
           </div>
           <span className="num inline-flex items-center gap-1 rounded-md bg-down/10 px-2 py-1 text-xs font-medium text-down">
@@ -64,7 +66,9 @@ export default function HeroVisual() {
           {stats.map(([label, value]) => (
             <div key={label} className="rounded-lg bg-paper px-3 py-2.5 ring-1 ring-line/60">
               <dt className="text-xs text-muted">{label}</dt>
-              <dd className="num mt-0.5 font-semibold">{value}</dd>
+              <dd className="num mt-0.5 font-semibold">
+                <Money amount={value} currency="$" approximate={false} />
+              </dd>
             </div>
           ))}
         </dl>
@@ -75,7 +79,9 @@ export default function HeroVisual() {
           <BellRing className="size-4" aria-hidden />
         </span>
         <div className="text-sm">
-          <p className="font-medium">Price dropped to $248</p>
+          <p className="font-medium">
+            Price dropped to <Money amount={248} currency="$" approximate={false} />
+          </p>
           <p className="text-xs text-muted">Alert sent to 128 watchers</p>
         </div>
       </div>
