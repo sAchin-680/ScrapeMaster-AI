@@ -9,7 +9,7 @@ import { generateEmailBody, sendEmail } from '@/lib/nodemailer';
 import { ScrapeError } from '@/lib/scraper';
 import { updateOffers } from '@/lib/services/offers';
 import { refreshProduct } from '@/lib/services/refresh';
-import { trackProduct } from '@/lib/services/track';
+import { findTrackedId, trackProduct } from '@/lib/services/track';
 import { isValidProductURL } from '@/lib/utils';
 import type { ActionResult } from '@/types';
 
@@ -44,6 +44,22 @@ export async function scrapeAndStoreProduct(
         : 'Something went wrong. Please try again.';
     return { ok: false, error: message };
   }
+}
+
+/**
+ * Open a store listing inside the app: returns the tracked product if it
+ * exists, otherwise tracks it first. Used when clicking store listings.
+ */
+export async function openProduct(input: string): Promise<ActionResult<{ id: string }>> {
+  const parsed = urlSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  try {
+    const existing = await findTrackedId(parsed.data);
+    if (existing) return { ok: true, data: { id: existing } };
+  } catch {
+    // Fall through to tracking, which reports its own errors.
+  }
+  return scrapeAndStoreProduct(parsed.data);
 }
 
 const trackSchema = z.object({

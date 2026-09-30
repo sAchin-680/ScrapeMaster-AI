@@ -30,8 +30,14 @@ export async function trackProduct(input: string) {
   return { id: String(product!._id), created: !existing };
 }
 
+/** Id of the tracked product for a listing URL, if any (after normalisation). */
+export async function findTrackedId(input: string) {
+  await connectDB();
+  const found = await ProductModel.exists({ url: normalizeProductURL(input) });
+  return found ? String(found._id) : null;
+}
+
 /** Whether a listing URL is already tracked (after normalisation). */
 export async function isTracked(input: string) {
-  await connectDB();
-  return Boolean(await ProductModel.exists({ url: normalizeProductURL(input) }));
+  return Boolean(await findTrackedId(input));
 }
