@@ -2,7 +2,8 @@
 
 import { useId, useMemo, useRef, useState, type PointerEvent } from 'react';
 import type { PriceHistoryItem } from '@/types';
-import { formatPrice, toAreaPath, toPath, toPoints } from '@/lib/utils';
+import { useMoney } from '@/components/PreferencesProvider';
+import { toAreaPath, toPath, toPoints } from '@/lib/utils';
 
 const W = 640;
 const H = 220;
@@ -23,6 +24,7 @@ export default function PriceChart({
   const gradientId = useId();
   const svgRef = useRef<SVGSVGElement>(null);
   const [active, setActive] = useState<number | null>(null);
+  const money = useMoney();
 
   const values = useMemo(() => history.map((h) => h.price), [history]);
   const points = useMemo(() => toPoints(values, W, H, 16), [values]);
@@ -57,7 +59,7 @@ export default function PriceChart({
     <figure className="relative">
       <figcaption className="mb-4 flex items-baseline justify-between gap-4">
         <span className="num text-2xl font-semibold">
-          {formatPrice(entry.price, currency)}
+          {money(entry.price, currency).text}
         </span>
         <span className="text-sm text-muted">
           {entry.date ? dateFormat.format(new Date(entry.date)) : '—'}
@@ -75,7 +77,7 @@ export default function PriceChart({
           onPointerDown={onMove}
           onPointerLeave={() => setActive(null)}
           role="img"
-          aria-label={`Price history with ${history.length} snapshots, lowest ${formatPrice(min, currency)}`}
+          aria-label={`Price history with ${history.length} snapshots, lowest ${money(min, currency).text}`}
         >
           <defs>
             <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
