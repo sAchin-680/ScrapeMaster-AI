@@ -12,7 +12,6 @@ const fields = {
   MONGODB_URI: z
     .string()
     .regex(/^mongodb(\+srv)?:\/\//, 'must start with mongodb:// or mongodb+srv://'),
-  NEXT_PUBLIC_SITE_URL: z.string().url(),
   BRIGHTDATA_USERNAME: z.string(),
   BRIGHTDATA_PASSWORD: z.string(),
   SMTP_HOST: z.string(),
