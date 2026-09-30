@@ -1,7 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, MessageSquare, Sigma, Star, Tag } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  ExternalLink,
+  MessageSquare,
+  Sigma,
+  Star,
+  Tag,
+} from 'lucide-react';
 import PriceChart from '@/components/PriceChart';
 import ProductCard from '@/components/ProductCard';
 import TrackModal from '@/components/TrackModal';
@@ -34,7 +43,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
-    openGraph: { title, description, images: product.image ? [product.image] : undefined },
+    openGraph: {
+      title,
+      description,
+      images: product.image ? [product.image] : undefined,
+    },
   };
 }
 
@@ -52,23 +65,24 @@ export default async function ProductPage({ params }: Props) {
   return (
     <LiveProvider productIds={[product._id, ...similar.map((p) => p._id)]}>
       <div className="container py-8 lg:py-12">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted transition hover:text-ink">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-sm text-muted transition hover:text-ink"
+        >
           <ArrowLeft className="size-4" aria-hidden /> All products
         </Link>
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-12">
           <div className="lg:sticky lg:top-24 lg:self-start">
             <div className="card relative aspect-square overflow-hidden bg-white p-4">
-              {(
-                <ProductImage
-                  src={product.image}
-                  alt={product.title}
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) 45vw, 100vw"
-                  className="object-contain p-10 mix-blend-multiply"
-                />
-              )}
+              <ProductImage
+                src={product.image}
+                alt={product.title}
+                fill
+                priority
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                className="object-contain p-10 mix-blend-multiply"
+              />
               {isLowest && (
                 <span className="absolute left-4 top-4 rounded-md bg-down px-2.5 py-1 text-xs font-medium text-white">
                   Lowest price recorded
@@ -83,7 +97,9 @@ export default async function ProductPage({ params }: Props) {
                 <LiveBadge />
                 <p className="eyebrow">{product.category}</p>
               </div>
-              <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">{product.title}</h1>
+              <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+                {product.title}
+              </h1>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
                 {product.stars > 0 && (
                   <span className="inline-flex items-center gap-1.5">
@@ -94,7 +110,10 @@ export default async function ProductPage({ params }: Props) {
                 {product.reviewsCount > 0 && (
                   <span className="inline-flex items-center gap-1.5">
                     <MessageSquare className="size-4" aria-hidden />
-                    <span className="num text-ink">{formatNumber(product.reviewsCount)}</span> reviews
+                    <span className="num text-ink">
+                      {formatNumber(product.reviewsCount)}
+                    </span>{' '}
+                    reviews
                   </span>
                 )}
                 <LiveWatchers productId={product._id} initial={product.watchers ?? 0} />
@@ -155,11 +174,33 @@ export default async function ProductPage({ params }: Props) {
               </div>
             </section>
 
-            <section aria-label="Price statistics" className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
-              <StatTile label="Current" icon={Tag} value={formatPrice(product.currentPrice, product.currency)} tone="accent" />
-              <StatTile label="Average" icon={Sigma} value={formatPrice(product.averagePrice, product.currency)} />
-              <StatTile label="Highest" icon={ArrowUp} value={formatPrice(product.highestPrice, product.currency)} tone="up" />
-              <StatTile label="Lowest" icon={ArrowDown} value={formatPrice(product.lowestPrice, product.currency)} tone="down" />
+            <section
+              aria-label="Price statistics"
+              className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line"
+            >
+              <StatTile
+                label="Current"
+                icon={Tag}
+                value={formatPrice(product.currentPrice, product.currency)}
+                tone="accent"
+              />
+              <StatTile
+                label="Average"
+                icon={Sigma}
+                value={formatPrice(product.averagePrice, product.currency)}
+              />
+              <StatTile
+                label="Highest"
+                icon={ArrowUp}
+                value={formatPrice(product.highestPrice, product.currency)}
+                tone="up"
+              />
+              <StatTile
+                label="Lowest"
+                icon={ArrowDown}
+                value={formatPrice(product.lowestPrice, product.currency)}
+                tone="down"
+              />
             </section>
 
             <section className="card p-5 sm:p-6" aria-labelledby="history-heading">
@@ -180,7 +221,10 @@ export default async function ProductPage({ params }: Props) {
                 <ul className="mt-4 flex flex-col gap-3 text-[15px] leading-relaxed text-muted">
                   {bullets.map((line, i) => (
                     <li key={i} className="flex gap-3">
-                      <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-ink/40" aria-hidden />
+                      <span
+                        className="mt-2.5 size-1.5 shrink-0 rounded-full bg-ink/40"
+                        aria-hidden
+                      />
                       {line}
                     </li>
                   ))}
