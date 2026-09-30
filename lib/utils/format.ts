@@ -26,3 +26,17 @@ export function formatRelativeTime(date: Date | string | undefined, now = Date.n
 export function truncate(text: string, length: number) {
   return text.length > length ? `${text.slice(0, length).trimEnd()}…` : text;
 }
+
+/**
+ * Ask the retailer's image CDN for a smaller rendition. Amazon and Flipkart
+ * encode the size in the URL; other hosts are returned unchanged.
+ */
+export function sizedImageUrl(url: string, px: number) {
+  if (/media-amazon\.com|ssl-images-amazon\.com/.test(url)) {
+    return url.replace(/\._[A-Z0-9_,]+_\.(jpg|jpeg|png|webp)$/i, `._AC_SL${px}_.$1`);
+  }
+  if (/rukmini\w*\.flixcart\.com\/image\/\d+\/\d+\//.test(url)) {
+    return url.replace(/\/image\/\d+\/\d+\//, `/image/${px}/${px}/`);
+  }
+  return url;
+}

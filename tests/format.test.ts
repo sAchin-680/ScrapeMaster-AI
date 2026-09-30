@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { formatPrice, formatRelativeTime, truncate } from '@/lib/utils/format';
+import {
+  formatPrice,
+  formatRelativeTime,
+  sizedImageUrl,
+  truncate,
+} from '@/lib/utils/format';
 
 describe('format helpers', () => {
   it('formats prices with currency symbol', () => {
@@ -17,5 +22,25 @@ describe('format helpers', () => {
   it('truncates long text with an ellipsis', () => {
     expect(truncate('abcdefgh', 4)).toBe('abcd…');
     expect(truncate('abc', 4)).toBe('abc');
+  });
+});
+
+describe('sizedImageUrl', () => {
+  it('resizes Amazon and Flipkart images and leaves others alone', () => {
+    expect(
+      sizedImageUrl(
+        'https://m.media-amazon.com/images/I/61ULimPWODL._AC_SL1500_.jpg',
+        800,
+      ),
+    ).toBe('https://m.media-amazon.com/images/I/61ULimPWODL._AC_SL800_.jpg');
+    expect(
+      sizedImageUrl(
+        'https://rukminim2.flixcart.com/image/832/832/xif0q/mobile/a.jpeg?q=70',
+        400,
+      ),
+    ).toBe('https://rukminim2.flixcart.com/image/400/400/xif0q/mobile/a.jpeg?q=70');
+    expect(sizedImageUrl('https://cdn.shop.example/x.jpg', 400)).toBe(
+      'https://cdn.shop.example/x.jpg',
+    );
   });
 });
