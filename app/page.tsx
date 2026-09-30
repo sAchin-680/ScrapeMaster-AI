@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import DealsSection from '@/components/DealsSection';
 import HashScroll from '@/components/HashScroll';
 import HeroVisual from '@/components/HeroVisual';
@@ -21,6 +22,8 @@ import { getPreferences } from '@/lib/preferences';
 import { formatNumber } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
+
+export const metadata: Metadata = { alternates: { canonical: '/' } };
 // Room for streamed store data; Vercel Hobby defaults to 10 seconds.
 export const maxDuration = 60;
 

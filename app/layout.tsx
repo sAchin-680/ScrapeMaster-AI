@@ -40,6 +40,7 @@ export const metadata: Metadata = {
   applicationName: siteConfig.name,
   openGraph: {
     type: 'website',
+    url: '/',
     siteName: siteConfig.name,
     title: siteConfig.name,
     description: siteConfig.description,

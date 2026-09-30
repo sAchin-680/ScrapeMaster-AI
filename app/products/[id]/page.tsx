@@ -48,12 +48,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     product.currency,
   )}. Track the price history and get drop alerts.`;
 
+  const path = `/products/${id}`;
   return {
     title,
     description,
+    alternates: { canonical: path },
     openGraph: {
       title,
       description,
+      url: path,
       images: product.image ? [product.image] : undefined,
     },
   };
