@@ -8,6 +8,7 @@ const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
 
 import { ScrapeError } from './errors';
+import { throttle } from './throttle';
 
 export { ScrapeError };
 
@@ -98,6 +99,7 @@ function requestConfig(): AxiosRequestConfig {
 
 export async function fetchHtml(url: string) {
   await assertPublicURL(url);
+  await throttle(url);
   try {
     const response = await axios.get<string>(url, requestConfig());
     return response.data;

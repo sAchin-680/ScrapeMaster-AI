@@ -2,6 +2,7 @@ import 'server-only';
 import type { Browser } from 'puppeteer-core';
 import { env } from '@/lib/env';
 import { ScrapeError } from './errors';
+import { throttle } from './throttle';
 
 const MAX_PAGES = 3;
 const NAV_TIMEOUT_MS = 30_000;
@@ -57,6 +58,7 @@ export async function renderHtml(url: string) {
     );
   }
 
+  await throttle(url);
   await acquire();
   const browser = await getBrowser();
   const page = await browser.newPage();
