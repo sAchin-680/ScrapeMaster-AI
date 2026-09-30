@@ -63,6 +63,12 @@ export default async function ProductPage({ params }: Props) {
   const similar = await getSimilarProducts(id);
   const history = product.priceHistory ?? [];
   const verdict = getDealVerdict({ ...product, priceHistory: history });
+  // Send buyers to the cheapest matching listing, falling back to this one.
+  const buyOffer = [...(product.offers ?? [])].sort((a, b) => a.price - b.price)[0] ?? {
+    url: product.url,
+    store: product.store,
+    storeName: product.storeName,
+  };
   const savings = product.originalPrice - product.currentPrice;
   const isLowest = history.length > 1 && product.currentPrice <= product.lowestPrice;
   const bullets = product.description?.split('\n').filter(Boolean).slice(0, 8) ?? [];
@@ -174,12 +180,13 @@ export default async function ProductPage({ params }: Props) {
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
                 <TrackModal productId={product._id} title={product.title} />
                 <a
-                  href={product.url}
+                  href={buyOffer.url}
                   target="_blank"
                   rel="noopener noreferrer nofollow"
-                  className="btn-ghost py-3.5 text-[15px]"
+                  className="btn-accent py-3.5 text-[15px]"
                 >
-                  View on {product.storeName ?? 'store'}{' '}
+                  {buyOffer.store !== product.store ? 'Best price on ' : 'Buy on '}
+                  {buyOffer.storeName}
                   <ExternalLink className="size-4" aria-hidden />
                 </a>
               </div>
