@@ -6,6 +6,8 @@ export type SaleSignal = {
   text: string;
   status: 'live' | 'upcoming';
   url: string;
+  /** When the store homepage was checked (ISO). */
+  detectedAt?: string;
 };
 
 // Known marketplace events, plus generic sale wording on banners.

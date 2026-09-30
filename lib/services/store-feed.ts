@@ -77,7 +77,10 @@ async function loadSaleSignals(region: string): Promise<SaleSignal[]> {
   const settled = await Promise.allSettled(
     homes.map((h) => loadAndParse(h.adapter, h.url, (html) => parseSaleSignals(html, h))),
   );
-  return settled.flatMap((r) => (r.status === 'fulfilled' ? r.value : []));
+  const detectedAt = new Date().toISOString();
+  return settled.flatMap((r) =>
+    r.status === 'fulfilled' ? r.value.map((signal) => ({ ...signal, detectedAt })) : [],
+  );
 }
 
 /** Store bestsellers and popular lists, refreshed hourly. */
