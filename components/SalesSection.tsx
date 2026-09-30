@@ -52,12 +52,14 @@ function StatusPill({ live }: { live: boolean }) {
 }
 
 /** One card per store, listing every event its homepage currently promotes. */
-function StoreSales({ signals }: { signals: SaleSignal[] }) {
+function StoreSales({ signals, wide }: { signals: SaleSignal[]; wide?: boolean }) {
   const store = signals[0];
   const live = signals.some((s) => s.status === 'live');
 
   return (
-    <article className="reveal card flex flex-col gap-4 p-5">
+    <article
+      className={cn('reveal card flex flex-col gap-4 p-5', wide && 'sm:col-span-2')}
+    >
       <header className="flex items-center gap-3">
         <StoreLogo
           url={store.url}
@@ -153,6 +155,7 @@ function CalendarSale({ sale }: { sale: Sale & { status: SaleStatus } }) {
 
 export default function SalesSection({ country, sales, signals, checked }: Props) {
   if (!sales.length && !signals.length) return null;
+  const visibleSales = sales.slice(0, 4);
   const quiet = checked.filter((c) => c.ok && !signals.some((s) => s.store === c.id));
 
   const byStore = new Map<string, SaleSignal[]>();
@@ -208,41 +211,47 @@ export default function SalesSection({ country, sales, signals, checked }: Props
             </Link>
           </div>
 
-          <div className="grid content-start gap-4 sm:grid-cols-2">
-            {stores.map((group) => (
-              <StoreSales key={group[0].store} signals={group} />
-            ))}
-            {sales.slice(0, 4).map((sale) => (
-              <CalendarSale key={sale.id} sale={sale} />
-            ))}
-          </div>
-
-          {quiet.length > 0 && (
-            <div className="lg:col-start-2">
-              <p className="mb-2 text-xs font-medium text-muted">
-                Also checked, no sale promoted right now
-              </p>
-              <ul className="flex flex-wrap gap-2">
-                {quiet.map((store) => (
-                  <li key={store.id}>
-                    <a
-                      href={store.url}
-                      target="_blank"
-                      rel="noopener noreferrer nofollow"
-                      className="flex items-center gap-2 rounded-full border border-line bg-paper py-1 pl-1 pr-3 text-xs font-medium transition-colors hover:border-accent/40"
-                    >
-                      <StoreLogo
-                        url={store.url}
-                        name={store.name}
-                        className="size-6 rounded-full"
-                      />
-                      {store.name}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+          <div className="flex flex-col gap-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {stores.map((group) => (
+                <StoreSales
+                  key={group[0].store}
+                  signals={group}
+                  wide={stores.length + visibleSales.length === 1}
+                />
+              ))}
+              {visibleSales.map((sale) => (
+                <CalendarSale key={sale.id} sale={sale} />
+              ))}
             </div>
-          )}
+
+            {quiet.length > 0 && (
+              <div>
+                <p className="mb-2 text-xs font-medium text-muted">
+                  Also checked, no sale promoted right now
+                </p>
+                <ul className="flex flex-wrap gap-2">
+                  {quiet.map((store) => (
+                    <li key={store.id}>
+                      <a
+                        href={store.url}
+                        target="_blank"
+                        rel="noopener noreferrer nofollow"
+                        className="flex items-center gap-2 rounded-full border border-line bg-paper py-1 pl-1 pr-3 text-xs font-medium transition-colors hover:border-accent/40"
+                      >
+                        <StoreLogo
+                          url={store.url}
+                          name={store.name}
+                          className="size-6 rounded-full"
+                        />
+                        {store.name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </section>
