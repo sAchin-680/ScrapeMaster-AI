@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
-import { Crown, ExternalLink, TrendingUp } from 'lucide-react';
-import TrackButton from '@/components/TrackButton';
+import { Crown, TrendingUp } from 'lucide-react';
+import ListingActions from '@/components/ListingActions';
 import RelativeTime from '@/components/live/RelativeTime';
 import Money from '@/components/ui/Money';
 import ProductTile from '@/components/ui/ProductTile';
@@ -8,6 +8,7 @@ import { SEARCHABLE_STORES } from '@/lib/locale';
 import type { Region } from '@/lib/scraper/stores';
 import { trendingFeed } from '@/lib/services/store-feed';
 import { FEED_TIMEOUT_MS, withTimeout } from '@/lib/utils/timeout';
+import { openListingHref } from '@/lib/utils/url';
 
 /** Bestsellers straight from the stores; renders nothing when unavailable. */
 async function TrendingContent({ region }: { region: Region }) {
@@ -47,8 +48,7 @@ async function TrendingContent({ region }: { region: Region }) {
         {items.map((item, i) => (
           <li key={item.url} className="reveal">
             <ProductTile
-              href={item.url}
-              external
+              href={openListingHref(item.url)}
               image={item.image}
               title={item.title}
               store={{ name: item.storeName, url: item.url }}
@@ -65,13 +65,7 @@ async function TrendingContent({ region }: { region: Region }) {
                   </span>
                 ) : undefined
               }
-              aside={
-                <ExternalLink
-                  className="mb-1 size-4 shrink-0 text-muted transition group-hover:text-accent"
-                  aria-hidden
-                />
-              }
-              actions={<TrackButton url={item.url} label="Track price" variant="soft" />}
+              actions={<ListingActions url={item.url} storeName={item.storeName} />}
             />
           </li>
         ))}

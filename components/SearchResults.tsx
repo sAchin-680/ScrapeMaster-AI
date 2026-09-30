@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { ExternalLink, Trophy } from 'lucide-react';
 import TrackButton from '@/components/TrackButton';
 import Money from '@/components/ui/Money';
@@ -6,6 +7,7 @@ import StoreLogo from '@/components/ui/StoreLogo';
 import type { Region } from '@/lib/scraper/stores';
 import { searchStores } from '@/lib/scraper/search';
 import { cn } from '@/lib/utils';
+import { openListingHref } from '@/lib/utils/url';
 
 export default async function SearchResults({
   query,
@@ -39,7 +41,11 @@ export default async function SearchResults({
               key={result.best.url}
               className="reveal card flex flex-col gap-4 p-4 transition-colors duration-300 hover:border-accent/30"
             >
-              <div className="flex gap-4">
+              {/* Image and title open the product inside the app. */}
+              <Link
+                href={openListingHref(result.best.url)}
+                className="group flex gap-4 rounded-lg"
+              >
                 <div className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-white">
                   <ProductImage
                     resize={240}
@@ -51,7 +57,7 @@ export default async function SearchResults({
                   />
                 </div>
                 <div className="min-w-0">
-                  <h3 className="line-clamp-3 text-sm font-medium leading-snug">
+                  <h3 className="line-clamp-3 text-sm font-medium leading-snug transition-colors group-hover:text-accent">
                     {result.title}
                   </h3>
                   <p className="mt-2 text-xs text-muted">
@@ -64,7 +70,7 @@ export default async function SearchResults({
                     className="num text-xl font-semibold"
                   />
                 </div>
-              </div>
+              </Link>
 
               <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line text-sm">
                 {result.offers.map((offer) => (

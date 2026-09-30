@@ -1,13 +1,14 @@
 import { Suspense } from 'react';
 import { Flame, ShieldCheck } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
-import TrackButton from '@/components/TrackButton';
+import ListingActions from '@/components/ListingActions';
 import RelativeTime from '@/components/live/RelativeTime';
 import Money from '@/components/ui/Money';
 import ProductTile from '@/components/ui/ProductTile';
 import type { Region } from '@/lib/scraper/stores';
 import { dealsFeed, type DealItem } from '@/lib/services/store-feed';
 import { FEED_TIMEOUT_MS, withTimeout } from '@/lib/utils/timeout';
+import { openListingHref } from '@/lib/utils/url';
 import type { Product } from '@/types';
 
 function StoreDealsGrid({ deals }: { deals: DealItem[] }) {
@@ -16,8 +17,7 @@ function StoreDealsGrid({ deals }: { deals: DealItem[] }) {
       {deals.map((deal) => (
         <li key={deal.url} className="reveal">
           <ProductTile
-            href={deal.url}
-            external
+            href={openListingHref(deal.url)}
             image={deal.image}
             title={deal.title}
             store={{ name: deal.storeName, url: deal.url }}
@@ -25,7 +25,7 @@ function StoreDealsGrid({ deals }: { deals: DealItem[] }) {
             currentPrice={deal.price}
             originalPrice={deal.originalPrice}
             price={<Money amount={deal.price} currency={deal.currency} className="num" />}
-            actions={<TrackButton url={deal.url} label="Track price" variant="soft" />}
+            actions={<ListingActions url={deal.url} storeName={deal.storeName} />}
           />
         </li>
       ))}
