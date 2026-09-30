@@ -20,6 +20,7 @@ import { LiveProvider } from '@/components/live/LiveProvider';
 import LiveWatchers from '@/components/live/LiveWatchers';
 import RefreshButton from '@/components/live/RefreshButton';
 import RelativeTime from '@/components/live/RelativeTime';
+import Money from '@/components/ui/Money';
 import ProductImage from '@/components/ui/ProductImage';
 import StatTile from '@/components/ui/StatTile';
 import { getProductById, getSimilarProducts } from '@/lib/data/products';
@@ -135,7 +136,7 @@ export default async function ProductPage({ params }: Props) {
                     />
                     {savings > 0 && (
                       <span className="num text-lg text-muted line-through">
-                        {formatPrice(product.originalPrice, product.currency)}
+                        <Money amount={product.originalPrice} currency={product.currency} />
                       </span>
                     )}
                     {product.discountRate > 0 && (
@@ -181,24 +182,24 @@ export default async function ProductPage({ params }: Props) {
               <StatTile
                 label="Current"
                 icon={Tag}
-                value={formatPrice(product.currentPrice, product.currency)}
+                value={<Money amount={product.currentPrice} currency={product.currency} />}
                 tone="accent"
               />
               <StatTile
                 label="Average"
                 icon={Sigma}
-                value={formatPrice(product.averagePrice, product.currency)}
+                value={<Money amount={product.averagePrice} currency={product.currency} />}
               />
               <StatTile
                 label="Highest"
                 icon={ArrowUp}
-                value={formatPrice(product.highestPrice, product.currency)}
+                value={<Money amount={product.highestPrice} currency={product.currency} />}
                 tone="up"
               />
               <StatTile
                 label="Lowest"
                 icon={ArrowDown}
-                value={formatPrice(product.lowestPrice, product.currency)}
+                value={<Money amount={product.lowestPrice} currency={product.currency} />}
                 tone="down"
               />
             </section>
