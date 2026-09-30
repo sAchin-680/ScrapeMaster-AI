@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import LivePrice from '@/components/live/LivePrice';
 import Sparkline from '@/components/ui/Sparkline';
 import type { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -42,7 +43,9 @@ export default function ProductCard({ product, priority }: { product: Product; p
         <h3 className="line-clamp-2 min-h-[2.75rem] text-[15px] font-medium leading-snug">{product.title}</h3>
         <div className="mt-auto flex items-end justify-between gap-3">
           <div>
-            <p className="num text-xl font-semibold">{formatPrice(product.currentPrice, product.currency)}</p>
+            <p className="text-xl font-semibold">
+              <LivePrice productId={product._id} price={product.currentPrice} currency={product.currency} />
+            </p>
             {product.originalPrice > product.currentPrice && (
               <p className="num text-xs text-muted line-through">
                 {formatPrice(product.originalPrice, product.currency)}
