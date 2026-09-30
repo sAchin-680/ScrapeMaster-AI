@@ -1,44 +1,45 @@
-/** @type {import('tailwindcss').Config} */
-module.exports = {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+import type { Config } from 'tailwindcss';
+
+const token = (name: string) => `rgb(var(--${name}) / <alpha-value>)`;
+
+const config: Config = {
+  darkMode: 'media',
+  content: ['./app/**/*.{ts,tsx,mdx}', './components/**/*.{ts,tsx}'],
   theme: {
+    container: { center: true, padding: { DEFAULT: '1rem', md: '2rem' }, screens: { '2xl': '1280px' } },
     extend: {
       colors: {
-        primary: {
-          DEFAULT: "#E43030",
-          "orange": "#D48D3B",
-          "green": "#3E9242"
-        },
-        secondary: "#282828",
-        "gray-200": "#EAECF0",
-        "gray-300": "D0D5DD",
-        "gray-500": "#667085",
-        "gray-600": "#475467",
-        "gray-700": "#344054",
-        "gray-900": "#101828",
-        "white-100": "#F4F4F4",
-        "white-200": "#EDF0F8",
-        "black-100": "#3D4258",
-        "neutral-black": "#23263B",
-      },
-      boxShadow: {
-        xs: "0px 1px 2px 0px rgba(16, 24, 40, 0.05)",
-      },
-      maxWidth: {
-        "10xl": '1440px'
+        paper: token('paper'),
+        surface: token('surface'),
+        ink: token('ink'),
+        muted: token('muted'),
+        line: token('line'),
+        accent: { DEFAULT: token('accent'), ink: token('accent-ink') },
+        up: token('up'),
+        down: token('down'),
       },
       fontFamily: {
-        inter: ['Inter', 'sans-serif'],
-        spaceGrotesk: ['Space Grotesk', 'sans-serif'],
+        sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
       },
-      borderRadius: {
-        10: "10px"
-      }
+      borderRadius: { xl: '1rem', '2xl': '1.5rem', '3xl': '2rem' },
+      keyframes: {
+        ticker: { to: { transform: 'translateX(-50%)' } },
+        rise: { from: { opacity: '0', transform: 'translateY(12px)' }, to: { opacity: '1', transform: 'none' } },
+        draw: { to: { strokeDashoffset: '0' } },
+        pulseDot: { '0%,100%': { opacity: '1' }, '50%': { opacity: '.35' } },
+        shimmer: { to: { backgroundPosition: '-200% 0' } },
+      },
+      animation: {
+        ticker: 'ticker 40s linear infinite',
+        rise: 'rise .6s cubic-bezier(.2,.7,.2,1) both',
+        draw: 'draw 2.4s cubic-bezier(.6,0,.2,1) forwards',
+        'pulse-dot': 'pulseDot 1.6s ease-in-out infinite',
+        shimmer: 'shimmer 1.4s linear infinite',
+      },
     },
   },
   plugins: [],
 };
+
+export default config;
