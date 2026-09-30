@@ -52,7 +52,10 @@ function release() {
 }
 
 /** Render a page in a real browser engine for stores that block plain HTTP clients. */
-export async function renderHtml(url: string) {
+export async function renderHtml(
+  url: string,
+  { settleMs = SETTLE_MS, scroll = false }: { settleMs?: number; scroll?: boolean } = {},
+) {
   if (!isBrowserConfigured) {
     throw new ScrapeError(
       'This store needs browser rendering. Set CHROME_EXECUTABLE_PATH or BROWSER_WS_ENDPOINT.',
@@ -84,7 +87,13 @@ export async function renderHtml(url: string) {
     if (response && response.status() >= 400) {
       throw new ScrapeError(`Could not load the page (HTTP ${response.status()})`);
     }
-    await new Promise((resolve) => setTimeout(resolve, SETTLE_MS));
+    if (scroll) {
+      // Trigger lazily rendered banners and carousels further down the page.
+      await page
+        .evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2))
+        .catch(() => {});
+    }
+    await new Promise((resolve) => setTimeout(resolve, settleMs));
     return await page.content();
   } catch (error) {
     if (error instanceof ScrapeError) throw error;
