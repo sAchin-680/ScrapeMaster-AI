@@ -1,4 +1,4 @@
-import { CURRENCIES, currencyFromSymbol, type CurrencyCode, type Preferences } from '@/lib/locale';
+import { currencyFromSymbol, type CurrencyCode, type Preferences } from '@/lib/locale';
 import { formatPrice } from './format';
 
 export type RateTable = Partial<Record<CurrencyCode, number>>;
@@ -41,5 +41,3 @@ export function formatMoney(
   }).format(converted);
   return { text, converted: true, original: formatPrice(value, storeCurrency) };
 }
-
-export { CURRENCIES };
