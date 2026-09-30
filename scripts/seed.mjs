@@ -31,17 +31,25 @@ const products = [
 const amazonSearch = (title) => `https://www.amazon.in/s?k=${encodeURIComponent(title)}`;
 const flipkartSearch = (title) => `https://www.flipkart.com/search?q=${encodeURIComponent(title)}`;
 
-/** Random walk from around the MRP down to today's price. */
-function history(mrp, current, days = 45) {
+/**
+ * Random walk ending at today's price. The trend decides whether today is a
+ * new low ('drop'), a rebound after an earlier dip ('rebound') or a price hike
+ * ('rise'), so the demo shows every deal verdict.
+ */
+function history(mrp, current, trend, days = 45) {
   const points = [];
-  let price = mrp * 0.92;
+  const dipAt = Math.floor(days * 0.6);
+  let price = trend === 'rise' ? current * 0.9 : mrp * 0.92;
   for (let i = days; i >= 0; i--) {
-    const drift = (current - price) / Math.max(i, 1);
-    price = Math.max(current * 0.97, price + drift + (Math.random() - 0.5) * mrp * 0.03);
+    const target = trend === 'rebound' && i > days - dipAt ? current * 0.88 : current;
+    const drift = (target - price) / Math.max(i, 1);
+    price = Math.max(current * 0.85, price + drift + (Math.random() - 0.5) * mrp * 0.025);
     points.push({ price: i === 0 ? current : Math.round(price), date: new Date(Date.now() - i * 86_400_000) });
   }
   return points;
 }
+
+const TRENDS = ['drop', 'rebound', 'rise', 'drop', 'rebound', 'drop', 'rise', 'rebound'];
 
 await mongoose.connect(uri);
 const collection = mongoose.connection.collection('products');
@@ -52,7 +60,7 @@ if (process.argv.includes('--reset')) {
 }
 
 for (const [i, [title, category, image, mrp, current, flipkartPrice]] of products.entries()) {
-  const priceHistory = history(mrp, current);
+  const priceHistory = history(mrp, current, TRENDS[i % TRENDS.length]);
   const prices = priceHistory.map((p) => p.price);
   const url = amazonSearch(title);
 
