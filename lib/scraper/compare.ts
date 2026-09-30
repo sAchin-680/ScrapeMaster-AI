@@ -44,6 +44,9 @@ export async function findOffers(
     }),
   );
 
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') console.error(`[compare] ${stores[i].name} search failed`, r.reason);
+  });
   const found = results.flatMap((r) =>
     r.status === 'fulfilled' && r.value ? [r.value] : [],
   );
