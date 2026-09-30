@@ -130,7 +130,14 @@ export default async function Home() {
         </div>
       </section>
 
+      {/* Section order follows the navbar: Track, Deals, Sales, Trending, How it works. */}
       <DealsSection tracked={deals} region={region} />
+
+      <div id="sales" className="scroll-mt-24">
+        <Suspense fallback={null}>
+          <LiveSales country={country} sales={sales} region={region} />
+        </Suspense>
+      </div>
 
       <TrendingSection region={region} />
 
@@ -159,12 +166,6 @@ export default async function Home() {
           </div>
         </section>
       )}
-
-      <div id="sales" className="scroll-mt-24">
-        <Suspense fallback={null}>
-          <LiveSales country={country} sales={sales} region={region} />
-        </Suspense>
-      </div>
 
       <HowItWorks />
     </LiveProvider>
