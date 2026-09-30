@@ -4,10 +4,13 @@ import { env } from '@/lib/env';
 import ProductModel from '@/lib/models/product.model';
 import { refreshProduct } from '@/lib/services/refresh';
 
-export const maxDuration = 300;
+// Vercel's Hobby plan caps functions at 60 seconds.
+export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 const CONCURRENCY = 4;
+// Stop starting new batches with enough headroom to respond before the limit.
+const TIME_BUDGET_MS = 50_000;
 
 function isAuthorized(request: NextRequest) {
   if (!env.CRON_SECRET) return process.env.NODE_ENV !== 'production';
@@ -21,15 +24,19 @@ export async function GET(request: NextRequest) {
 
   const startedAt = Date.now();
   await connectDB();
-  const ids = (await ProductModel.find({}).select('_id').lean()).map((p) =>
-    String(p._id),
-  );
+  // Stalest first, so runs that hit the time budget still rotate through everything.
+  const ids = (
+    await ProductModel.find({}).select('_id').sort({ updatedAt: 1 }).lean()
+  ).map((p) => String(p._id));
 
   const results: PromiseSettledResult<Awaited<ReturnType<typeof refreshProduct>>>[] = [];
   // Process in small batches so one slow page or a rate limit can't sink the run.
+  let processed = 0;
   for (let i = 0; i < ids.length; i += CONCURRENCY) {
+    if (Date.now() - startedAt > TIME_BUDGET_MS) break;
     const batch = ids.slice(i, i + CONCURRENCY);
     results.push(...(await Promise.allSettled(batch.map(refreshProduct))));
+    processed += batch.length;
   }
 
   const failed = results.filter((r) => r.status === 'rejected');
@@ -38,7 +45,8 @@ export async function GET(request: NextRequest) {
   );
 
   return NextResponse.json({
-    processed: ids.length,
+    processed,
+    remaining: ids.length - processed,
     updated: results.filter(
       (r) => r.status === 'fulfilled' && r.value.status === 'updated',
     ).length,
