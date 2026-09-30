@@ -21,6 +21,9 @@ export default function ProductCard({
     ...product,
     priceHistory: product.priceHistory ?? [],
   });
+  const cheaper = [...(product.offers ?? [])]
+    .filter((o) => o.store !== product.store && o.price < product.currentPrice)
+    .sort((a, b) => a.price - b.price)[0];
 
   return (
     <Link
@@ -62,6 +65,16 @@ export default function ProductCard({
         <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-snug">
           {product.title}
         </h3>
+        {cheaper && (
+          <p className="truncate rounded-md bg-down/10 px-2 py-1 text-xs text-down">
+            Cheaper on {cheaper.storeName}:{' '}
+            <Money
+              amount={cheaper.price}
+              currency={cheaper.currency}
+              className="font-semibold"
+            />
+          </p>
+        )}
         <div className="mt-auto flex items-end justify-between gap-3">
           <div>
             <p className="text-lg font-semibold">
