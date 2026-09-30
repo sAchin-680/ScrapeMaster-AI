@@ -2,6 +2,7 @@ import 'server-only';
 import { unstable_cache } from 'next/cache';
 import type { Offer } from '@/types';
 import { swrMap } from '@/lib/cache';
+import { withSnapshot, type FeedResult } from '@/lib/services/snapshots';
 import { loadAndParse } from '@/lib/scraper/load';
 import { parseSaleSignals, type SaleSignal } from '@/lib/scraper/sale-signals';
 import { isBrowserConfigured } from '@/lib/scraper/browser';
@@ -227,19 +228,36 @@ function shared<T>(
     })();
 }
 
+// Fresh results are cached for their normal lifetime; stale snapshots only
+// briefly, so live data is retried soon.
+const ttl = (freshMs: number) => (result: FeedResult<unknown>) =>
+  result.stale ? 2 * 60_000 : freshMs;
+
 /** Live store discounts, refreshed hourly. */
-export const dealsFeed = swrMap('deals', 60 * 60_000, shared('deals', 3600, loadDeals));
+export const dealsFeed = swrMap(
+  'deals',
+  ttl(60 * 60_000),
+  withSnapshot('deals', shared('deals', 3600, loadDeals), (deals) => !deals.length),
+);
 
 /** Store bestsellers and popular lists, refreshed hourly. */
 export const trendingFeed = swrMap(
   'trending',
-  60 * 60_000,
-  shared('trending', 3600, loadTrending),
+  ttl(60 * 60_000),
+  withSnapshot(
+    'trending',
+    shared('trending', 3600, loadTrending),
+    (items) => !items.length,
+  ),
 );
 
 /** Sale banners detected on store homepages, refreshed every 30 minutes. */
 export const saleSignalFeed = swrMap(
   'sale-signals',
-  30 * 60_000,
-  shared('sale-signals', 1800, loadSaleSignals),
+  ttl(30 * 60_000),
+  withSnapshot(
+    'sale-signals',
+    shared('sale-signals', 1800, loadSaleSignals),
+    (feed) => !feed.checked.some((c) => c.ok),
+  ),
 );
