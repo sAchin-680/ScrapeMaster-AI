@@ -13,9 +13,9 @@ export default function ProductCard({ product, priority }: { product: Product; p
   return (
     <Link
       href={`/products/${product._id}`}
-      className="card group relative flex flex-col overflow-hidden transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_48px_-28px_rgb(var(--ink)/.4)]"
+      className="card group relative flex flex-col overflow-hidden p-3 transition duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-lg hover:shadow-indigo-950/5"
     >
-      <div className="relative aspect-square bg-white p-8">
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-white ring-1 ring-line/60">
         {product.image && (
           <Image
             src={product.image}
@@ -27,23 +27,23 @@ export default function ProductCard({ product, priority }: { product: Product; p
           />
         )}
         {discount > 0 && (
-          <span className="num absolute left-3 top-3 rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-accent-ink">
+          <span className="num absolute left-2 top-2 rounded-md bg-down px-2 py-0.5 text-xs font-medium text-white">
             −{discount}%
           </span>
         )}
         {product.isOutOfStock && (
-          <span className="absolute right-3 top-3 rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-paper">
+          <span className="absolute right-2 top-2 rounded-md bg-ink/80 px-2 py-0.5 text-xs font-medium text-paper backdrop-blur">
             Out of stock
           </span>
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 border-t border-line p-4">
+      <div className="flex flex-1 flex-col gap-2 px-1 pb-1 pt-3">
         <p className="eyebrow truncate">{product.category}</p>
-        <h3 className="line-clamp-2 min-h-[2.75rem] text-[15px] font-medium leading-snug">{product.title}</h3>
+        <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-snug">{product.title}</h3>
         <div className="mt-auto flex items-end justify-between gap-3">
           <div>
-            <p className="text-xl font-semibold">
+            <p className="text-lg font-semibold">
               <LivePrice productId={product._id} price={product.currentPrice} currency={product.currency} />
             </p>
             {product.originalPrice > product.currentPrice && (
@@ -53,7 +53,7 @@ export default function ProductCard({ product, priority }: { product: Product; p
             )}
           </div>
           {history.length > 1 ? (
-            <Sparkline values={history} className="h-9 w-24" />
+            <Sparkline values={history} className="h-8 w-20" />
           ) : (
             <ArrowUpRight className="size-5 text-muted transition group-hover:text-ink" aria-hidden />
           )}
