@@ -2,44 +2,15 @@ import { Suspense } from 'react';
 import { Flame, ShieldCheck } from 'lucide-react';
 import ProductCard from '@/components/ProductCard';
 import TrackButton from '@/components/TrackButton';
-import FeedUnavailable from '@/components/ui/FeedUnavailable';
+import RelativeTime from '@/components/live/RelativeTime';
 import Money from '@/components/ui/Money';
 import ProductTile from '@/components/ui/ProductTile';
 import type { Region } from '@/lib/scraper/stores';
-import { dealsFeed } from '@/lib/services/store-feed';
+import { dealsFeed, type DealItem } from '@/lib/services/store-feed';
 import { FEED_TIMEOUT_MS, withTimeout } from '@/lib/utils/timeout';
 import type { Product } from '@/types';
 
-function GridSkeleton({ count = 4 }: { count?: number }) {
-  return (
-    <div
-      className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4"
-      aria-busy="true"
-      aria-label="Loading deals"
-    >
-      {Array.from({ length: count }, (_, i) => (
-        <div key={i} className="skeleton aspect-[3/4] rounded-2xl" />
-      ))}
-    </div>
-  );
-}
-
-/** Live discounts from store listings, measured against the store's own MRP. */
-async function StoreDeals({ region }: { region: Region }) {
-  // Time-boxed so slow stores can't hold the page past the function limit;
-  // loading continues in the background and fills the cache.
-  // null means the stores couldn't be reached, [] means no qualifying deals.
-  const deals = await withTimeout(dealsFeed(region).get(), FEED_TIMEOUT_MS, null);
-  if (!deals) return <FeedUnavailable what="live discounts" />;
-  if (!deals.length) {
-    return (
-      <p className="text-sm text-muted">
-        No discounts of 20% or more against the store&apos;s own price right now. Check
-        back soon.
-      </p>
-    );
-  }
-
+function StoreDealsGrid({ deals }: { deals: DealItem[] }) {
   return (
     <ul className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
       {deals.map((deal) => (
@@ -68,13 +39,16 @@ type Props = {
   region: Region;
 };
 
-export default function DealsSection({ tracked, region }: Props) {
+/** Renders only when there is something to show; otherwise nothing at all. */
+async function DealsContent({ tracked, region }: Props) {
+  // Time-boxed so slow stores can't hold the page; loading continues in the
+  // background. Falls back to the last good snapshot when stores are blocked.
+  const feed = await withTimeout(dealsFeed(region).get(), FEED_TIMEOUT_MS, null);
+  const storeDeals = feed?.data ?? [];
+  if (!tracked.length && !storeDeals.length) return null;
+
   return (
-    <section
-      id="deals"
-      className="container scroll-mt-24 pt-16"
-      aria-labelledby="deals-heading"
-    >
+    <section className="container pt-16" aria-labelledby="deals-heading">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="inline-flex items-center gap-1.5 text-sm font-medium text-up">
@@ -104,10 +78,30 @@ export default function DealsSection({ tracked, region }: Props) {
         </div>
       )}
 
-      <h3 className="mb-4 text-sm font-semibold">Biggest discounts on stores</h3>
-      <Suspense fallback={<GridSkeleton />}>
-        <StoreDeals region={region} />
-      </Suspense>
+      {storeDeals.length > 0 && feed && (
+        <>
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+            <h3 className="text-sm font-semibold">Biggest discounts on stores</h3>
+            {feed.stale && (
+              <p className="text-xs text-muted">
+                Prices from <RelativeTime date={feed.updatedAt} />
+              </p>
+            )}
+          </div>
+          <StoreDealsGrid deals={storeDeals} />
+        </>
+      )}
     </section>
+  );
+}
+
+export default function DealsSection(props: Props) {
+  // The anchor always exists so the navbar link works while content streams.
+  return (
+    <div id="deals" className="scroll-mt-24">
+      <Suspense fallback={null}>
+        <DealsContent {...props} />
+      </Suspense>
+    </div>
   );
 }

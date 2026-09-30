@@ -32,11 +32,14 @@ async function LiveSales({
 }: Omit<ComponentProps<typeof SalesSection>, 'signals' | 'checked'> & {
   region: Region;
 }) {
-  const feed = await withTimeout(saleSignalFeed(region).get(), FEED_TIMEOUT_MS, {
-    signals: [],
-    checked: [],
-  });
-  return <SalesSection {...props} signals={feed.signals} checked={feed.checked} />;
+  const feed = await withTimeout(saleSignalFeed(region).get(), FEED_TIMEOUT_MS, null);
+  return (
+    <SalesSection
+      {...props}
+      signals={feed?.data.signals ?? []}
+      checked={feed?.data.checked ?? []}
+    />
+  );
 }
 
 export default async function Home() {

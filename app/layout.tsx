@@ -76,7 +76,7 @@ export default async function RootLayout({
   const announcements = buildAnnouncements(
     filterSalesFor(sales, country.code, Date.now(), 21),
     signals,
-    saleSignalFeed(regionForCountry(country.code)).peek()?.signals ?? [],
+    saleSignalFeed(regionForCountry(country.code)).peek()?.data.signals ?? [],
   );
 
   return (
