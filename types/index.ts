@@ -53,3 +53,12 @@ export type EmailProductInfo = {
 export type ActionResult<T = undefined> =
   | { ok: true; data: T }
   | { ok: false; error: string };
+
+export type LiveProductUpdate = {
+  id: string;
+  currentPrice: number;
+  currency: string;
+  isOutOfStock: boolean;
+  watchers: number;
+  updatedAt: string;
+};
