@@ -27,7 +27,7 @@ const productSchema = new mongoose.Schema(
     averagePrice: Number,
     discountRate: { type: Number, default: 0 },
     description: String,
-    category: { type: String, index: true },
+    category: String,
     reviewsCount: Number,
     stars: Number,
     isOutOfStock: { type: Boolean, default: false },
@@ -37,6 +37,8 @@ const productSchema = new mongoose.Schema(
 );
 
 productSchema.index({ updatedAt: -1 });
+// Serves the similar products query (category match, newest first).
+productSchema.index({ category: 1, updatedAt: -1 });
 
 export type ProductDocument = InferSchemaType<typeof productSchema>;
 
