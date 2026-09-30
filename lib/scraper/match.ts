@@ -33,6 +33,13 @@ const UNITS = new Set([
   'hrs',
 ]);
 
+export const MATCH_THRESHOLD = 0.6;
+
+/** Offers priced far from the product are almost always a different item. */
+export function isPlausiblePrice(offer: number, reference: number) {
+  return offer >= reference * 0.4 && offer <= reference * 2.5;
+}
+
 export function tokenize(title: string) {
   return new Set(
     title

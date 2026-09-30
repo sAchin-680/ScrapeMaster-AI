@@ -1,15 +1,14 @@
 import 'server-only';
 import type { Offer, ScrapedProduct } from '@/types';
 import { fetchHtml } from './http';
-import { isAccessory, searchQuery, titleSimilarity } from './match';
+import {
+  isAccessory,
+  isPlausiblePrice,
+  MATCH_THRESHOLD,
+  searchQuery,
+  titleSimilarity,
+} from './match';
 import { adapters, regionFromCurrency } from './stores';
-
-export const MATCH_THRESHOLD = 0.6;
-
-/** Offers priced far from the product are almost always a different item. */
-export function isPlausiblePrice(offer: number, reference: number) {
-  return offer >= reference * 0.4 && offer <= reference * 2.5;
-}
 
 /**
  * Search every store that supports the product's region for the same item

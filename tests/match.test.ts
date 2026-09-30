@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { isAccessory, searchQuery, titleSimilarity } from '@/lib/scraper/match';
-import { isPlausiblePrice, MATCH_THRESHOLD } from '@/lib/scraper/compare';
+import {
+  isAccessory,
+  isPlausiblePrice,
+  MATCH_THRESHOLD,
+  searchQuery,
+  titleSimilarity,
+} from '@/lib/scraper/match';
 import { parseAmazonSearch } from '@/lib/scraper/stores/amazon';
 
 describe('titleSimilarity', () => {
