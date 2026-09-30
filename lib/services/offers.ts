@@ -12,12 +12,8 @@ export async function updateOffers(id: string) {
   if (!product) return [];
 
   const offers = await findOffers({ ...product, image: product.image ?? undefined });
-  await ProductModel.updateOne(
-    { _id: id },
-    { $set: { offers, offersCheckedAt: new Date() } },
-    // Don't bump updatedAt: it drives the live price stream.
-    { timestamps: false },
-  );
+  // Bumps updatedAt, so open product pages receive the offers via the live stream.
+  await ProductModel.updateOne({ _id: id }, { $set: { offers, offersCheckedAt: new Date() } });
   return offers;
 }
 
