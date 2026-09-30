@@ -13,8 +13,8 @@ export const CURRENCIES = {
 export type CurrencyCode = keyof typeof CURRENCIES;
 
 export const COUNTRIES = [
-  { code: 'US', name: 'United States', flag: '🇺🇸', currency: 'USD', locale: 'en-US', stores: ['Amazon', 'Walmart', 'Best Buy', 'Target', 'eBay'] },
   { code: 'IN', name: 'India', flag: '🇮🇳', currency: 'INR', locale: 'en-IN', stores: ['Amazon.in', 'Flipkart', 'Myntra', 'Croma', 'Reliance Digital'] },
+  { code: 'US', name: 'United States', flag: '🇺🇸', currency: 'USD', locale: 'en-US', stores: ['Amazon', 'Walmart', 'Best Buy', 'Target', 'eBay'] },
   { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', currency: 'GBP', locale: 'en-GB', stores: ['Amazon.co.uk', 'Currys', 'Argos', 'eBay'] },
   { code: 'DE', name: 'Germany', flag: '🇩🇪', currency: 'EUR', locale: 'de-DE', stores: ['Amazon.de', 'OTTO', 'MediaMarkt'] },
   { code: 'CA', name: 'Canada', flag: '🇨🇦', currency: 'CAD', locale: 'en-CA', stores: ['Amazon.ca', 'Best Buy', 'Walmart'] },
@@ -40,7 +40,7 @@ export type Preferences = {
   currency: CurrencyCode | 'original';
 };
 
-export const DEFAULT_PREFERENCES: Preferences = { country: 'US', currency: 'original' };
+export const DEFAULT_PREFERENCES: Preferences = { country: 'IN', currency: 'INR' };
 export const PREFERENCES_COOKIE = 'sm_prefs';
 
 export function getCountry(code: string | undefined): Country {
@@ -64,7 +64,10 @@ export function parsePreferences(raw: string | undefined): Preferences {
   try {
     const value = JSON.parse(raw) as Partial<Preferences>;
     const country = getCountry(value.country).code;
-    const currency = value.currency && (value.currency === 'original' || isCurrencyCode(value.currency)) ? value.currency : 'original';
+    const currency =
+      value.currency && (value.currency === 'original' || isCurrencyCode(value.currency))
+        ? value.currency
+        : DEFAULT_PREFERENCES.currency;
     return { country, currency };
   } catch {
     return DEFAULT_PREFERENCES;

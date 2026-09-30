@@ -1,13 +1,13 @@
 'use client';
 
 import { createContext, useCallback, useContext, type ReactNode } from 'react';
-import { getCountry, type Preferences } from '@/lib/locale';
+import { DEFAULT_PREFERENCES, getCountry, type Preferences } from '@/lib/locale';
 import { formatMoney, type RateTable } from '@/lib/utils/money';
 
 type Value = { preferences: Preferences; rates: RateTable };
 
 const PreferencesContext = createContext<Value>({
-  preferences: { country: 'US', currency: 'original' },
+  preferences: DEFAULT_PREFERENCES,
   rates: {},
 });
 
