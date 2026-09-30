@@ -43,7 +43,9 @@ export default function ProductCard({
       </div>
 
       <div className="flex flex-1 flex-col gap-2 px-1 pb-1 pt-3">
-        <p className="eyebrow truncate">{product.category}</p>
+        <p className="eyebrow truncate">
+          <span className="font-semibold text-ink/80">{product.storeName ?? 'Amazon'}</span> · {product.category}
+        </p>
         <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-snug">
           {product.title}
         </h3>
