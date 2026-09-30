@@ -1,8 +1,7 @@
-import { ExternalLink, TrendingUp } from 'lucide-react';
+import { Crown, ExternalLink, TrendingUp } from 'lucide-react';
 import TrackButton from '@/components/TrackButton';
 import Money from '@/components/ui/Money';
-import ProductImage from '@/components/ui/ProductImage';
-import StoreLogo from '@/components/ui/StoreLogo';
+import ProductTile from '@/components/ui/ProductTile';
 import type { Region } from '@/lib/scraper/stores';
 import { trendingFeed } from '@/lib/services/store-feed';
 
@@ -38,41 +37,35 @@ export default async function TrendingSection({ region }: { region: Region }) {
       </div>
 
       <ul className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
-        {items.map((item) => (
-          <li key={item.url} className="card flex flex-col gap-3 p-3">
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-white ring-1 ring-line/60">
-              <ProductImage
-                src={item.image ?? ''}
-                alt={item.title}
-                fill
-                sizes="(min-width: 1280px) 280px, (min-width: 768px) 33vw, 50vw"
-                className="object-contain p-4"
-              />
-              <StoreLogo
-                url={item.url}
-                name={item.storeName}
-                className="absolute left-2 top-2 size-7 shadow-sm"
-              />
-            </div>
-            <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-snug">
-              {item.title}
-            </h3>
-            <div className="mt-auto flex items-center justify-between gap-2">
-              <Money
-                amount={item.price}
-                currency={item.currency}
-                className="num text-lg font-semibold"
-              />
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer nofollow"
-                className="inline-flex items-center gap-1 text-xs text-muted hover:text-ink"
-              >
-                {item.storeName} <ExternalLink className="size-3.5" aria-hidden />
-              </a>
-            </div>
-            <TrackButton url={item.url} label="Track price" />
+        {items.map((item, i) => (
+          <li key={item.url} className="reveal">
+            <ProductTile
+              href={item.url}
+              external
+              image={item.image}
+              title={item.title}
+              store={{ name: item.storeName, url: item.url }}
+              currency={item.currency}
+              currentPrice={item.price}
+              priority={i < 4}
+              price={
+                <Money amount={item.price} currency={item.currency} className="num" />
+              }
+              badge={
+                item.rank && item.rank <= 10 ? (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-400 px-2 py-0.5 text-[11px] font-semibold text-neutral-900 shadow-sm">
+                    <Crown className="size-3" aria-hidden />#{item.rank} Bestseller
+                  </span>
+                ) : undefined
+              }
+              aside={
+                <ExternalLink
+                  className="mb-1 size-4 shrink-0 text-muted transition group-hover:text-accent"
+                  aria-hidden
+                />
+              }
+              actions={<TrackButton url={item.url} label="Track price" variant="soft" />}
+            />
           </li>
         ))}
       </ul>

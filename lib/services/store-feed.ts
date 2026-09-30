@@ -40,7 +40,7 @@ function trendingSources(region: Region): Source[] {
   return sources;
 }
 
-export type TrendingItem = Offer & { source: string };
+export type TrendingItem = Offer & { source: string; rank?: number };
 
 async function loadTrending(region: string): Promise<TrendingItem[]> {
   const sources = trendingSources(region as Region);
