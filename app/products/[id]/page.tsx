@@ -11,6 +11,7 @@ import {
   Star,
   Tag,
 } from 'lucide-react';
+import BuyMeter from '@/components/BuyMeter';
 import OfferComparison from '@/components/OfferComparison';
 import PriceChart from '@/components/PriceChart';
 import ProductCard from '@/components/ProductCard';
@@ -25,6 +26,7 @@ import Money from '@/components/ui/Money';
 import ProductImage from '@/components/ui/ProductImage';
 import StatTile from '@/components/ui/StatTile';
 import { getProductById, getSimilarProducts } from '@/lib/data/products';
+import { getDealVerdict } from '@/lib/deal';
 import { formatNumber, formatPrice, truncate } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -60,6 +62,7 @@ export default async function ProductPage({ params }: Props) {
 
   const similar = await getSimilarProducts(id);
   const history = product.priceHistory ?? [];
+  const verdict = getDealVerdict({ ...product, priceHistory: history });
   const savings = product.originalPrice - product.currentPrice;
   const isLowest = history.length > 1 && product.currentPrice <= product.lowestPrice;
   const bullets = product.description?.split('\n').filter(Boolean).slice(0, 8) ?? [];
@@ -177,6 +180,8 @@ export default async function ProductPage({ params }: Props) {
                 </a>
               </div>
             </section>
+
+            <BuyMeter verdict={verdict} />
 
             <OfferComparison product={product} />
 
