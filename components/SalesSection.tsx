@@ -1,9 +1,18 @@
-import { ArrowUpRight, CalendarClock, Radio } from 'lucide-react';
+import Link from 'next/link';
+import {
+  ArrowUpRight,
+  BellRing,
+  CalendarClock,
+  LineChart,
+  Radar,
+  Search,
+} from 'lucide-react';
+import RelativeTime from '@/components/live/RelativeTime';
 import Countdown from '@/components/ui/Countdown';
 import StoreLogo from '@/components/ui/StoreLogo';
-import type { SaleSignal } from '@/lib/scraper/sale-signals';
 import type { Country } from '@/lib/locale';
-import type { SaleStatus, Sale } from '@/lib/sales';
+import type { Sale, SaleStatus } from '@/lib/sales';
+import type { SaleSignal } from '@/lib/scraper/sale-signals';
 import { cn } from '@/lib/utils';
 
 const dateFormat = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' });
@@ -15,9 +24,143 @@ type Props = {
   signals: SaleSignal[];
 };
 
-export default function SalesSection({ country, sales: all, signals }: Props) {
-  const sales = all.slice(0, 3);
+const steps = [
+  { icon: Search, text: 'Track what you plan to buy now, before the sale starts.' },
+  {
+    icon: LineChart,
+    text: 'Check the history chart: many prices rise just before a sale.',
+  },
+  { icon: BellRing, text: 'Get an email the moment it truly drops.' },
+];
+
+function StatusPill({ live }: { live: boolean }) {
+  return live ? (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-up/10 px-2.5 py-1 text-xs font-semibold text-up">
+      <span className="relative flex size-1.5">
+        <span className="absolute inset-0 animate-ping rounded-full bg-up/70" />
+        <span className="relative size-1.5 rounded-full bg-up" />
+      </span>
+      Live now
+    </span>
+  ) : (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-semibold text-accent">
+      <CalendarClock className="size-3" aria-hidden /> Coming soon
+    </span>
+  );
+}
+
+/** One card per store, listing every event its homepage currently promotes. */
+function StoreSales({ signals }: { signals: SaleSignal[] }) {
+  const store = signals[0];
+  const live = signals.some((s) => s.status === 'live');
+
+  return (
+    <article className="reveal card flex flex-col gap-4 p-5">
+      <header className="flex items-center gap-3">
+        <StoreLogo
+          url={store.url}
+          name={store.storeName}
+          className="size-11 rounded-xl"
+        />
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold">{store.storeName}</h3>
+          <p className="text-xs text-muted">
+            {store.detectedAt ? (
+              <>
+                Homepage checked <RelativeTime date={store.detectedAt} />
+              </>
+            ) : (
+              'From the store homepage'
+            )}
+          </p>
+        </div>
+        <StatusPill live={live} />
+      </header>
+
+      <ul className="flex flex-col gap-2">
+        {signals.map((signal) => (
+          <li
+            key={signal.text}
+            className="flex items-center gap-3 rounded-xl bg-paper px-3 py-2.5 ring-1 ring-line/60"
+          >
+            <span
+              className={cn(
+                'size-2 shrink-0 rounded-full',
+                signal.status === 'live' ? 'bg-up' : 'bg-accent',
+              )}
+              aria-hidden
+            />
+            <span className="flex-1 text-sm font-medium">{signal.text}</span>
+            <span className="text-[11px] font-medium uppercase tracking-wide text-muted">
+              {signal.status === 'live' ? 'Live' : 'Soon'}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      <a
+        href={store.url}
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        className="btn-ghost mt-auto w-full"
+      >
+        Open {store.storeName} offers <ArrowUpRight className="size-4" aria-hidden />
+      </a>
+    </article>
+  );
+}
+
+function CalendarSale({ sale }: { sale: Sale & { status: SaleStatus } }) {
+  const live = sale.status === 'live';
+  return (
+    <article className="reveal card flex flex-col gap-4 p-5">
+      <header className="flex items-center justify-between gap-3">
+        <span className="text-xs font-medium text-muted">{sale.store}</span>
+        <StatusPill live={live} />
+      </header>
+      <div>
+        <h3 className="text-lg font-semibold">{sale.name}</h3>
+        {sale.tagline && <p className="mt-1 text-sm text-muted">{sale.tagline}</p>}
+      </div>
+      <div className="rounded-xl bg-paper px-3 py-2.5 ring-1 ring-line/60">
+        <p className="text-xs text-muted">{live ? 'Ends in' : 'Starts in'}</p>
+        <Countdown
+          to={live ? sale.end : sale.start}
+          className="mt-0.5 block text-lg font-semibold"
+        />
+      </div>
+      <footer className="mt-auto flex items-center justify-between gap-3 text-xs text-muted">
+        <span>
+          {dateFormat.format(new Date(sale.start))} –{' '}
+          {dateFormat.format(new Date(sale.end))}
+          {!sale.confirmed && ' · expected'}
+        </span>
+        <a
+          href={sale.url}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          className="inline-flex items-center gap-1 font-medium text-ink hover:text-accent"
+        >
+          {live ? 'Shop sale' : 'Preview'}{' '}
+          <ArrowUpRight className="size-3.5" aria-hidden />
+        </a>
+      </footer>
+    </article>
+  );
+}
+
+export default function SalesSection({ country, sales, signals }: Props) {
   if (!sales.length && !signals.length) return null;
+
+  const byStore = new Map<string, SaleSignal[]>();
+  for (const signal of signals)
+    byStore.set(signal.store, [...(byStore.get(signal.store) ?? []), signal]);
+  // Stores with something live right now come first.
+  const stores = [...byStore.values()].sort(
+    (a, b) =>
+      Number(b.some((s) => s.status === 'live')) -
+      Number(a.some((s) => s.status === 'live')),
+  );
 
   return (
     <section
@@ -25,118 +168,52 @@ export default function SalesSection({ country, sales: all, signals }: Props) {
       className="container scroll-mt-24 py-16"
       aria-labelledby="sales-heading"
     >
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-accent">{country.flag} Sales</p>
-          <h2 id="sales-heading" className="mt-2 text-3xl font-semibold tracking-tight">
-            Big sales, live & upcoming
-          </h2>
-        </div>
-        <p className="max-w-sm text-sm text-muted">
-          Track products before the sale starts. Prices often rise just before a sale, and
-          the history chart shows it.
-        </p>
-      </div>
+      <div className="relative overflow-hidden rounded-3xl border border-line bg-surface p-6 sm:p-10">
+        <div
+          className="absolute -right-24 -top-24 size-72 rounded-full bg-gradient-to-br from-indigo-500/20 to-violet-500/10 blur-3xl"
+          aria-hidden
+        />
+        <div className="relative grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+          <div className="flex flex-col">
+            <p className="inline-flex items-center gap-1.5 text-sm font-medium text-accent">
+              <Radar className="size-4" aria-hidden /> {country.flag} Sale radar
+            </p>
+            <h2 id="sales-heading" className="mt-2 text-3xl font-semibold tracking-tight">
+              Big sales, live & upcoming
+            </h2>
+            <p className="mt-3 text-muted">
+              We check store homepages every 30 minutes and show what they are promoting
+              right now.
+            </p>
 
-      {signals.length > 0 && (
-        <div className="mb-6">
-          <p className="mb-3 text-xs font-medium text-muted">
-            Live on store homepages right now
-          </p>
-          <ul className="flex flex-wrap gap-3">
-            {signals.map((signal) => (
-              <li key={`${signal.store}-${signal.text}`}>
-                <a
-                  href={signal.url}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="card flex items-center gap-3 py-2 pl-2 pr-4 transition hover:border-accent/40"
-                >
-                  <StoreLogo
-                    url={signal.url}
-                    name={signal.storeName}
-                    className="size-8"
-                  />
-                  <span className="text-sm font-medium">{signal.text}</span>
-                  <span
-                    className={cn(
-                      'rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase',
-                      signal.status === 'live'
-                        ? 'bg-up text-white'
-                        : 'bg-accent-soft text-accent',
-                    )}
-                  >
-                    {signal.status === 'live' ? 'Live' : 'Soon'}
+            <ol className="mt-6 flex flex-col gap-3">
+              {steps.map((step, i) => (
+                <li key={step.text} className="flex items-start gap-3 text-sm">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-accent-soft text-accent">
+                    <step.icon className="size-4" aria-hidden />
                   </span>
-                </a>
-              </li>
+                  <span className="pt-1.5">
+                    <span className="num mr-1 font-semibold text-ink">{i + 1}.</span>
+                    {step.text}
+                  </span>
+                </li>
+              ))}
+            </ol>
+
+            <Link href="/#track" className="btn-primary mt-8 self-start">
+              Get sale-ready
+            </Link>
+          </div>
+
+          <div className="grid content-start gap-4 sm:grid-cols-2">
+            {stores.map((group) => (
+              <StoreSales key={group[0].store} signals={group} />
             ))}
-          </ul>
+            {sales.slice(0, 4).map((sale) => (
+              <CalendarSale key={sale.id} sale={sale} />
+            ))}
+          </div>
         </div>
-      )}
-
-      <div className="grid gap-5 md:grid-cols-3">
-        {sales.map((sale) => {
-          const live = sale.status === 'live';
-          return (
-            <article
-              key={sale.id}
-              className={cn(
-                'card relative flex flex-col gap-4 overflow-hidden p-5',
-                live && 'border-accent/40 ring-1 ring-accent/20',
-              )}
-            >
-              {live && (
-                <div
-                  className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-indigo-500/10 to-transparent"
-                  aria-hidden
-                />
-              )}
-              <div className="relative flex items-center justify-between gap-3">
-                <span className="text-xs font-medium text-muted">{sale.store}</span>
-                {live ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-up px-2 py-0.5 text-xs font-semibold text-white">
-                    <Radio className="size-3 animate-pulse" aria-hidden /> Live now
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent">
-                    <CalendarClock className="size-3" aria-hidden /> Upcoming
-                  </span>
-                )}
-              </div>
-
-              <div className="relative">
-                <h3 className="text-lg font-semibold">{sale.name}</h3>
-                <p className="mt-1 text-sm text-muted">{sale.tagline}</p>
-              </div>
-
-              <div className="relative mt-auto rounded-lg bg-paper px-3 py-2.5 ring-1 ring-line/60">
-                <p className="text-xs text-muted">{live ? 'Ends in' : 'Starts in'}</p>
-                <Countdown
-                  to={live ? sale.end : sale.start}
-                  className="mt-0.5 block text-lg font-semibold"
-                />
-              </div>
-
-              <div className="relative flex items-center justify-between gap-3 text-xs text-muted">
-                <span>
-                  {dateFormat.format(new Date(sale.start))} –{' '}
-                  {dateFormat.format(new Date(sale.end))}
-                  {!sale.confirmed && ' · expected'}
-                </span>
-                <a
-                  href={sale.url}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="inline-flex items-center gap-1 font-medium text-ink hover:text-accent"
-                >
-                  {live ? 'Shop sale' : 'Preview'}{' '}
-                  <ArrowUpRight className="size-3.5" aria-hidden />
-                </a>
-              </div>
-            </article>
-          );
-        })}
       </div>
     </section>
   );
