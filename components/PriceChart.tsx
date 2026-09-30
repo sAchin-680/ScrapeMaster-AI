@@ -59,6 +59,7 @@ export default function PriceChart({
     <figure className="relative">
       <figcaption className="mb-4 flex items-baseline justify-between gap-4">
         <span className="num text-2xl font-semibold">
+          {money(entry.price, currency).converted && <span className="mr-0.5 opacity-60">≈</span>}
           {money(entry.price, currency).text}
         </span>
         <span className="text-sm text-muted">
