@@ -5,8 +5,8 @@ import { connectDB } from '@/lib/db';
 import ProductModel from '@/lib/models/product.model';
 import type { Product } from '@/types';
 
-// Subscriber emails never leave the server; offers are only needed on detail pages.
-const PUBLIC_FIELDS = '-users -offers -__v';
+// Subscriber emails never leave the server. Offers are small (one per store).
+const PUBLIC_FIELDS = '-users -__v';
 
 function serialize<T>(doc: T): T {
   return JSON.parse(JSON.stringify(doc));
@@ -128,7 +128,7 @@ export async function getTopDeals(
       { $match: { $or: [{ atLow: true }, { belowAverage: { $gte: 0.03 } }] } },
       { $sort: { atLow: -1, belowAverage: -1 } },
       { $limit: limit },
-      { $project: { users: 0, offers: 0, __v: 0, belowAverage: 0, atLow: 0 } },
+      { $project: { users: 0, __v: 0, belowAverage: 0, atLow: 0 } },
     ]);
     return serialize(deals) as unknown as Product[];
   } catch (error) {
