@@ -94,6 +94,15 @@ export const COUNTRIES = [
   stores: readonly string[];
 }[];
 
+/** Store search region for a country (stores index by marketplace, not country). */
+export function regionForCountry(code: string): 'us' | 'in' | 'uk' | 'de' {
+  const c = code.toUpperCase();
+  if (c === 'IN') return 'in';
+  if (c === 'GB') return 'uk';
+  if (c === 'DE') return 'de';
+  return 'us';
+}
+
 export type CountryCode = (typeof COUNTRIES)[number]['code'];
 export type Country = (typeof COUNTRIES)[number];
 
