@@ -2,9 +2,9 @@ import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import LivePrice from '@/components/live/LivePrice';
 import ProductImage from '@/components/ui/ProductImage';
+import Money from '@/components/ui/Money';
 import Sparkline from '@/components/ui/Sparkline';
 import type { Product } from '@/types';
-import { formatPrice } from '@/lib/utils';
 
 export default function ProductCard({
   product,
@@ -58,7 +58,7 @@ export default function ProductCard({
             </p>
             {product.originalPrice > product.currentPrice && (
               <p className="num text-xs text-muted line-through">
-                {formatPrice(product.originalPrice, product.currency)}
+                <Money amount={product.originalPrice} currency={product.currency} />
               </p>
             )}
           </div>

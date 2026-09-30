@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
 import type { Product } from '@/types';
-import { formatPrice, getPriceChange, truncate } from '@/lib/utils';
+import Money from '@/components/ui/Money';
+import { getPriceChange, truncate } from '@/lib/utils';
 
 function Change({ product }: { product: Product }) {
   const history = product.priceHistory ?? [];
@@ -34,7 +35,7 @@ export default function Ticker({ products }: { products: Product[] }) {
               className="flex items-center gap-3 whitespace-nowrap text-sm transition hover:opacity-70"
             >
               <span className="text-muted">{truncate(product.title, 28)}</span>
-              <span className="num font-medium">{formatPrice(product.currentPrice, product.currency)}</span>
+              <Money amount={product.currentPrice} currency={product.currency} className="num font-medium" />
               <Change product={product} />
             </Link>
           </li>
