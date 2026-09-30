@@ -1,10 +1,15 @@
 import 'server-only';
 import type { Offer, ScrapedProduct } from '@/types';
 import { fetchHtml } from './http';
-import { searchQuery, titleSimilarity } from './match';
+import { isAccessory, searchQuery, titleSimilarity } from './match';
 import { adapters, regionFromCurrency } from './stores';
 
-export const MATCH_THRESHOLD = 0.45;
+export const MATCH_THRESHOLD = 0.6;
+
+/** Offers priced far from the product are almost always a different item. */
+export function isPlausiblePrice(offer: number, reference: number) {
+  return offer >= reference * 0.4 && offer <= reference * 2.5;
+}
 
 /**
  * Search every store that supports the product's region for the same item
@@ -28,7 +33,10 @@ export async function findOffers(
         .map((offer) => ({ offer, score: titleSimilarity(product.title, offer.title) }))
         .filter(
           ({ score, offer }) =>
-            score >= MATCH_THRESHOLD && offer.currency === product.currency,
+            score >= MATCH_THRESHOLD &&
+            offer.currency === product.currency &&
+            !isAccessory(offer.title, product.title) &&
+            isPlausiblePrice(offer.price, product.currentPrice),
         )
         .sort((x, y) => y.score - x.score || x.offer.price - y.offer.price);
       return ranked[0]?.offer;
