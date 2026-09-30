@@ -52,8 +52,8 @@ export default function Searchbar() {
     <form onSubmit={submit} className="w-full" noValidate>
       <div
         className={cn(
-          'group relative flex items-center gap-2 rounded-2xl border bg-surface p-2 shadow-[0_1px_0_rgb(var(--line)),0_20px_40px_-24px_rgb(var(--ink)/.25)] transition',
-          error ? 'border-up/60' : 'border-line focus-within:border-ink/40',
+          'group relative flex items-center gap-2 rounded-xl border bg-surface p-1.5 shadow-sm transition focus-within:ring-4 focus-within:ring-accent/10',
+          error ? 'border-up/60' : 'border-line focus-within:border-accent/60',
         )}
       >
         <Link2 className="ml-2 size-5 shrink-0 text-muted" aria-hidden />
@@ -87,7 +87,7 @@ export default function Searchbar() {
             Paste
           </button>
         )}
-        <button type="submit" className="btn-accent shrink-0 rounded-xl" disabled={!url || isPending}>
+        <button type="submit" className="btn-accent shrink-0" disabled={!url || isPending}>
           {isPending ? (
             <Loader2 className="size-4 animate-spin" aria-hidden />
           ) : (
@@ -100,7 +100,7 @@ export default function Searchbar() {
       <p id="product-url-status" role="status" aria-live="polite" className="mt-3 min-h-5 text-sm">
         {isPending ? (
           <span className="inline-flex items-center gap-2 text-muted">
-            <span className="size-1.5 animate-pulse-dot rounded-full bg-accent-ink dark:bg-accent" />
+            <span className="size-1.5 animate-pulse-dot rounded-full bg-accent" />
             <span className="num text-xs">
               {step + 1}/{STEPS.length}
             </span>
