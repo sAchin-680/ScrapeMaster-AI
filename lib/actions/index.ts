@@ -103,7 +103,7 @@ export async function addUserEmailToProduct(
       },
       'WELCOME',
     );
-    await sendEmail(content, [address]).catch((error) =>
+    await sendEmail(content, [address], id).catch((error) =>
       console.error('[actions] welcome email failed', error),
     );
 

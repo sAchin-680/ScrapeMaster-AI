@@ -38,6 +38,7 @@ export async function refreshProduct(id: string) {
     await sendEmail(
       content,
       product.users.map((user) => user.email),
+      id,
     );
   }
 
