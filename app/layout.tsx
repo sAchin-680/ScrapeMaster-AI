@@ -6,7 +6,11 @@ import Footer from '@/components/Footer';
 import { PreferencesProvider } from '@/components/PreferencesProvider';
 import { getRates } from '@/lib/fx';
 import { getPreferences } from '@/lib/preferences';
-import { getAnnouncements } from '@/lib/sales';
+import { buildAnnouncements } from '@/lib/announcements';
+import { getActiveSales } from '@/lib/data/sales';
+import { getPriceSignals } from '@/lib/data/signals';
+import { CURRENCIES, getCountry } from '@/lib/locale';
+import { filterSalesFor } from '@/lib/sales';
 import { siteConfig } from '@/lib/site';
 import './globals.css';
 
@@ -55,7 +59,17 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [preferences, rates] = await Promise.all([getPreferences(), getRates()]);
+  const preferences = await getPreferences();
+  const country = getCountry(preferences.country);
+  const [rates, sales, signals] = await Promise.all([
+    getRates(),
+    getActiveSales(),
+    getPriceSignals(CURRENCIES[country.currency].symbol.trim()),
+  ]);
+  const announcements = buildAnnouncements(
+    filterSalesFor(sales, country.code, Date.now(), 21),
+    signals,
+  );
 
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
@@ -67,7 +81,7 @@ export default async function RootLayout({
           Skip to content
         </a>
         <PreferencesProvider preferences={preferences} rates={rates}>
-          <AnnouncementBar items={getAnnouncements(preferences.country)} />
+          <AnnouncementBar items={announcements} />
           <Navbar />
           <main id="content" className="flex-1">
             {children}

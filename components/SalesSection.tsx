@@ -1,13 +1,15 @@
 import { ArrowUpRight, CalendarClock, Radio } from 'lucide-react';
 import Countdown from '@/components/ui/Countdown';
 import type { Country } from '@/lib/locale';
-import { getSalesFor } from '@/lib/sales';
+import type { SaleStatus, Sale } from '@/lib/sales';
 import { cn } from '@/lib/utils';
 
 const dateFormat = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' });
 
-export default function SalesSection({ country }: { country: Country }) {
-  const sales = getSalesFor(country.code).slice(0, 3);
+type Props = { country: Country; sales: (Sale & { status: SaleStatus })[] };
+
+export default function SalesSection({ country, sales: all }: Props) {
+  const sales = all.slice(0, 3);
   if (!sales.length) return null;
 
   return (

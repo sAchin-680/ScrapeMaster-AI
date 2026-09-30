@@ -9,6 +9,8 @@ import Ticker from '@/components/Ticker';
 import LiveBadge from '@/components/live/LiveBadge';
 import { LiveProvider } from '@/components/live/LiveProvider';
 import { getAllProducts, getTopDeals, getTrackerStats } from '@/lib/data/products';
+import { getActiveSales } from '@/lib/data/sales';
+import { filterSalesFor } from '@/lib/sales';
 import { CURRENCIES, getCountry } from '@/lib/locale';
 import { getPreferences } from '@/lib/preferences';
 import { formatNumber } from '@/lib/utils';
@@ -20,11 +22,13 @@ export default async function Home() {
   const country = getCountry(preferences.country);
   const local = CURRENCIES[country.currency].symbol.trim();
 
-  const [allProducts, stats, localDeals] = await Promise.all([
+  const [allProducts, stats, localDeals, activeSales] = await Promise.all([
     getAllProducts(),
     getTrackerStats(),
     getTopDeals(local),
+    getActiveSales(),
   ]);
+  const sales = filterSalesFor(activeSales, country.code);
   const deals = localDeals.length ? localDeals : await getTopDeals(null);
 
   // Feature the best current deal, else the product with the most recorded history.
@@ -125,7 +129,7 @@ export default async function Home() {
         )}
       </section>
 
-      <SalesSection country={country} />
+      <SalesSection country={country} sales={sales} />
 
       <HowItWorks />
     </LiveProvider>
