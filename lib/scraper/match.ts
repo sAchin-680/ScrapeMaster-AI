@@ -40,6 +40,12 @@ export function isPlausiblePrice(offer: number, reference: number) {
   return offer >= reference * 0.4 && offer <= reference * 2.5;
 }
 
+/** Light suffix stripping so "cancelling" and "cancellation" compare equal. */
+function stem(token: string) {
+  if (/\d/.test(token) || token.length < 6) return token;
+  return token.replace(/(ations?|ions?|ings?|ed|es|s)$/, '');
+}
+
 export function tokenize(title: string) {
   return new Set(
     title
@@ -47,7 +53,8 @@ export function tokenize(title: string) {
       .replace(/(\d+)\s+(gb|tb|mb|mah|inch|in|w|hz|mm|l|kg|g|hr|hrs)\b/g, '$1$2')
       .split(/[^a-z0-9]+/)
       // Keep single digits: they are model numbers ("Flip 6", "Pixel 9").
-      .filter((t) => (t.length > 1 || /\d/.test(t)) && !STOPWORDS.has(t)),
+      .filter((t) => (t.length > 1 || /\d/.test(t)) && !STOPWORDS.has(t))
+      .map(stem),
   );
 }
 

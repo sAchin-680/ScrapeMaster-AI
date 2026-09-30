@@ -33,6 +33,14 @@ describe('titleSimilarity', () => {
       'SONY WH-1000XM5 Wireless Noise Cancellation Headphones',
     ],
     [
+      'Sony WH-1000XM5 Best Active Noise Cancelling Wireless Bluetooth Over Ear Headphones with Mic for Clear Calling',
+      'SONY WH-1000XM5 Wireless Noise Cancellation Headphones with Mic',
+    ],
+    [
+      'Samsung Galaxy S24 5G AI Smartphone (Onyx Black, 8GB, 256GB Storage)',
+      'Samsung Galaxy S24 5G (Amber Yellow, 256 GB)',
+    ],
+    [
       'Logitech MX Master 3S Bluetooth Edition Wireless Mouse, Ultra-fast Scrolling',
       'Logitech MX Master 3s Ergonomic Optical Mouse',
     ],
