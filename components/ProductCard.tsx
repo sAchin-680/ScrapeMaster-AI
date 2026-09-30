@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import DealBadge from '@/components/DealBadge';
 import LivePrice from '@/components/live/LivePrice';
 import ProductImage from '@/components/ui/ProductImage';
 import Money from '@/components/ui/Money';
 import Sparkline from '@/components/ui/Sparkline';
 import type { Product } from '@/types';
+import { getDealVerdict } from '@/lib/deal';
 
 export default function ProductCard({
   product,
@@ -15,6 +17,7 @@ export default function ProductCard({
 }) {
   const history = (product.priceHistory ?? []).map((p) => p.price);
   const discount = product.discountRate > 0 ? product.discountRate : 0;
+  const verdict = getDealVerdict({ ...product, priceHistory: product.priceHistory ?? [] });
 
   return (
     <Link
@@ -34,6 +37,9 @@ export default function ProductCard({
           <span className="num absolute left-2 top-2 rounded-md bg-down px-2 py-0.5 text-xs font-medium text-white">
             −{discount}%
           </span>
+        )}
+        {!product.isOutOfStock && (verdict.level === 'great' || verdict.level === 'good') && (
+          <DealBadge verdict={verdict} className="absolute bottom-2 left-2 shadow-sm" />
         )}
         {product.isOutOfStock && (
           <span className="absolute right-2 top-2 rounded-md bg-ink/80 px-2 py-0.5 text-xs font-medium text-paper backdrop-blur">
