@@ -27,7 +27,7 @@ export function LiveProvider({ children, productIds, refreshOnUpdate = true }: P
   const [status, setStatus] = useState<LiveStatus>('connecting');
   const [updates, setUpdates] = useState<Record<string, LiveProductUpdate>>({});
   const [lastEventAt, setLastEventAt] = useState<number | null>(null);
-  const refreshTimer = useRef<ReturnType<typeof setTimeout>>();
+  const refreshTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
   const idsKey = productIds?.join(',') ?? '';
 
   useEffect(() => {
