@@ -16,6 +16,8 @@
     "@headlessui/react": "^2.2.0",
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.49.0",
     "mongoose": "^8.8.3",
     "next": "^15.5.26",
     "nodemailer": "^6.9.16",
