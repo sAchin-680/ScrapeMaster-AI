@@ -6,7 +6,8 @@ export async function register() {
   if (process.env.NEXT_RUNTIME !== 'nodejs' || process.env.NODE_ENV !== 'production')
     return;
 
-  const { saleSignalFeed, trendingFeed } = await import('@/lib/services/store-feed');
+  const { dealsFeed, saleSignalFeed, trendingFeed } =
+    await import('@/lib/services/store-feed');
   const { DEFAULT_PREFERENCES, regionForCountry } = await import('@/lib/locale');
   const region = regionForCountry(DEFAULT_PREFERENCES.country);
 

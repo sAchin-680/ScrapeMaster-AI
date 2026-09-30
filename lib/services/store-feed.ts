@@ -143,6 +143,68 @@ async function loadSaleSignals(region: string): Promise<SaleFeed> {
   };
 }
 
+const DEAL_CATEGORIES: Record<Region, string[]> = {
+  in: [
+    'smartphones',
+    'wireless earbuds',
+    'smartwatch',
+    'laptops',
+    'bluetooth speakers',
+    'air fryer',
+  ],
+  us: ['headphones', 'smartwatch', 'laptops', 'tablets', 'kitchen appliances'],
+  uk: ['headphones', 'smartwatch', 'laptops', 'kitchen appliances'],
+  de: ['kopfhörer', 'smartwatch', 'laptop', 'küchengeräte'],
+};
+const MIN_DISCOUNT = 0.2;
+// Bigger "discounts" are almost always an inflated MRP, not a real saving.
+const MAX_PLAUSIBLE_DISCOUNT = 0.7;
+
+export type DealItem = Offer & { discount: number };
+
+/**
+ * Biggest discounts right now: store search results where the selling price
+ * is well below the list price the store itself shows.
+ */
+async function loadDeals(region: string): Promise<DealItem[]> {
+  const categories = DEAL_CATEGORIES[region as Region] ?? DEAL_CATEGORIES.in;
+  const settled = await Promise.allSettled(
+    categories.map((q) => {
+      const url = amazon.search!.url(q, region as Region);
+      return loadAndParse(amazon, url, (html) => amazon.search!.parse(html, url));
+    }),
+  );
+
+  const lists = settled.map((r) =>
+    r.status === 'fulfilled'
+      ? r.value
+          .filter(
+            (o) =>
+              o.originalPrice &&
+              o.price <= o.originalPrice * (1 - MIN_DISCOUNT) &&
+              o.price >= o.originalPrice * (1 - MAX_PLAUSIBLE_DISCOUNT),
+          )
+          .map((o) => ({
+            ...o,
+            discount: Math.round((1 - o.price / o.originalPrice!) * 100),
+          }))
+          .sort((a, b) => b.discount - a.discount)
+          .slice(0, 3)
+      : [],
+  );
+
+  // Take the best few per category so one category can't fill the grid.
+  const seen = new Set<string>();
+  return lists
+    .flat()
+    .filter((o) => !seen.has(o.url) && seen.add(o.url))
+    .sort((a, b) => b.discount - a.discount)
+    .slice(0, 12);
+}
+
+/** Live store discounts, refreshed hourly. */
+export const dealsFeed = swrMap('deals', 60 * 60_000, loadDeals);
+
 /** Store bestsellers and popular lists, refreshed hourly. */
 export const trendingFeed = swrMap('trending', 60 * 60_000, loadTrending);
 
