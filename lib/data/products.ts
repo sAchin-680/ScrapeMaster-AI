@@ -15,9 +15,10 @@ function serialize<T>(doc: T): T {
 export async function getAllProducts(limit = 24): Promise<Product[]> {
   try {
     await connectDB();
+    // Sort by when tracking started so live price updates never reshuffle the grid.
     const products = await ProductModel.find({})
       .select(PUBLIC_FIELDS)
-      .sort({ updatedAt: -1 })
+      .sort({ createdAt: -1, _id: -1 })
       .limit(limit)
       .lean();
     return serialize(products) as unknown as Product[];

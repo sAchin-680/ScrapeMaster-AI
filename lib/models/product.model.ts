@@ -54,6 +54,7 @@ const productSchema = new mongoose.Schema(
 );
 
 productSchema.index({ updatedAt: -1 });
+productSchema.index({ createdAt: -1 });
 productSchema.index({ store: 1, updatedAt: -1 });
 // Serves the similar products query (category match, newest first).
 productSchema.index({ category: 1, updatedAt: -1 });
