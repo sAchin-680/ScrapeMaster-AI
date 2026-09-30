@@ -5,16 +5,17 @@ import { z } from 'zod';
 import { connectDB } from '@/lib/db';
 import ProductModel from '@/lib/models/product.model';
 import { generateEmailBody, sendEmail } from '@/lib/nodemailer';
-import { scrapeAmazonProduct, ScrapeError } from '@/lib/scraper';
+import { normalizeProductURL, scrapeProduct, ScrapeError } from '@/lib/scraper';
 import { refreshProduct } from '@/lib/services/refresh';
-import { appendPrice, getPriceStats, isValidAmazonProductURL, normalizeAmazonURL } from '@/lib/utils';
+import { appendPrice, getPriceStats, isValidProductURL } from '@/lib/utils';
 import type { ActionResult } from '@/types';
 
 const urlSchema = z
   .string()
   .trim()
-  .min(1, 'Paste an Amazon product link')
-  .refine(isValidAmazonProductURL, 'That does not look like an Amazon product link');
+  .min(1, 'Paste a product link')
+  .max(2048, 'That link is too long')
+  .refine(isValidProductURL, 'That does not look like a product page link');
 
 export async function scrapeAndStoreProduct(
   input: string,
@@ -22,10 +23,10 @@ export async function scrapeAndStoreProduct(
   const parsed = urlSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
 
-  const url = normalizeAmazonURL(parsed.data);
+  const url = normalizeProductURL(parsed.data);
 
   try {
-    const scraped = await scrapeAmazonProduct(url);
+    const scraped = await scrapeProduct(url);
     if (!scraped.currentPrice) {
       return { ok: false, error: 'We found the product but could not read its price.' };
     }
