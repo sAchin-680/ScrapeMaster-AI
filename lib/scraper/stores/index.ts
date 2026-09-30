@@ -11,4 +11,5 @@ export function resolveStore(url: URL): StoreAdapter {
 }
 
 export { amazon, flipkart, generic };
+export { regionFromCurrency } from './types';
 export type { Region, StoreAdapter } from './types';
