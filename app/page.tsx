@@ -1,12 +1,14 @@
+import DealsSection from '@/components/DealsSection';
 import EmptyState from '@/components/EmptyState';
 import HeroVisual from '@/components/HeroVisual';
 import HowItWorks from '@/components/HowItWorks';
+import SalesSection from '@/components/SalesSection';
 import ProductCard from '@/components/ProductCard';
 import Searchbar from '@/components/Searchbar';
 import Ticker from '@/components/Ticker';
 import LiveBadge from '@/components/live/LiveBadge';
 import { LiveProvider } from '@/components/live/LiveProvider';
-import { getAllProducts, getTrackerStats } from '@/lib/data/products';
+import { getAllProducts, getTopDeals, getTrackerStats } from '@/lib/data/products';
 import { CURRENCIES, getCountry } from '@/lib/locale';
 import { getPreferences } from '@/lib/preferences';
 import { formatNumber } from '@/lib/utils';
@@ -14,15 +16,18 @@ import { formatNumber } from '@/lib/utils';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const [allProducts, stats, preferences] = await Promise.all([
-    getAllProducts(),
-    getTrackerStats(),
-    getPreferences(),
-  ]);
-
-  // Products sold in the viewer's country come first.
+  const preferences = await getPreferences();
   const country = getCountry(preferences.country);
   const local = CURRENCIES[country.currency].symbol.trim();
+
+  const [allProducts, stats, localDeals] = await Promise.all([
+    getAllProducts(),
+    getTrackerStats(),
+    getTopDeals(local),
+  ]);
+  const deals = localDeals.length ? localDeals : await getTopDeals(null);
+
+  // Products sold in the viewer's country come first.
   const products = [...allProducts].sort(
     (a, b) => Number(b.currency.trim() === local) - Number(a.currency.trim() === local),
   );
@@ -75,6 +80,8 @@ export default async function Home() {
         </div>
       </section>
 
+      <DealsSection deals={deals} />
+
       <section id="trending" className="container scroll-mt-24 py-16">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
@@ -97,6 +104,8 @@ export default async function Home() {
           <EmptyState />
         )}
       </section>
+
+      <SalesSection country={country} />
 
       <HowItWorks />
     </LiveProvider>
