@@ -2,12 +2,15 @@ import { ExternalLink, Store, Trophy } from 'lucide-react';
 import CompareButton from '@/components/CompareButton';
 import RelativeTime from '@/components/live/RelativeTime';
 import Money from '@/components/ui/Money';
+import StoreLogo from '@/components/ui/StoreLogo';
 import type { Product } from '@/types';
 import { cn } from '@/lib/utils';
 
 export default function OfferComparison({ product }: { product: Product }) {
   const offers = product.offers ?? [];
   const best = offers[0];
+  // Every listing at the minimum price is a lowest price, not just the first.
+  const lowest = best?.price;
   const savings =
     best && best.store !== product.store ? product.currentPrice - best.price : 0;
 
@@ -41,7 +44,7 @@ export default function OfferComparison({ product }: { product: Product }) {
 
       {offers.length > 1 ? (
         <ul className="mt-4 divide-y divide-line overflow-hidden rounded-lg border border-line">
-          {offers.map((offer, i) => (
+          {offers.map((offer) => (
             <li key={offer.store}>
               <a
                 href={offer.url}
@@ -49,18 +52,16 @@ export default function OfferComparison({ product }: { product: Product }) {
                 rel="noopener noreferrer nofollow"
                 className={cn(
                   'flex items-center gap-3 px-3 py-3 transition hover:bg-paper sm:px-4',
-                  i === 0 && 'bg-accent-soft/40',
+                  offer.price === lowest && 'bg-accent-soft/40',
                 )}
               >
-                <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-paper text-xs font-semibold ring-1 ring-line">
-                  {offer.storeName.slice(0, 2)}
-                </span>
+                <StoreLogo url={offer.url} name={offer.storeName} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2 text-sm font-medium">
                     {offer.storeName}
-                    {i === 0 && (
+                    {offer.price === lowest && offers.length > 1 && (
                       <span className="inline-flex items-center gap-1 rounded bg-down px-1.5 py-0.5 text-[10px] font-semibold uppercase text-white">
-                        <Trophy className="size-3" aria-hidden /> Best
+                        <Trophy className="size-3" aria-hidden /> Lowest
                       </span>
                     )}
                   </span>
