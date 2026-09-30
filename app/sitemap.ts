@@ -2,7 +2,8 @@ import type { MetadataRoute } from 'next';
 import { getAllProducts } from '@/lib/data/products';
 import { siteConfig } from '@/lib/site';
 
-export const revalidate = 3600;
+// Rendered per request so builds never need a database connection.
+export const dynamic = 'force-dynamic';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const products = await getAllProducts(500);
