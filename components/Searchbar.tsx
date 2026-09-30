@@ -110,6 +110,10 @@ export default function Searchbar({ defaultValue = '' }: { defaultValue?: string
           type="submit"
           className="btn-accent shrink-0"
           disabled={!url || isPending}
+          // The text label is hidden on phones; keep the button named for screen readers.
+          aria-label={
+            /^https?:\/\//i.test(url.trim()) ? 'Track price' : 'Find best price'
+          }
         >
           {isPending ? (
             <Loader2 className="size-4 animate-spin" aria-hidden />
