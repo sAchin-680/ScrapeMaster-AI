@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isValidAmazonProductURL, normalizeAmazonURL } from '@/lib/utils/url';
+import { isValidAmazonProductURL, isValidProductURL, normalizeAmazonURL } from '@/lib/utils/url';
 
 describe('isValidAmazonProductURL', () => {
   it.each([
@@ -23,4 +23,17 @@ describe('normalizeAmazonURL', () => {
       normalizeAmazonURL('https://www.Amazon.in/Apple-iPhone-15/dp/b0chx1w1xy/ref=sr_1_1?tag=abc'),
     ).toBe('https://www.amazon.in/dp/B0CHX1W1XY');
   });
+});
+
+describe('isValidProductURL', () => {
+  it.each([
+    'https://www.flipkart.com/apple-iphone-15/p/itm6ac6485515ae4?pid=MOBGTAGPTB3VS24W',
+    'https://www.walmart.com/ip/123456',
+    'https://www.amazon.com/dp/B0CHX1W1XY',
+  ])('accepts %s', (url) => expect(isValidProductURL(url)).toBe(true));
+
+  it.each(['hello', 'https://www.amazon.com/gp/help', 'https://example.com/', 'javascript:alert(1)'])(
+    'rejects %s',
+    (url) => expect(isValidProductURL(url)).toBe(false),
+  );
 });
