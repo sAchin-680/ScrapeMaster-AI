@@ -1,5 +1,4 @@
 import DealsSection from '@/components/DealsSection';
-import EmptyState from '@/components/EmptyState';
 import HashScroll from '@/components/HashScroll';
 import HeroVisual from '@/components/HeroVisual';
 import HowItWorks from '@/components/HowItWorks';
@@ -132,23 +131,22 @@ export default async function Home() {
 
       <TrendingSection region={region} />
 
-      <section id="tracked" className="container scroll-mt-24 py-16">
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-accent">
-              {country.flag} Tracked by shoppers in {country.name}
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-              Recently tracked
-            </h2>
-          </div>
-          {products.length > 0 && (
+      {/* Only shown once something is tracked; an empty box helps no one. */}
+      {products.length > 0 && (
+        <section id="tracked" className="container scroll-mt-24 py-16">
+          <div className="mb-8 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-accent">
+                {country.flag} Price-tracked in {country.name}
+              </p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight">
+                Recently tracked
+              </h2>
+            </div>
             <p className="hidden text-sm text-muted sm:block">
-              Prices update live as we re-check them.
+              Prices re-checked every 30 minutes and updated live.
             </p>
-          )}
-        </div>
-        {products.length ? (
+          </div>
           <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
             {products.map((product, i) => (
               <div key={product._id} className="reveal">
@@ -156,10 +154,8 @@ export default async function Home() {
               </div>
             ))}
           </div>
-        ) : (
-          <EmptyState />
-        )}
-      </section>
+        </section>
+      )}
 
       <div id="sales" className="scroll-mt-24">
         <Suspense fallback={null}>
