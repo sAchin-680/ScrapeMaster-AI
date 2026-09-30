@@ -28,4 +28,11 @@ describe('readEnv', () => {
       SMTP_PORT: 587,
     });
   });
+
+  it('accepts alternative variable names', () => {
+    expect(readEnv({ BRIGHT_DATA_USERNAME: 'user', EMAIL_PASSWORD: 'pw' })).toEqual({
+      BRIGHTDATA_USERNAME: 'user',
+      SMTP_PASSWORD: 'pw',
+    });
+  });
 });

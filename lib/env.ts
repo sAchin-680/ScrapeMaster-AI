@@ -29,12 +29,20 @@ const fields = {
   BROWSER_WS_ENDPOINT: z.string().url(),
 };
 
+// Alternative names accepted for convenience (older or common spellings).
+const ALIASES: Partial<Record<keyof typeof fields, string[]>> = {
+  BRIGHTDATA_USERNAME: ['BRIGHT_DATA_USERNAME'],
+  BRIGHTDATA_PASSWORD: ['BRIGHT_DATA_PASSWORD'],
+  SMTP_PASSWORD: ['EMAIL_PASSWORD'],
+};
+
 type Env = { [K in keyof typeof fields]?: z.infer<(typeof fields)[K]> };
 
 function readEnv(source: Record<string, string | undefined>): Env {
   const env: Env = {};
   for (const [key, schema] of Object.entries(fields)) {
-    const raw = source[key]?.trim();
+    const names = [key, ...(ALIASES[key as keyof typeof fields] ?? [])];
+    const raw = names.map((name) => source[name]?.trim()).find(Boolean);
     if (!raw) continue;
     const result = schema.safeParse(raw);
     if (result.success) {
