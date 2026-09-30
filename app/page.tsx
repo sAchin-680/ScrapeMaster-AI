@@ -17,10 +17,13 @@ import { getActiveSales } from '@/lib/data/sales';
 import { filterSalesFor } from '@/lib/sales';
 import { CURRENCIES, getCountry, regionForCountry } from '@/lib/locale';
 import { saleSignalFeed } from '@/lib/services/store-feed';
+import { FEED_TIMEOUT_MS, withTimeout } from '@/lib/utils/timeout';
 import { getPreferences } from '@/lib/preferences';
 import { formatNumber } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
+// Room for streamed store data; Vercel Hobby defaults to 10 seconds.
+export const maxDuration = 60;
 
 /** Streams in once store homepages have been checked for sale banners. */
 async function LiveSales({
@@ -29,9 +32,10 @@ async function LiveSales({
 }: Omit<ComponentProps<typeof SalesSection>, 'signals' | 'checked'> & {
   region: Region;
 }) {
-  const feed = await saleSignalFeed(region)
-    .get()
-    .catch(() => ({ signals: [], checked: [] }));
+  const feed = await withTimeout(saleSignalFeed(region).get(), FEED_TIMEOUT_MS, {
+    signals: [],
+    checked: [],
+  });
   return <SalesSection {...props} signals={feed.signals} checked={feed.checked} />;
 }
 

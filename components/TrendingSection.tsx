@@ -6,12 +6,11 @@ import ProductTile from '@/components/ui/ProductTile';
 import { SEARCHABLE_STORES } from '@/lib/locale';
 import type { Region } from '@/lib/scraper/stores';
 import { trendingFeed } from '@/lib/services/store-feed';
+import { FEED_TIMEOUT_MS, withTimeout } from '@/lib/utils/timeout';
 
 /** Store bestseller grid; streams in once the stores have responded. */
 async function TrendingGrid({ region }: { region: Region }) {
-  const items = await trendingFeed(region)
-    .get()
-    .catch(() => []);
+  const items = await withTimeout(trendingFeed(region).get(), FEED_TIMEOUT_MS, []);
   if (!items.length) {
     return (
       <p className="text-sm text-muted">

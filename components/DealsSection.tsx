@@ -6,6 +6,7 @@ import Money from '@/components/ui/Money';
 import ProductTile from '@/components/ui/ProductTile';
 import type { Region } from '@/lib/scraper/stores';
 import { dealsFeed } from '@/lib/services/store-feed';
+import { FEED_TIMEOUT_MS, withTimeout } from '@/lib/utils/timeout';
 import type { Product } from '@/types';
 
 function GridSkeleton({ count = 4 }: { count?: number }) {
@@ -24,9 +25,9 @@ function GridSkeleton({ count = 4 }: { count?: number }) {
 
 /** Live discounts from store listings, measured against the store's own MRP. */
 async function StoreDeals({ region }: { region: Region }) {
-  const deals = await dealsFeed(region)
-    .get()
-    .catch(() => []);
+  // Time-boxed so slow stores can't hold the page past the function limit;
+  // loading continues in the background and fills the cache.
+  const deals = await withTimeout(dealsFeed(region).get(), FEED_TIMEOUT_MS, []);
   if (!deals.length) {
     return (
       <p className="text-sm text-muted">
