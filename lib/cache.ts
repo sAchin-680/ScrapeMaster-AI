@@ -1,4 +1,7 @@
-type Entry<T> = { value?: T; at: number; pending?: Promise<T> };
+type Entry<T> = { value?: T; at: number; pending?: Promise<T>; failedAt?: number };
+
+// After a failed load, wait this long before trying again.
+const RETRY_AFTER_MS = 60_000;
 
 /**
  * In-memory stale-while-revalidate cache. `get` waits for data on a cold
@@ -13,7 +16,12 @@ export function swr<T>(ttlMs: number, load: () => Promise<T>) {
       .then((value) => {
         entry.value = value;
         entry.at = Date.now();
+        entry.failedAt = undefined;
         return value;
+      })
+      .catch((error) => {
+        entry.failedAt = Date.now();
+        throw error;
       })
       .finally(() => {
         entry.pending = undefined;
@@ -24,15 +32,19 @@ export function swr<T>(ttlMs: number, load: () => Promise<T>) {
   return {
     async get() {
       if (entry.value !== undefined && Date.now() - entry.at < ttlMs) return entry.value;
+      const coolingDown = entry.failedAt && Date.now() - entry.failedAt < RETRY_AFTER_MS;
       if (entry.value !== undefined) {
-        refresh().catch(() => {});
+        if (!coolingDown) refresh().catch(() => {});
         return entry.value;
       }
+      if (coolingDown) throw new Error('Source unavailable; retrying shortly');
       return refresh();
     },
     peek() {
-      if (entry.value === undefined || Date.now() - entry.at >= ttlMs)
+      const coolingDown = entry.failedAt && Date.now() - entry.failedAt < RETRY_AFTER_MS;
+      if (!coolingDown && (entry.value === undefined || Date.now() - entry.at >= ttlMs)) {
         refresh().catch(() => {});
+      }
       return entry.value;
     },
   };

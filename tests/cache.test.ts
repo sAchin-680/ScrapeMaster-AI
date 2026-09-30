@@ -26,4 +26,12 @@ describe('swr cache', () => {
     expect(await b('in').get()).toBe('IN');
     expect(load).toHaveBeenCalledTimes(1);
   });
+
+  it('does not cache failures and backs off before retrying', async () => {
+    const load = vi.fn().mockRejectedValueOnce(new Error('down')).mockResolvedValue('up');
+    const cache = swr(1000, load);
+    await expect(cache.get()).rejects.toThrow('down');
+    await expect(cache.get()).rejects.toThrow('retrying shortly');
+    expect(load).toHaveBeenCalledTimes(1);
+  });
 });
