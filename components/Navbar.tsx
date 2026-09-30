@@ -17,7 +17,7 @@ export default function Navbar() {
         <Link href="/" aria-label="ScrapeMaster home">
           <Logo />
         </Link>
-        <ul className="hidden items-center gap-1 md:flex">
+        <ul className="hidden items-center gap-1 lg:flex">
           {links.map((link) => (
             <li key={link.href}>
               <Link
