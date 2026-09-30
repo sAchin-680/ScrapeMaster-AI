@@ -1,4 +1,5 @@
 import 'server-only';
+import { unstable_cache } from 'next/cache';
 import type { Offer } from '@/types';
 import { swrMap } from '@/lib/cache';
 import { loadAndParse } from '@/lib/scraper/load';
@@ -208,11 +209,37 @@ async function loadDeals(region: string): Promise<DealItem[]> {
     .slice(0, 12);
 }
 
+/**
+ * Persist a feed in Next's data cache, which is shared across all server
+ * instances on Vercel (in-memory caches are per instance). Failed loads throw
+ * and are never stored. The in-memory SWR layer on top serves repeat hits
+ * without a cache round-trip.
+ */
+function shared<T>(
+  name: string,
+  revalidateSeconds: number,
+  load: (key: string) => Promise<T>,
+) {
+  return (key: string) =>
+    unstable_cache(() => load(key), ['store-feed', name, key], {
+      revalidate: revalidateSeconds,
+      tags: [`store-feed:${name}`],
+    })();
+}
+
 /** Live store discounts, refreshed hourly. */
-export const dealsFeed = swrMap('deals', 60 * 60_000, loadDeals);
+export const dealsFeed = swrMap('deals', 60 * 60_000, shared('deals', 3600, loadDeals));
 
 /** Store bestsellers and popular lists, refreshed hourly. */
-export const trendingFeed = swrMap('trending', 60 * 60_000, loadTrending);
+export const trendingFeed = swrMap(
+  'trending',
+  60 * 60_000,
+  shared('trending', 3600, loadTrending),
+);
 
 /** Sale banners detected on store homepages, refreshed every 30 minutes. */
-export const saleSignalFeed = swrMap('sale-signals', 30 * 60_000, loadSaleSignals);
+export const saleSignalFeed = swrMap(
+  'sale-signals',
+  30 * 60_000,
+  shared('sale-signals', 1800, loadSaleSignals),
+);
