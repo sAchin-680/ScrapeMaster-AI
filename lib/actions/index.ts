@@ -1,11 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { after } from 'next/server';
 import { z } from 'zod';
 import { connectDB } from '@/lib/db';
 import ProductModel from '@/lib/models/product.model';
 import { generateEmailBody, sendEmail } from '@/lib/nodemailer';
 import { normalizeProductURL, scrapeProduct, ScrapeError } from '@/lib/scraper';
+import { updateOffers } from '@/lib/services/offers';
 import { refreshProduct } from '@/lib/services/refresh';
 import { appendPrice, getPriceStats, isValidProductURL } from '@/lib/utils';
 import type { ActionResult } from '@/types';
@@ -43,9 +45,13 @@ export async function scrapeAndStoreProduct(
       .select('_id')
       .lean();
 
+    const id = String(product!._id);
+    // Compare other stores after responding so tracking stays fast.
+    after(() => updateOffers(id).catch((error) => console.error('[actions] offers failed', error)));
+
     revalidatePath('/');
-    revalidatePath(`/products/${product!._id}`);
-    return { ok: true, data: { id: String(product!._id) } };
+    revalidatePath(`/products/${id}`);
+    return { ok: true, data: { id } };
   } catch (error) {
     console.error('[actions] scrapeAndStoreProduct failed', error);
     const message =
@@ -132,5 +138,30 @@ export async function refreshProductNow(
     console.error('[actions] refreshProductNow failed', error);
     const message = error instanceof ScrapeError ? error.message : 'Refresh failed. Please try again.';
     return { ok: false, error: message };
+  }
+}
+
+const COMPARE_COOLDOWN_MS = 10 * 60_000;
+
+/** Search other stores for the same product, at most every 10 minutes. */
+export async function compareOffersNow(productId: string): Promise<ActionResult<{ count: number }>> {
+  if (!/^[a-f\d]{24}$/i.test(productId)) return { ok: false, error: 'Invalid product' };
+
+  try {
+    await connectDB();
+    const product = await ProductModel.findById(productId).select('offersCheckedAt').lean();
+    if (!product) return { ok: false, error: 'Product not found' };
+
+    const age = product.offersCheckedAt ? Date.now() - new Date(product.offersCheckedAt).getTime() : Infinity;
+    if (age < COMPARE_COOLDOWN_MS) {
+      return { ok: false, error: 'Compared recently. Try again in a few minutes.' };
+    }
+
+    const offers = await updateOffers(productId);
+    revalidatePath(`/products/${productId}`);
+    return { ok: true, data: { count: offers.length } };
+  } catch (error) {
+    console.error('[actions] compareOffersNow failed', error);
+    return { ok: false, error: 'Could not compare stores right now.' };
   }
 }
