@@ -136,6 +136,8 @@ export function parseFlipkartSearch(html: string): Offer[] {
 export const flipkart: StoreAdapter = {
   id: 'flipkart',
   name: 'Flipkart',
+  // Plain HTTP requests receive an empty app shell without product data.
+  fetchMode: 'browser',
   matches: (url) => /(^|\.)flipkart\.com$/i.test(url.hostname),
   normalize(url) {
     const pid = url.searchParams.get('pid');
