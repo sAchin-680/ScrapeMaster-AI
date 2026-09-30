@@ -1,30 +1,47 @@
-import mongoose from 'mongoose';
+import mongoose, { type InferSchemaType, type Model } from 'mongoose';
 
-const productSchema = new mongoose.Schema({
+const priceHistorySchema = new mongoose.Schema(
+  {
+    price: { type: Number, required: true, min: 0 },
+    date: { type: Date, default: Date.now },
+  },
+  { _id: false },
+);
+
+const userSchema = new mongoose.Schema(
+  { email: { type: String, required: true, lowercase: true, trim: true } },
+  { _id: false },
+);
+
+const productSchema = new mongoose.Schema(
+  {
     url: { type: String, required: true, unique: true },
     currency: { type: String, required: true },
     image: { type: String, required: true },
     title: { type: String, required: true },
     currentPrice: { type: Number, required: true },
     originalPrice: { type: Number, required: true },
-    priceHistory:[
-        {
-            prices: {type: Number, required: true},
-            date: {type: Date, default: Date.now}
-    },
-],
-    lowestPrice: { type: Number},
-    highestPrice: { type: Number},
-    averagePrice: { type: Number},
-    description: { type: String},
-    category: { type: String},
-    reviwesCount: { type: Number},
-    isOutOfStock: { type: Boolean, default: false},
-    users:[
-           { email: { type: String, required: true }},
-    ], default: [],
-},{timestamps: true});
+    priceHistory: { type: [priceHistorySchema], default: [] },
+    lowestPrice: Number,
+    highestPrice: Number,
+    averagePrice: Number,
+    discountRate: { type: Number, default: 0 },
+    description: String,
+    category: { type: String, index: true },
+    reviewsCount: Number,
+    stars: Number,
+    isOutOfStock: { type: Boolean, default: false },
+    users: { type: [userSchema], default: [] },
+  },
+  { timestamps: true },
+);
 
-const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
+productSchema.index({ updatedAt: -1 });
+
+export type ProductDocument = InferSchemaType<typeof productSchema>;
+
+const Product: Model<ProductDocument> =
+  (mongoose.models.Product as Model<ProductDocument>) ||
+  mongoose.model<ProductDocument>('Product', productSchema);
 
 export default Product;
