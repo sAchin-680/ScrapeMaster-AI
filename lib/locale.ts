@@ -103,6 +103,14 @@ export function regionForCountry(code: string): 'us' | 'in' | 'uk' | 'de' {
   return 'us';
 }
 
+/** Stores with live search support per marketplace (mirrors the scraper adapters). */
+export const SEARCHABLE_STORES: Record<ReturnType<typeof regionForCountry>, string[]> = {
+  in: ['Amazon.in', 'Flipkart'],
+  us: ['Amazon.com'],
+  uk: ['Amazon.co.uk'],
+  de: ['Amazon.de'],
+};
+
 export type CountryCode = (typeof COUNTRIES)[number]['code'];
 export type Country = (typeof COUNTRIES)[number];
 

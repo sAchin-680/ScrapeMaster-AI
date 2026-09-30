@@ -5,7 +5,7 @@ import { useState, useTransition, type FormEvent } from 'react';
 import { ArrowRight, ClipboardPaste, Loader2, Search } from 'lucide-react';
 import { scrapeAndStoreProduct } from '@/lib/actions';
 import { usePreferences } from '@/components/PreferencesProvider';
-import { getCountry } from '@/lib/locale';
+import { getCountry, regionForCountry, SEARCHABLE_STORES } from '@/lib/locale';
 import { cn, isValidProductURL } from '@/lib/utils';
 
 const STEPS = ['Fetching page', 'Reading price', 'Saving snapshot'];
@@ -144,8 +144,9 @@ export default function Searchbar({ defaultValue = '' }: { defaultValue?: string
           <span className="text-up">{error}</span>
         ) : (
           <span className="text-muted">
-            {country.flag} Searches {country.stores.slice(0, 2).join(' & ')} live, or
-            paste a link from any store.
+            {country.flag} Searches{' '}
+            {SEARCHABLE_STORES[regionForCountry(country.code)].join(' & ')} live, or paste
+            a link from any store.
           </span>
         )}
       </p>
