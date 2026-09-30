@@ -12,6 +12,7 @@ import { getPriceSignals } from '@/lib/data/signals';
 import { CURRENCIES, getCountry, regionForCountry } from '@/lib/locale';
 import { saleSignalFeed } from '@/lib/services/store-feed';
 import { filterSalesFor } from '@/lib/sales';
+import { withTimeout } from '@/lib/utils/timeout';
 import { siteConfig } from '@/lib/site';
 import './globals.css';
 
@@ -64,8 +65,12 @@ export default async function RootLayout({
   const country = getCountry(preferences.country);
   const [rates, sales, signals] = await Promise.all([
     getRates(),
-    getActiveSales(),
-    getPriceSignals(CURRENCIES[country.currency].symbol.trim()),
+    // Announcements are optional: never let them hold up a page.
+    withTimeout(getActiveSales(), 3_000, []),
+    withTimeout(getPriceSignals(CURRENCIES[country.currency].symbol.trim()), 3_000, {
+      drops: [],
+      waves: [],
+    }),
   ]);
   // peek() never blocks rendering; banners appear once the feed has loaded.
   const announcements = buildAnnouncements(
