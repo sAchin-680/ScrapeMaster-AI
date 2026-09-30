@@ -1,5 +1,6 @@
 import DealsSection from '@/components/DealsSection';
 import EmptyState from '@/components/EmptyState';
+import HashScroll from '@/components/HashScroll';
 import HeroVisual from '@/components/HeroVisual';
 import HowItWorks from '@/components/HowItWorks';
 import SalesSection from '@/components/SalesSection';
@@ -67,6 +68,7 @@ export default async function Home() {
 
   return (
     <LiveProvider>
+      <HashScroll />
       <Ticker products={products} />
 
       <section
