@@ -62,42 +62,75 @@ export function parseFlipkartProduct(html: string, url: string) {
   };
 }
 
+const pidOf = (href: string) => {
+  const url = new URL(href, 'https://www.flipkart.com');
+  return url.searchParams.get('pid') ?? url.pathname;
+};
+
+const PRICE_TEXT = /^₹\s?[\d,]+(\.\d{1,2})?$/;
+
+/**
+ * Parse search results by structure rather than class names, which Flipkart
+ * rotates often: for each product link, climb to the largest ancestor that
+ * still contains only that product, then read its title and first price.
+ */
 export function parseFlipkartSearch(html: string): Offer[] {
   const $ = cheerio.load(html);
+  const seen = new Set<string>();
+  const offers: Offer[] = [];
 
-  return $('div[data-id]')
-    .toArray()
-    .flatMap((el) => {
-      const card = $(el);
-      const link = card.find('a[href*="/p/"]').first();
-      const href = link.attr('href');
-      const title =
-        card
-          .find('div.KzDlHZ, a.wjcEIp, div._4rR01T, a.s1Q9rs, a.WKTcLC')
-          .first()
-          .text()
-          .trim() ||
-        card.find('a[title]').first().attr('title') ||
-        card.find('img').first().attr('alt') ||
-        '';
-      const price = parsePrice(card.find('div.Nx9bqj, div._30jeq3').first().text());
-      if (!href || !title || !price) return [];
+  $('a[href*="/p/"]').each((_, anchor) => {
+    const href = $(anchor).attr('href');
+    if (!href) return;
+    const pid = pidOf(href);
+    if (seen.has(pid)) return;
 
-      const url = new URL(href, 'https://www.flipkart.com');
-      const pid = url.searchParams.get('pid');
-      url.search = pid ? `?pid=${pid}` : '';
-      return [
-        {
-          store: 'flipkart',
-          storeName: 'Flipkart',
-          title,
-          url: url.toString(),
-          price,
-          currency: '₹',
-          image: card.find('img').first().attr('src'),
-        },
-      ];
+    let card = $(anchor);
+    for (let depth = 0; depth < 8; depth++) {
+      const parent = card.parent();
+      if (!parent.length) break;
+      const pids = new Set(
+        parent
+          .find('a[href*="/p/"]')
+          .map((_, a) => pidOf($(a).attr('href') ?? ''))
+          .get(),
+      );
+      if (pids.size > 1) break;
+      card = parent;
+    }
+
+    const prices = card
+      .find('*')
+      .filter(
+        (_, node) =>
+          $(node).children().length === 0 && PRICE_TEXT.test($(node).text().trim()),
+      )
+      .map((_, node) => parsePrice($(node).text()))
+      .get();
+    const title = (
+      card.find('img[alt]').first().attr('alt') ||
+      $(anchor).attr('title') ||
+      $(anchor).text()
+    )
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!prices.length || !title) return;
+
+    seen.add(pid);
+    const url = new URL(href, 'https://www.flipkart.com');
+    url.search = url.searchParams.get('pid') ? `?pid=${url.searchParams.get('pid')}` : '';
+    offers.push({
+      store: 'flipkart',
+      storeName: 'Flipkart',
+      title,
+      url: url.toString(),
+      price: prices[0],
+      currency: '₹',
+      image: card.find('img').first().attr('src'),
     });
+  });
+
+  return offers;
 }
 
 export const flipkart: StoreAdapter = {
