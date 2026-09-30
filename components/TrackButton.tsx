@@ -9,9 +9,12 @@ import { scrapeAndStoreProduct } from '@/lib/actions';
 export default function TrackButton({
   url,
   label = 'Track price',
+  variant = 'primary',
 }: {
   url: string;
   label?: string;
+  /** 'soft' suits dense grids; 'primary' is the main call to action. */
+  variant?: 'primary' | 'soft';
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +24,11 @@ export default function TrackButton({
     <div className="flex flex-col gap-1">
       <button
         type="button"
-        className="btn-primary w-full"
+        className={
+          variant === 'soft'
+            ? 'btn w-full bg-accent-soft py-2 text-xs text-accent hover:bg-accent hover:text-accent-ink'
+            : 'btn-primary w-full'
+        }
         disabled={isPending}
         onClick={() =>
           startTransition(async () => {
