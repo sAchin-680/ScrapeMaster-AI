@@ -5,8 +5,8 @@ import { connectDB } from '@/lib/db';
 import ProductModel from '@/lib/models/product.model';
 import type { Product } from '@/types';
 
-// Subscriber emails never leave the server.
-const PUBLIC_FIELDS = '-users -__v';
+// Subscriber emails never leave the server; offers are only needed on detail pages.
+const PUBLIC_FIELDS = '-users -offers -__v';
 
 function serialize<T>(doc: T): T {
   return JSON.parse(JSON.stringify(doc));
