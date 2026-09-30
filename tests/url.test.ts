@@ -3,6 +3,7 @@ import {
   isValidAmazonProductURL,
   isValidProductURL,
   normalizeAmazonURL,
+  openListingHref,
 } from '@/lib/utils/url';
 
 describe('isValidAmazonProductURL', () => {
@@ -44,4 +45,12 @@ describe('isValidProductURL', () => {
     'https://example.com/',
     'javascript:alert(1)',
   ])('rejects %s', (url) => expect(isValidProductURL(url)).toBe(false));
+});
+
+describe('openListingHref', () => {
+  it('builds an in-app link with the listing URL encoded', () => {
+    expect(openListingHref('https://www.amazon.in/dp/B0B11LJ69K?ref=x&y=1')).toBe(
+      '/track?url=https%3A%2F%2Fwww.amazon.in%2Fdp%2FB0B11LJ69K%3Fref%3Dx%26y%3D1',
+    );
+  });
 });

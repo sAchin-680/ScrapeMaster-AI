@@ -38,3 +38,8 @@ export function normalizeAmazonURL(input: string) {
   if (!asin) return url.toString();
   return `https://${url.hostname.toLowerCase()}/dp/${asin.toUpperCase()}`;
 }
+
+/** In-app link for a store listing: opens (tracking if needed) its product page. */
+export function openListingHref(url: string) {
+  return `/track?url=${encodeURIComponent(url)}`;
+}
