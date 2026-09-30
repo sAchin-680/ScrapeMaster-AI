@@ -18,4 +18,7 @@ export async function register() {
   void saleSignalFeed(region)
     .get()
     .catch(() => {});
+  void dealsFeed(region)
+    .get()
+    .catch(() => {});
 }
