@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useTransition, type FormEvent } from 'react';
-import { ArrowRight, ClipboardPaste, Link2, Loader2 } from 'lucide-react';
+import { ArrowRight, ClipboardPaste, Loader2, Search } from 'lucide-react';
 import { scrapeAndStoreProduct } from '@/lib/actions';
 import { usePreferences } from '@/components/PreferencesProvider';
 import { getCountry } from '@/lib/locale';
@@ -10,9 +10,10 @@ import { cn, isValidProductURL } from '@/lib/utils';
 
 const STEPS = ['Fetching page', 'Reading price', 'Saving snapshot'];
 
-export default function Searchbar() {
+/** One box for both: a product link starts tracking, anything else searches stores. */
+export default function Searchbar({ defaultValue = '' }: { defaultValue?: string }) {
   const router = useRouter();
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState(defaultValue);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [isPending, startTransition] = useTransition();
@@ -22,8 +23,20 @@ export default function Searchbar() {
     event.preventDefault();
     setError(null);
 
-    if (!isValidProductURL(url)) {
-      setError('Paste the full link of a product page, starting with https://');
+    const input = url.trim();
+    if (!input) return;
+
+    if (!/^https?:\/\//i.test(input)) {
+      if (input.length < 2) {
+        setError('Type a product name or paste a link');
+        return;
+      }
+      router.push(`/search?q=${encodeURIComponent(input)}`);
+      return;
+    }
+
+    if (!isValidProductURL(input)) {
+      setError('That link does not look like a product page');
       return;
     }
 
@@ -34,7 +47,7 @@ export default function Searchbar() {
     );
 
     startTransition(async () => {
-      const result = await scrapeAndStoreProduct(url);
+      const result = await scrapeAndStoreProduct(input);
       clearInterval(timer);
       if (result.ok) {
         router.push(`/products/${result.data.id}`);
@@ -62,14 +75,14 @@ export default function Searchbar() {
           error ? 'border-up/60' : 'border-line focus-within:border-accent/60',
         )}
       >
-        <Link2 className="ml-2 size-5 shrink-0 text-muted" aria-hidden />
+        <Search className="ml-2 size-5 shrink-0 text-muted" aria-hidden />
         <label htmlFor="product-url" className="sr-only">
-          Product link
+          Search products or paste a link
         </label>
         <input
           id="product-url"
-          type="url"
-          inputMode="url"
+          type="search"
+          enterKeyHint="search"
           autoComplete="off"
           spellCheck={false}
           value={url}
@@ -77,7 +90,7 @@ export default function Searchbar() {
             setUrl(e.target.value);
             if (error) setError(null);
           }}
-          placeholder="Paste a product link from any store"
+          placeholder="Search a product or paste any store link"
           aria-invalid={Boolean(error)}
           aria-describedby="product-url-status"
           disabled={isPending}
@@ -104,7 +117,11 @@ export default function Searchbar() {
             <ArrowRight className="size-4" aria-hidden />
           )}
           <span className="hidden sm:inline">
-            {isPending ? 'Tracking' : 'Track price'}
+            {isPending
+              ? 'Tracking'
+              : /^https?:\/\//i.test(url.trim())
+                ? 'Track price'
+                : 'Find best price'}
           </span>
         </button>
       </div>
@@ -127,8 +144,8 @@ export default function Searchbar() {
           <span className="text-up">{error}</span>
         ) : (
           <span className="text-muted">
-            {country.flag} Works with {country.stores.slice(0, 3).join(', ')} and any
-            store with product pages.
+            {country.flag} Searches {country.stores.slice(0, 2).join(' & ')} live, or
+            paste a link from any store.
           </span>
         )}
       </p>
