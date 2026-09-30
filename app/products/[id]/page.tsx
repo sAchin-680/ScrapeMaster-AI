@@ -58,7 +58,7 @@ export default async function ProductPage({ params }: Props) {
 
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-12">
           <div className="lg:sticky lg:top-24 lg:self-start">
-            <div className="card relative aspect-square overflow-hidden bg-white">
+            <div className="card relative aspect-square overflow-hidden bg-white p-4">
               {product.image && (
                 <Image
                   src={product.image}
@@ -70,7 +70,7 @@ export default async function ProductPage({ params }: Props) {
                 />
               )}
               {isLowest && (
-                <span className="absolute left-4 top-4 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-accent-ink">
+                <span className="absolute left-4 top-4 rounded-md bg-down px-2.5 py-1 text-xs font-medium text-white">
                   Lowest price recorded
                 </span>
               )}
@@ -120,7 +120,7 @@ export default async function ProductPage({ params }: Props) {
                       </span>
                     )}
                     {product.discountRate > 0 && (
-                      <span className="num rounded-full bg-accent px-2.5 py-1 text-sm font-semibold text-accent-ink">
+                      <span className="num rounded-md bg-down/10 px-2 py-0.5 text-sm font-medium text-down">
                         −{product.discountRate}%
                       </span>
                     )}
