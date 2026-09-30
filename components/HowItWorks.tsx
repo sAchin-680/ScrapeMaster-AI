@@ -29,7 +29,7 @@ export default function HowItWorks() {
         {steps.map((step, i) => (
           <li
             key={step.title}
-            className="card flex flex-col gap-4 p-6 transition hover:-translate-y-0.5 hover:shadow-md"
+            className="reveal card flex flex-col gap-4 p-6 transition-[border-color] duration-300 hover:border-accent/30"
           >
             <div className="flex items-center justify-between">
               <span className="grid size-10 place-items-center rounded-lg bg-accent-soft text-accent">
