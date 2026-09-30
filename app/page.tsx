@@ -3,6 +3,9 @@ import EmptyState from '@/components/EmptyState';
 import HeroVisual from '@/components/HeroVisual';
 import HowItWorks from '@/components/HowItWorks';
 import SalesSection from '@/components/SalesSection';
+import TrendingSection, { TrendingSkeleton } from '@/components/TrendingSection';
+import { Suspense, type ComponentProps } from 'react';
+import type { Region } from '@/lib/scraper/stores';
 import ProductCard from '@/components/ProductCard';
 import Searchbar from '@/components/Searchbar';
 import Ticker from '@/components/Ticker';
@@ -11,11 +14,23 @@ import { LiveProvider } from '@/components/live/LiveProvider';
 import { getAllProducts, getTopDeals, getTrackerStats } from '@/lib/data/products';
 import { getActiveSales } from '@/lib/data/sales';
 import { filterSalesFor } from '@/lib/sales';
-import { CURRENCIES, getCountry } from '@/lib/locale';
+import { CURRENCIES, getCountry, regionForCountry } from '@/lib/locale';
+import { saleSignalFeed } from '@/lib/services/store-feed';
 import { getPreferences } from '@/lib/preferences';
 import { formatNumber } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
+
+/** Streams in once store homepages have been checked for sale banners. */
+async function LiveSales({
+  region,
+  ...props
+}: Omit<ComponentProps<typeof SalesSection>, 'signals'> & { region: Region }) {
+  const signals = await saleSignalFeed(region)
+    .get()
+    .catch(() => []);
+  return <SalesSection {...props} signals={signals} />;
+}
 
 export default async function Home() {
   const preferences = await getPreferences();
@@ -29,6 +44,7 @@ export default async function Home() {
     getActiveSales(),
   ]);
   const sales = filterSalesFor(activeSales, country.code);
+  const region = regionForCountry(country.code);
   const deals = localDeals.length ? localDeals : await getTopDeals(null);
 
   // Feature the best current deal, else the product with the most recorded history.
@@ -103,14 +119,18 @@ export default async function Home() {
 
       <DealsSection deals={deals} />
 
-      <section id="trending" className="container scroll-mt-24 py-16">
+      <Suspense fallback={<TrendingSkeleton />}>
+        <TrendingSection region={region} />
+      </Suspense>
+
+      <section id="tracked" className="container scroll-mt-24 py-16">
         <div className="mb-8 flex items-end justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-accent">
-              {country.flag} Popular in {country.name}
+              {country.flag} Tracked by shoppers in {country.name}
             </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight">
-              Trending products
+              Recently tracked
             </h2>
           </div>
           {products.length > 0 && (
@@ -130,7 +150,9 @@ export default async function Home() {
         )}
       </section>
 
-      <SalesSection country={country} sales={sales} />
+      <Suspense fallback={null}>
+        <LiveSales country={country} sales={sales} region={region} />
+      </Suspense>
 
       <HowItWorks />
     </LiveProvider>
