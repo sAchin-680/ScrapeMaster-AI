@@ -3,8 +3,8 @@ import { BellRing, LineChart, Link2 } from 'lucide-react';
 const steps = [
   {
     icon: Link2,
-    title: 'Paste a link',
-    body: 'Drop in a product URL from any store. We read the page, record the first price and look for the same item elsewhere.',
+    title: 'Search or paste a link',
+    body: 'Type a product name to compare live prices across stores, or paste a link from any shop to start tracking it.',
   },
   {
     icon: LineChart,

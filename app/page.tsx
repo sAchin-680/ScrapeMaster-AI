@@ -70,8 +70,9 @@ export default async function Home() {
               </span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-muted">
-              Paste a link from Amazon, Flipkart, Walmart or any online shop. See the full
-              price history, compare stores and get an email the moment it drops.
+              Search a product to compare live prices on Amazon, Flipkart and more, or
+              paste a link from any shop. Get the full price history and an email the
+              moment it drops.
             </p>
 
             <div className="mt-8 w-full max-w-xl">
