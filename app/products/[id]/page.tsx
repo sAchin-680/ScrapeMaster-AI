@@ -97,7 +97,9 @@ export default async function ProductPage({ params }: Props) {
             <header className="flex flex-col gap-4">
               <div className="flex flex-wrap items-center gap-3">
                 <LiveBadge />
-                <p className="eyebrow">{product.category}</p>
+                <p className="eyebrow">
+                  {product.storeName} · {product.category}
+                </p>
               </div>
               <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
                 {product.title}
