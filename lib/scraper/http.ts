@@ -25,7 +25,13 @@ export function isPrivateAddress(address: string) {
   if (isIP(address) === 6) {
     const a = address.toLowerCase();
     if (a.startsWith('::ffff:')) return isPrivateAddress(a.slice(7));
-    return a === '::1' || a === '::' || a.startsWith('fc') || a.startsWith('fd') || a.startsWith('fe80');
+    return (
+      a === '::1' ||
+      a === '::' ||
+      a.startsWith('fc') ||
+      a.startsWith('fd') ||
+      a.startsWith('fe80')
+    );
   }
   return PRIVATE_V4.some((range) => range.test(address));
 }
@@ -36,18 +42,24 @@ export function isPrivateAddress(address: string) {
  */
 export async function assertPublicURL(input: string | URL) {
   const url = new URL(input);
-  if (url.protocol !== 'https:' && url.protocol !== 'http:') throw new ScrapeError('Only http(s) links are supported');
-  if (url.port && url.port !== '80' && url.port !== '443') throw new ScrapeError('Unsupported port');
-  if (url.username || url.password) throw new ScrapeError('Links with credentials are not supported');
+  if (url.protocol !== 'https:' && url.protocol !== 'http:')
+    throw new ScrapeError('Only http(s) links are supported');
+  if (url.port && url.port !== '80' && url.port !== '443')
+    throw new ScrapeError('Unsupported port');
+  if (url.username || url.password)
+    throw new ScrapeError('Links with credentials are not supported');
 
   const host = url.hostname.replace(/^\[|\]$/g, '');
   if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.internal')) {
     throw new ScrapeError('That address is not allowed');
   }
 
-  const addresses = isIP(host) ? [{ address: host }] : await lookup(host, { all: true }).catch(() => []);
+  const addresses = isIP(host)
+    ? [{ address: host }]
+    : await lookup(host, { all: true }).catch(() => []);
   if (!addresses.length) throw new ScrapeError('Could not resolve that website');
-  if (addresses.some(({ address }) => isPrivateAddress(address))) throw new ScrapeError('That address is not allowed');
+  if (addresses.some(({ address }) => isPrivateAddress(address)))
+    throw new ScrapeError('That address is not allowed');
   return url;
 }
 

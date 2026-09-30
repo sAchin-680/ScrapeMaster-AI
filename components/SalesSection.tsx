@@ -11,18 +11,21 @@ export default function SalesSection({ country }: { country: Country }) {
   if (!sales.length) return null;
 
   return (
-    <section id="sales" className="container scroll-mt-24 py-16" aria-labelledby="sales-heading">
+    <section
+      id="sales"
+      className="container scroll-mt-24 py-16"
+      aria-labelledby="sales-heading"
+    >
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-accent">
-            {country.flag} Sale calendar
-          </p>
+          <p className="text-sm font-medium text-accent">{country.flag} Sale calendar</p>
           <h2 id="sales-heading" className="mt-2 text-3xl font-semibold tracking-tight">
             Big sales, live & upcoming
           </h2>
         </div>
         <p className="max-w-sm text-sm text-muted">
-          Track products before the sale starts. Prices often rise just before a sale, and the history chart shows it.
+          Track products before the sale starts. Prices often rise just before a sale, and
+          the history chart shows it.
         </p>
       </div>
 
@@ -63,12 +66,16 @@ export default function SalesSection({ country }: { country: Country }) {
 
               <div className="relative mt-auto rounded-lg bg-paper px-3 py-2.5 ring-1 ring-line/60">
                 <p className="text-xs text-muted">{live ? 'Ends in' : 'Starts in'}</p>
-                <Countdown to={live ? sale.end : sale.start} className="mt-0.5 block text-lg font-semibold" />
+                <Countdown
+                  to={live ? sale.end : sale.start}
+                  className="mt-0.5 block text-lg font-semibold"
+                />
               </div>
 
               <div className="relative flex items-center justify-between gap-3 text-xs text-muted">
                 <span>
-                  {dateFormat.format(new Date(sale.start))} – {dateFormat.format(new Date(sale.end))}
+                  {dateFormat.format(new Date(sale.start))} –{' '}
+                  {dateFormat.format(new Date(sale.end))}
                   {!sale.confirmed && ' · expected'}
                 </span>
                 <a
@@ -77,7 +84,8 @@ export default function SalesSection({ country }: { country: Country }) {
                   rel="noopener noreferrer nofollow"
                   className="inline-flex items-center gap-1 font-medium text-ink hover:text-accent"
                 >
-                  {live ? 'Shop sale' : 'Preview'} <ArrowUpRight className="size-3.5" aria-hidden />
+                  {live ? 'Shop sale' : 'Preview'}{' '}
+                  <ArrowUpRight className="size-3.5" aria-hidden />
                 </a>
               </div>
             </article>

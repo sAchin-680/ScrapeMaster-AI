@@ -19,7 +19,11 @@ type Snapshot = {
 /** Decide which alert (if any) a fresh scrape should trigger. */
 export function getEmailNotifType(
   scraped: Snapshot,
-  previous: { priceHistory: PriceHistoryItem[]; isOutOfStock: boolean; discountRate?: number },
+  previous: {
+    priceHistory: PriceHistoryItem[];
+    isOutOfStock: boolean;
+    discountRate?: number;
+  },
 ): NotificationType | null {
   const lowestPrice = getLowestPrice(previous.priceHistory);
 

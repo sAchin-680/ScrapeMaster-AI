@@ -1,7 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import type { LiveProductUpdate } from '@/types';
 
 export type LiveStatus = 'connecting' | 'live' | 'offline';
@@ -12,7 +19,11 @@ type LiveContextValue = {
   lastEventAt: number | null;
 };
 
-const LiveContext = createContext<LiveContextValue>({ status: 'connecting', updates: {}, lastEventAt: null });
+const LiveContext = createContext<LiveContextValue>({
+  status: 'connecting',
+  updates: {},
+  lastEventAt: null,
+});
 
 type Props = {
   children: ReactNode;
@@ -53,7 +64,8 @@ export function LiveProvider({ children, productIds, refreshOnUpdate = true }: P
         }
       });
       // The browser retries automatically; reflect that in the UI.
-      source.onerror = () => setStatus(source?.readyState === EventSource.CLOSED ? 'offline' : 'connecting');
+      source.onerror = () =>
+        setStatus(source?.readyState === EventSource.CLOSED ? 'offline' : 'connecting');
     };
 
     const disconnect = () => {
@@ -81,7 +93,11 @@ export function LiveProvider({ children, productIds, refreshOnUpdate = true }: P
     };
   }, [idsKey, refreshOnUpdate, router]);
 
-  return <LiveContext.Provider value={{ status, updates, lastEventAt }}>{children}</LiveContext.Provider>;
+  return (
+    <LiveContext.Provider value={{ status, updates, lastEventAt }}>
+      {children}
+    </LiveContext.Provider>
+  );
 }
 
 export function useLive() {

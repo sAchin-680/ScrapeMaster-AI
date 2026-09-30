@@ -13,7 +13,9 @@ describe('sales calendar', () => {
 
   it('filters by country and lists live sales first', () => {
     const sales = getSalesFor('IN', at('2026-09-30T12:00:00+05:30'));
-    expect(sales.every((s) => s.countries === 'all' || s.countries.includes('IN'))).toBe(true);
+    expect(sales.every((s) => s.countries === 'all' || s.countries.includes('IN'))).toBe(
+      true,
+    );
     expect(sales[0].status).toBe('live');
     expect(sales.some((s) => s.name === 'Black Friday')).toBe(false);
   });

@@ -35,12 +35,22 @@ export async function refreshProduct(id: string) {
       },
       notification,
     );
-    await sendEmail(content, product.users.map((user) => user.email));
+    await sendEmail(
+      content,
+      product.users.map((user) => user.email),
+    );
   }
 
   if (offersAreStale(product.offersCheckedAt)) {
-    await updateOffers(id).catch((error) => console.error('[refresh] offers failed', id, error));
+    await updateOffers(id).catch((error) =>
+      console.error('[refresh] offers failed', id, error),
+    );
   }
 
-  return { id, status: 'updated' as const, notification, currentPrice: product.currentPrice };
+  return {
+    id,
+    status: 'updated' as const,
+    notification,
+    currentPrice: product.currentPrice,
+  };
 }

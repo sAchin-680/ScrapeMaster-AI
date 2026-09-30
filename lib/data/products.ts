@@ -102,7 +102,10 @@ export async function getTrackerStats() {
  * Products priced well against their own history: at an all-time low or
  * furthest below their average price.
  */
-export async function getTopDeals(currency: string | null, limit = 4): Promise<Product[]> {
+export async function getTopDeals(
+  currency: string | null,
+  limit = 4,
+): Promise<Product[]> {
   try {
     await connectDB();
     const deals = await ProductModel.aggregate([
@@ -116,7 +119,9 @@ export async function getTopDeals(currency: string | null, limit = 4): Promise<P
       },
       {
         $addFields: {
-          belowAverage: { $divide: [{ $subtract: ['$averagePrice', '$currentPrice'] }, '$averagePrice'] },
+          belowAverage: {
+            $divide: [{ $subtract: ['$averagePrice', '$currentPrice'] }, '$averagePrice'],
+          },
           atLow: { $lte: ['$currentPrice', { $multiply: ['$lowestPrice', 1.02] }] },
         },
       },

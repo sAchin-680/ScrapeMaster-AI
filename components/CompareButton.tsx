@@ -25,7 +25,11 @@ export default function CompareButton({ productId }: { productId: string }) {
           })
         }
       >
-        {isPending ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <Search className="size-3.5" aria-hidden />}
+        {isPending ? (
+          <Loader2 className="size-3.5 animate-spin" aria-hidden />
+        ) : (
+          <Search className="size-3.5" aria-hidden />
+        )}
         {isPending ? 'Searching stores' : 'Compare stores'}
       </button>
       <span role="status" aria-live="polite" className="text-xs text-muted">

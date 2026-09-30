@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { isValidAmazonProductURL, isValidProductURL, normalizeAmazonURL } from '@/lib/utils/url';
+import {
+  isValidAmazonProductURL,
+  isValidProductURL,
+  normalizeAmazonURL,
+} from '@/lib/utils/url';
 
 describe('isValidAmazonProductURL', () => {
   it.each([
@@ -20,7 +24,9 @@ describe('isValidAmazonProductURL', () => {
 describe('normalizeAmazonURL', () => {
   it('strips slugs and tracking params down to the ASIN', () => {
     expect(
-      normalizeAmazonURL('https://www.Amazon.in/Apple-iPhone-15/dp/b0chx1w1xy/ref=sr_1_1?tag=abc'),
+      normalizeAmazonURL(
+        'https://www.Amazon.in/Apple-iPhone-15/dp/b0chx1w1xy/ref=sr_1_1?tag=abc',
+      ),
     ).toBe('https://www.amazon.in/dp/B0CHX1W1XY');
   });
 });
@@ -32,8 +38,10 @@ describe('isValidProductURL', () => {
     'https://www.amazon.com/dp/B0CHX1W1XY',
   ])('accepts %s', (url) => expect(isValidProductURL(url)).toBe(true));
 
-  it.each(['hello', 'https://www.amazon.com/gp/help', 'https://example.com/', 'javascript:alert(1)'])(
-    'rejects %s',
-    (url) => expect(isValidProductURL(url)).toBe(false),
-  );
+  it.each([
+    'hello',
+    'https://www.amazon.com/gp/help',
+    'https://example.com/',
+    'javascript:alert(1)',
+  ])('rejects %s', (url) => expect(isValidProductURL(url)).toBe(false));
 });

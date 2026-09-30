@@ -5,9 +5,18 @@ import { Dialog, DialogBackdrop, DialogPanel, DialogTitle } from '@headlessui/re
 import { Bell, Check, Loader2, Mail, X } from 'lucide-react';
 import { addUserEmailToProduct } from '@/lib/actions';
 
-type Status = { type: 'idle' } | { type: 'error'; message: string } | { type: 'done'; already: boolean };
+type Status =
+  | { type: 'idle' }
+  | { type: 'error'; message: string }
+  | { type: 'done'; already: boolean };
 
-export default function TrackModal({ productId, title }: { productId: string; title: string }) {
+export default function TrackModal({
+  productId,
+  title,
+}: {
+  productId: string;
+  title: string;
+}) {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<Status>({ type: 'idle' });
@@ -34,7 +43,11 @@ export default function TrackModal({ productId, title }: { productId: string; ti
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="btn-primary w-full py-3.5 text-[15px]">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="btn-primary w-full py-3.5 text-[15px]"
+      >
         <Bell className="size-4" aria-hidden />
         Alert me on price drops
       </button>
@@ -80,10 +93,12 @@ export default function TrackModal({ productId, title }: { productId: string; ti
               </div>
             ) : (
               <>
-                <DialogTitle className="mt-5 text-lg font-semibold">Get price drop alerts</DialogTitle>
+                <DialogTitle className="mt-5 text-lg font-semibold">
+                  Get price drop alerts
+                </DialogTitle>
                 <p className="mt-1.5 line-clamp-2 text-sm text-muted">
-                  We will email you when <span className="text-ink">{title}</span> hits a new low, drops 40%+, or
-                  comes back in stock.
+                  We will email you when <span className="text-ink">{title}</span> hits a
+                  new low, drops 40%+, or comes back in stock.
                 </p>
 
                 <form onSubmit={submit} className="mt-6 flex flex-col gap-3">
@@ -108,11 +123,17 @@ export default function TrackModal({ productId, title }: { productId: string; ti
                       {status.message}
                     </p>
                   )}
-                  <button type="submit" className="btn-primary mt-2 py-3.5" disabled={isPending || !email}>
+                  <button
+                    type="submit"
+                    className="btn-primary mt-2 py-3.5"
+                    disabled={isPending || !email}
+                  >
                     {isPending && <Loader2 className="size-4 animate-spin" aria-hidden />}
                     {isPending ? 'Saving' : 'Track this product'}
                   </button>
-                  <p className="text-center text-xs text-muted">No spam. One email per price event.</p>
+                  <p className="text-center text-xs text-muted">
+                    No spam. One email per price event.
+                  </p>
                 </form>
               </>
             )}

@@ -3,7 +3,12 @@ import { formatPrice } from './format';
 
 export type RateTable = Partial<Record<CurrencyCode, number>>;
 
-export function convert(amount: number, from: CurrencyCode, to: CurrencyCode, rates: RateTable) {
+export function convert(
+  amount: number,
+  from: CurrencyCode,
+  to: CurrencyCode,
+  rates: RateTable,
+) {
   if (from === to) return amount;
   const fromRate = rates[from];
   const toRate = rates[to];
@@ -31,7 +36,8 @@ export function formatMoney(
   }
 
   const converted = convert(value, from, to, rates);
-  if (converted === null) return { text: formatPrice(value, storeCurrency), converted: false };
+  if (converted === null)
+    return { text: formatPrice(value, storeCurrency), converted: false };
 
   const text = new Intl.NumberFormat(locale, {
     style: 'currency',

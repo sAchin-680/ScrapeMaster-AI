@@ -26,11 +26,14 @@ const KNOWN_STORES: Record<string, string> = {
   'mediamarkt.de': 'MediaMarkt',
 };
 
-const TRACKING_PARAMS = /^(utm_|fbclid|gclid|msclkid|ref|ref_|tag|affid|affiliate|srsltid|_ga)/i;
+const TRACKING_PARAMS =
+  /^(utm_|fbclid|gclid|msclkid|ref|ref_|tag|affid|affiliate|srsltid|_ga)/i;
 
 export function storeFromHost(hostname: string) {
   const host = hostname.toLowerCase().replace(/^(www|m|shop)\./, '');
-  const known = Object.keys(KNOWN_STORES).find((domain) => host === domain || host.endsWith(`.${domain}`));
+  const known = Object.keys(KNOWN_STORES).find(
+    (domain) => host === domain || host.endsWith(`.${domain}`),
+  );
   if (known) return { id: known, name: KNOWN_STORES[known] };
   const label = host.split('.')[0];
   return { id: host, name: label.charAt(0).toUpperCase() + label.slice(1) };
@@ -42,7 +45,9 @@ export function parseGenericProduct(html: string, url: string) {
   const store = storeFromHost(new URL(url).hostname);
 
   if (!data.title || !data.price) {
-    throw new ScrapeError(`Could not find product details on ${store.name}. The page may not be a product page.`);
+    throw new ScrapeError(
+      `Could not find product details on ${store.name}. The page may not be a product page.`,
+    );
   }
 
   const original = Math.max(data.originalPrice ?? 0, data.price);

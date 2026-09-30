@@ -1,13 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { getEmailNotifType } from '@/lib/notifications';
 
-const previous = { priceHistory: [{ price: 100 }, { price: 90 }], isOutOfStock: false, discountRate: 0 };
+const previous = {
+  priceHistory: [{ price: 100 }, { price: 90 }],
+  isOutOfStock: false,
+  discountRate: 0,
+};
 
 describe('getEmailNotifType', () => {
   it('flags a new all-time low', () => {
-    expect(getEmailNotifType({ currentPrice: 80, discountRate: 0, isOutOfStock: false }, previous)).toBe(
-      'LOWEST_PRICE',
-    );
+    expect(
+      getEmailNotifType(
+        { currentPrice: 80, discountRate: 0, isOutOfStock: false },
+        previous,
+      ),
+    ).toBe('LOWEST_PRICE');
   });
 
   it('flags a restock', () => {
@@ -26,6 +33,11 @@ describe('getEmailNotifType', () => {
   });
 
   it('ignores a zero price from a failed scrape', () => {
-    expect(getEmailNotifType({ currentPrice: 0, discountRate: 0, isOutOfStock: false }, previous)).toBeNull();
+    expect(
+      getEmailNotifType(
+        { currentPrice: 0, discountRate: 0, isOutOfStock: false },
+        previous,
+      ),
+    ).toBeNull();
   });
 });

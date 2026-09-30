@@ -8,11 +8,20 @@ type Props = {
   className?: string;
 };
 
-export default function Sparkline({ values, width = 120, height = 36, className }: Props) {
+export default function Sparkline({
+  values,
+  width = 120,
+  height = 36,
+  className,
+}: Props) {
   const id = useId();
   const points = toPoints(values, width, height);
   const trendingDown = values.length > 1 && values[values.length - 1] < values[0];
-  const tone = trendingDown ? 'text-down' : values.length > 1 && values.at(-1)! > values[0] ? 'text-up' : 'text-muted';
+  const tone = trendingDown
+    ? 'text-down'
+    : values.length > 1 && values.at(-1)! > values[0]
+      ? 'text-up'
+      : 'text-muted';
 
   return (
     <svg

@@ -2,10 +2,16 @@ import { describe, expect, it } from 'vitest';
 import { assertPublicURL, isPrivateAddress } from '@/lib/scraper/http';
 
 describe('SSRF protection', () => {
-  it.each(['127.0.0.1', '10.1.2.3', '172.16.0.1', '192.168.1.1', '169.254.169.254', '::1', 'fd00::1', '::ffff:10.0.0.1'])(
-    'flags %s as private',
-    (ip) => expect(isPrivateAddress(ip)).toBe(true),
-  );
+  it.each([
+    '127.0.0.1',
+    '10.1.2.3',
+    '172.16.0.1',
+    '192.168.1.1',
+    '169.254.169.254',
+    '::1',
+    'fd00::1',
+    '::ffff:10.0.0.1',
+  ])('flags %s as private', (ip) => expect(isPrivateAddress(ip)).toBe(true));
 
   it('allows public addresses', () => {
     expect(isPrivateAddress('93.184.216.34')).toBe(false);

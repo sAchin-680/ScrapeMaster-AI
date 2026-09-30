@@ -4,7 +4,17 @@ import { CURRENCIES, type CurrencyCode } from '@/lib/locale';
 export type Rates = Record<CurrencyCode, number>;
 
 // Used when the rates API is unreachable; approximate USD-based rates.
-const FALLBACK: Rates = { USD: 1, INR: 83.5, EUR: 0.92, GBP: 0.79, CAD: 1.36, AUD: 1.52, JPY: 149, AED: 3.67, SGD: 1.34 };
+const FALLBACK: Rates = {
+  USD: 1,
+  INR: 83.5,
+  EUR: 0.92,
+  GBP: 0.79,
+  CAD: 1.36,
+  AUD: 1.52,
+  JPY: 149,
+  AED: 3.67,
+  SGD: 1.34,
+};
 
 /** USD-based exchange rates, cached for 12 hours. */
 export async function getRates(): Promise<Rates> {

@@ -28,7 +28,10 @@ export default function Searchbar() {
     }
 
     setStep(0);
-    const timer = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 2200);
+    const timer = setInterval(
+      () => setStep((s) => Math.min(s + 1, STEPS.length - 1)),
+      2200,
+    );
 
     startTransition(async () => {
       const result = await scrapeAndStoreProduct(url);
@@ -90,17 +93,28 @@ export default function Searchbar() {
             Paste
           </button>
         )}
-        <button type="submit" className="btn-accent shrink-0" disabled={!url || isPending}>
+        <button
+          type="submit"
+          className="btn-accent shrink-0"
+          disabled={!url || isPending}
+        >
           {isPending ? (
             <Loader2 className="size-4 animate-spin" aria-hidden />
           ) : (
             <ArrowRight className="size-4" aria-hidden />
           )}
-          <span className="hidden sm:inline">{isPending ? 'Tracking' : 'Track price'}</span>
+          <span className="hidden sm:inline">
+            {isPending ? 'Tracking' : 'Track price'}
+          </span>
         </button>
       </div>
 
-      <p id="product-url-status" role="status" aria-live="polite" className="mt-3 min-h-5 text-sm">
+      <p
+        id="product-url-status"
+        role="status"
+        aria-live="polite"
+        className="mt-3 min-h-5 text-sm"
+      >
         {isPending ? (
           <span className="inline-flex items-center gap-2 text-muted">
             <span className="size-1.5 animate-pulse-dot rounded-full bg-accent" />
@@ -113,8 +127,8 @@ export default function Searchbar() {
           <span className="text-up">{error}</span>
         ) : (
           <span className="text-muted">
-            {country.flag} Works with {country.stores.slice(0, 3).join(', ')} and any store with product
-            pages.
+            {country.flag} Works with {country.stores.slice(0, 3).join(', ')} and any
+            store with product pages.
           </span>
         )}
       </p>

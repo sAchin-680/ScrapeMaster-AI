@@ -8,7 +8,8 @@ import { cn } from '@/lib/utils';
 export default function OfferComparison({ product }: { product: Product }) {
   const offers = product.offers ?? [];
   const best = offers[0];
-  const savings = best && best.store !== product.store ? product.currentPrice - best.price : 0;
+  const savings =
+    best && best.store !== product.store ? product.currentPrice - best.price : 0;
 
   return (
     <section className="card p-5 sm:p-6" aria-labelledby="offers-heading">
@@ -32,8 +33,9 @@ export default function OfferComparison({ product }: { product: Product }) {
 
       {savings > 0 && (
         <p className="mt-4 rounded-lg bg-down/10 px-3 py-2 text-sm text-down">
-          Save <Money amount={savings} currency={product.currency} className="font-semibold" /> by buying on{' '}
-          {best.storeName}.
+          Save{' '}
+          <Money amount={savings} currency={product.currency} className="font-semibold" />{' '}
+          by buying on {best.storeName}.
         </p>
       )}
 
@@ -45,7 +47,10 @@ export default function OfferComparison({ product }: { product: Product }) {
                 href={offer.url}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className={cn('flex items-center gap-3 px-3 py-3 transition hover:bg-paper sm:px-4', i === 0 && 'bg-accent-soft/40')}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-3 transition hover:bg-paper sm:px-4',
+                  i === 0 && 'bg-accent-soft/40',
+                )}
               >
                 <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-paper text-xs font-semibold ring-1 ring-line">
                   {offer.storeName.slice(0, 2)}
@@ -63,7 +68,11 @@ export default function OfferComparison({ product }: { product: Product }) {
                     {offer.store === product.store ? 'This listing' : offer.title}
                   </span>
                 </span>
-                <Money amount={offer.price} currency={offer.currency} className="num shrink-0 font-semibold" />
+                <Money
+                  amount={offer.price}
+                  currency={offer.currency}
+                  className="num shrink-0 font-semibold"
+                />
                 <ExternalLink className="size-4 shrink-0 text-muted" aria-hidden />
               </a>
             </li>
@@ -72,7 +81,8 @@ export default function OfferComparison({ product }: { product: Product }) {
       ) : (
         product.offersCheckedAt && (
           <p className="mt-4 text-sm text-muted">
-            No matching listings found on other supported stores yet. We check again daily.
+            No matching listings found on other supported stores yet. We check again
+            daily.
           </p>
         )
       )}

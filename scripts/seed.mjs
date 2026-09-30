@@ -18,18 +18,75 @@ const IMG = 'https://m.media-amazon.com/images/I';
 
 // [title, category, image, mrp, current price, Flipkart price or null]
 const products = [
-  ['Apple iPhone 15 (128 GB) - Black', 'Smartphones', `${IMG}/71657TiFeHL._SL1500_.jpg`, 79900, 65999, 64999],
-  ['Sony WH-1000XM5 Wireless Noise Cancelling Headphones', 'Headphones', `${IMG}/61vJtKbAssL._AC_SL1500_.jpg`, 34990, 26990, 27490],
-  ['Apple AirPods Pro (2nd Generation) with MagSafe Case (USB-C)', 'Headphones', `${IMG}/61SUj2aKoEL._AC_SL1500_.jpg`, 24900, 18990, 19900],
-  ['Logitech MX Master 3S Wireless Performance Mouse', 'Computer Accessories', `${IMG}/61ni3t1ryQL._AC_SL1500_.jpg`, 10995, 8995, 9299],
-  ['Apple 2023 MacBook Pro (14-inch, M2 Pro, 16GB RAM, 512GB SSD)', 'Laptops', `${IMG}/61lsexTCOhL._AC_SL1500_.jpg`, 199900, 169990, 172990],
-  ['Kindle Paperwhite (16 GB) – 7" display, adjustable warm light', 'E-readers', `${IMG}/61Ww4abGclL._AC_SL1000_.jpg`, 16999, 13999, null],
-  ['Echo Dot (4th Gen) Smart speaker with Alexa - Charcoal', 'Smart Home', `${IMG}/714Rq4k05UL._AC_SL1000_.jpg`, 4499, 2449, null],
-  ['Instant Pot Duo 7-in-1 Electric Pressure Cooker, 5.7 L', 'Kitchen Appliances', `${IMG}/71V1LrY1MSL._AC_SL1500_.jpg`, 12999, 8499, 8999],
+  [
+    'Apple iPhone 15 (128 GB) - Black',
+    'Smartphones',
+    `${IMG}/71657TiFeHL._SL1500_.jpg`,
+    79900,
+    65999,
+    64999,
+  ],
+  [
+    'Sony WH-1000XM5 Wireless Noise Cancelling Headphones',
+    'Headphones',
+    `${IMG}/61vJtKbAssL._AC_SL1500_.jpg`,
+    34990,
+    26990,
+    27490,
+  ],
+  [
+    'Apple AirPods Pro (2nd Generation) with MagSafe Case (USB-C)',
+    'Headphones',
+    `${IMG}/61SUj2aKoEL._AC_SL1500_.jpg`,
+    24900,
+    18990,
+    19900,
+  ],
+  [
+    'Logitech MX Master 3S Wireless Performance Mouse',
+    'Computer Accessories',
+    `${IMG}/61ni3t1ryQL._AC_SL1500_.jpg`,
+    10995,
+    8995,
+    9299,
+  ],
+  [
+    'Apple 2023 MacBook Pro (14-inch, M2 Pro, 16GB RAM, 512GB SSD)',
+    'Laptops',
+    `${IMG}/61lsexTCOhL._AC_SL1500_.jpg`,
+    199900,
+    169990,
+    172990,
+  ],
+  [
+    'Kindle Paperwhite (16 GB) – 7" display, adjustable warm light',
+    'E-readers',
+    `${IMG}/61Ww4abGclL._AC_SL1000_.jpg`,
+    16999,
+    13999,
+    null,
+  ],
+  [
+    'Echo Dot (4th Gen) Smart speaker with Alexa - Charcoal',
+    'Smart Home',
+    `${IMG}/714Rq4k05UL._AC_SL1000_.jpg`,
+    4499,
+    2449,
+    null,
+  ],
+  [
+    'Instant Pot Duo 7-in-1 Electric Pressure Cooker, 5.7 L',
+    'Kitchen Appliances',
+    `${IMG}/71V1LrY1MSL._AC_SL1500_.jpg`,
+    12999,
+    8499,
+    8999,
+  ],
 ];
 
 const amazonSearch = (title) => `https://www.amazon.in/s?k=${encodeURIComponent(title)}`;
-const flipkartSearch = (title) => `https://www.flipkart.com/search?q=${encodeURIComponent(title)}`;
+const flipkartSearch = (title) =>
+  `https://www.flipkart.com/search?q=${encodeURIComponent(title)}`;
 
 /**
  * Random walk ending at today's price. The trend decides whether today is a
@@ -44,7 +101,10 @@ function history(mrp, current, trend, days = 45) {
     const target = trend === 'rebound' && i > days - dipAt ? current * 0.88 : current;
     const drift = (target - price) / Math.max(i, 1);
     price = Math.max(current * 0.85, price + drift + (Math.random() - 0.5) * mrp * 0.025);
-    points.push({ price: i === 0 ? current : Math.round(price), date: new Date(Date.now() - i * 86_400_000) });
+    points.push({
+      price: i === 0 ? current : Math.round(price),
+      date: new Date(Date.now() - i * 86_400_000),
+    });
   }
   return points;
 }
@@ -59,14 +119,35 @@ if (process.argv.includes('--reset')) {
   console.log(`Removed ${deletedCount} products`);
 }
 
-for (const [i, [title, category, image, mrp, current, flipkartPrice]] of products.entries()) {
+for (const [
+  i,
+  [title, category, image, mrp, current, flipkartPrice],
+] of products.entries()) {
   const priceHistory = history(mrp, current, TRENDS[i % TRENDS.length]);
   const prices = priceHistory.map((p) => p.price);
   const url = amazonSearch(title);
 
-  const offers = [{ store: 'amazon', storeName: 'Amazon', title, url, price: current, currency: '₹', image }];
+  const offers = [
+    {
+      store: 'amazon',
+      storeName: 'Amazon',
+      title,
+      url,
+      price: current,
+      currency: '₹',
+      image,
+    },
+  ];
   if (flipkartPrice) {
-    offers.push({ store: 'flipkart', storeName: 'Flipkart', title, url: flipkartSearch(title), price: flipkartPrice, currency: '₹', image });
+    offers.push({
+      store: 'flipkart',
+      storeName: 'Flipkart',
+      title,
+      url: flipkartSearch(title),
+      price: flipkartPrice,
+      currency: '₹',
+      image,
+    });
   }
   offers.sort((a, b) => a.price - b.price);
 

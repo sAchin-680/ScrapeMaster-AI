@@ -7,20 +7,24 @@ describe('titleSimilarity', () => {
   const source = 'Apple iPhone 15 (128 GB) - Black';
 
   it('matches the same product across stores', () => {
-    expect(titleSimilarity(source, 'Apple iPhone 15 (Black, 128 GB)')).toBeGreaterThanOrEqual(MATCH_THRESHOLD);
+    expect(
+      titleSimilarity(source, 'Apple iPhone 15 (Black, 128 GB)'),
+    ).toBeGreaterThanOrEqual(MATCH_THRESHOLD);
   });
 
   it('rejects a different capacity or model', () => {
     expect(titleSimilarity(source, 'Apple iPhone 15 (Black, 256 GB)')).toBeLessThan(
       titleSimilarity(source, 'Apple iPhone 15 (Black, 128 GB)'),
     );
-    expect(titleSimilarity(source, 'Samsung Galaxy S24 Ultra')).toBeLessThan(MATCH_THRESHOLD);
+    expect(titleSimilarity(source, 'Samsung Galaxy S24 Ultra')).toBeLessThan(
+      MATCH_THRESHOLD,
+    );
   });
 
   it('builds a short search query', () => {
-    expect(searchQuery('Sony WH-1000XM5 Wireless Headphones (Black) | Industry leading ANC')).toBe(
-      'Sony WH 1000XM5 Wireless Headphones',
-    );
+    expect(
+      searchQuery('Sony WH-1000XM5 Wireless Headphones (Black) | Industry leading ANC'),
+    ).toBe('Sony WH 1000XM5 Wireless Headphones');
   });
 });
 
@@ -37,7 +41,11 @@ describe('parseAmazonSearch', () => {
       </div>`;
     const offers = parseAmazonSearch(html, 'https://www.amazon.in/s?k=iphone');
     expect(offers).toEqual([
-      expect.objectContaining({ url: 'https://www.amazon.in/dp/B0CHX1W1XY', price: 69900, currency: '₹' }),
+      expect.objectContaining({
+        url: 'https://www.amazon.in/dp/B0CHX1W1XY',
+        price: 69900,
+        currency: '₹',
+      }),
     ]);
   });
 });

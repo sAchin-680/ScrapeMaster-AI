@@ -18,7 +18,15 @@ export type StructuredProduct = {
 type Json = Record<string, unknown>;
 
 const CURRENCY_SYMBOLS: Record<string, string> = {
-  USD: '$', INR: '₹', EUR: '€', GBP: '£', JPY: '¥', CAD: 'CA$', AUD: 'A$', AED: 'AED ', SGD: 'S$',
+  USD: '$',
+  INR: '₹',
+  EUR: '€',
+  GBP: '£',
+  JPY: '¥',
+  CAD: 'CA$',
+  AUD: 'A$',
+  AED: 'AED ',
+  SGD: 'S$',
 };
 
 export function currencySymbol(code?: string) {
@@ -26,10 +34,13 @@ export function currencySymbol(code?: string) {
   return CURRENCY_SYMBOLS[code.toUpperCase()] ?? `${code.toUpperCase()} `;
 }
 
-const asArray = <T,>(value: T | T[] | undefined): T[] => (value === undefined ? [] : Array.isArray(value) ? value : [value]);
+const asArray = <T>(value: T | T[] | undefined): T[] =>
+  value === undefined ? [] : Array.isArray(value) ? value : [value];
 
 function isType(node: Json, type: string) {
-  return asArray(node['@type'] as string | string[]).some((t) => String(t).toLowerCase() === type);
+  return asArray(node['@type'] as string | string[]).some(
+    (t) => String(t).toLowerCase() === type,
+  );
 }
 
 /** Walk JSON-LD graphs and return the first node of the given @type. */
@@ -50,14 +61,16 @@ function findNode(data: unknown, type: string): Json | undefined {
 function text(value: unknown): string | undefined {
   if (typeof value === 'string') return value.trim() || undefined;
   if (typeof value === 'number') return String(value);
-  if (value && typeof value === 'object' && 'name' in value) return text((value as Json).name);
+  if (value && typeof value === 'object' && 'name' in value)
+    return text((value as Json).name);
   return undefined;
 }
 
 function imageUrl(value: unknown): string | undefined {
   const first = asArray(value as unknown[])[0];
   if (typeof first === 'string') return first;
-  if (first && typeof first === 'object') return text((first as Json).url) ?? text((first as Json).contentUrl);
+  if (first && typeof first === 'object')
+    return text((first as Json).url) ?? text((first as Json).contentUrl);
   return undefined;
 }
 
@@ -74,7 +87,9 @@ export function extractJsonLd($: CheerioAPI): StructuredProduct {
     } catch {
       continue;
     }
-    const product = findNode(data, 'product') ?? findNode(findNode(data, 'productgroup')?.hasVariant, 'product');
+    const product =
+      findNode(data, 'product') ??
+      findNode(findNode(data, 'productgroup')?.hasVariant, 'product');
     if (!product) continue;
 
     const offers = asArray(product.offers as Json | Json[]).flatMap((o) =>
@@ -82,7 +97,11 @@ export function extractJsonLd($: CheerioAPI): StructuredProduct {
     );
     const offer = offers.find((o) => num(o.price)) ?? offers[0];
     const spec = asArray(offer?.priceSpecification as Json | Json[]);
-    const listPrice = spec.find((s) => String(s.priceType ?? '').toLowerCase().includes('listprice'));
+    const listPrice = spec.find((s) =>
+      String(s.priceType ?? '')
+        .toLowerCase()
+        .includes('listprice'),
+    );
     const rating = product.aggregateRating as Json | undefined;
 
     return {
@@ -91,8 +110,12 @@ export function extractJsonLd($: CheerioAPI): StructuredProduct {
       description: text(product.description),
       price: num(offer?.price) ?? num(spec[0]?.price),
       originalPrice: num(listPrice?.price),
-      currency: currencySymbol(text(offer?.priceCurrency) ?? text(spec[0]?.priceCurrency)),
-      inStock: offer?.availability ? !/outofstock|soldout|discontinued/i.test(String(offer.availability)) : undefined,
+      currency: currencySymbol(
+        text(offer?.priceCurrency) ?? text(spec[0]?.priceCurrency),
+      ),
+      inStock: offer?.availability
+        ? !/outofstock|soldout|discontinued/i.test(String(offer.availability))
+        : undefined,
       stars: num(rating?.ratingValue),
       reviewsCount: num(rating?.reviewCount ?? rating?.ratingCount),
       category: text(product.category)?.split(/[>/]/).pop()?.trim(),
@@ -105,21 +128,33 @@ export function extractJsonLd($: CheerioAPI): StructuredProduct {
 export function extractMeta($: CheerioAPI): StructuredProduct {
   const meta = (...names: string[]) => {
     for (const name of names) {
-      const value = $(`meta[property="${name}"], meta[name="${name}"], meta[itemprop="${name}"]`).attr('content');
+      const value = $(
+        `meta[property="${name}"], meta[name="${name}"], meta[itemprop="${name}"]`,
+      ).attr('content');
       if (value?.trim()) return value.trim();
     }
     return undefined;
   };
 
   return {
-    title: meta('og:title', 'twitter:title') ?? ($('h1').first().text().trim() || $('title').text().trim() || undefined),
+    title:
+      meta('og:title', 'twitter:title') ??
+      ($('h1').first().text().trim() || $('title').text().trim() || undefined),
     image: meta('og:image', 'og:image:secure_url', 'twitter:image'),
     description: meta('og:description', 'description'),
     price: num(meta('product:price:amount', 'og:price:amount', 'price')),
-    currency: currencySymbol(meta('product:price:currency', 'og:price:currency', 'priceCurrency')),
+    currency: currencySymbol(
+      meta('product:price:currency', 'og:price:currency', 'priceCurrency'),
+    ),
     inStock: (() => {
-      const availability = meta('product:availability', 'og:availability', 'availability');
-      return availability ? !/out ?of ?stock|oos|sold ?out/i.test(availability) : undefined;
+      const availability = meta(
+        'product:availability',
+        'og:availability',
+        'availability',
+      );
+      return availability
+        ? !/out ?of ?stock|oos|sold ?out/i.test(availability)
+        : undefined;
     })(),
   };
 }

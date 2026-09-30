@@ -6,7 +6,11 @@ export default function DealsSection({ deals }: { deals: Product[] }) {
   if (!deals.length) return null;
 
   return (
-    <section id="deals" className="container scroll-mt-24 pt-16" aria-labelledby="deals-heading">
+    <section
+      id="deals"
+      className="container scroll-mt-24 pt-16"
+      aria-labelledby="deals-heading"
+    >
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="inline-flex items-center gap-1.5 text-sm font-medium text-up">
@@ -17,7 +21,8 @@ export default function DealsSection({ deals }: { deals: Product[] }) {
           </h2>
         </div>
         <p className="max-w-sm text-sm text-muted">
-          Picked from real price history: products at their lowest price or well below their usual price.
+          Picked from real price history: products at their lowest price or well below
+          their usual price.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">

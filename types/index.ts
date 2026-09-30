@@ -48,7 +48,8 @@ export type ScrapedProduct = Omit<
   | 'offersCheckedAt'
 >;
 
-export type NotificationType = 'WELCOME' | 'CHANGE_OF_STOCK' | 'LOWEST_PRICE' | 'THRESHOLD_MET';
+export type NotificationType =
+  'WELCOME' | 'CHANGE_OF_STOCK' | 'LOWEST_PRICE' | 'THRESHOLD_MET';
 
 export type EmailContent = {
   subject: string;
@@ -64,8 +65,7 @@ export type EmailProductInfo = {
 };
 
 export type ActionResult<T = undefined> =
-  | { ok: true; data: T }
-  | { ok: false; error: string };
+  { ok: true; data: T } | { ok: false; error: string };
 
 export type LiveProductUpdate = {
   id: string;

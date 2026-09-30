@@ -45,7 +45,10 @@ export default function AnnouncementBar({ items }: { items: Announcement[] }) {
         <p key={item.id} className="animate-rise" aria-live="polite">
           {item.text}
           {item.href && (
-            <Link href={item.href} className="ml-2 font-semibold underline underline-offset-2 hover:opacity-80">
+            <Link
+              href={item.href}
+              className="ml-2 font-semibold underline underline-offset-2 hover:opacity-80"
+            >
               {item.cta ?? 'Learn more'}
             </Link>
           )}

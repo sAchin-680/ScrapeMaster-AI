@@ -29,15 +29,20 @@ export default async function Home() {
 
   // Products sold in the viewer's country come first; skip ones already shown as deals.
   const dealIds = new Set(deals.map((d) => d._id));
-  const products = allProducts.filter((p) => !dealIds.has(p._id)).sort(
-    (a, b) => Number(b.currency.trim() === local) - Number(a.currency.trim() === local),
-  );
+  const products = allProducts
+    .filter((p) => !dealIds.has(p._id))
+    .sort(
+      (a, b) => Number(b.currency.trim() === local) - Number(a.currency.trim() === local),
+    );
 
   return (
     <LiveProvider>
       <Ticker products={products} />
 
-      <section id="track" className="relative scroll-mt-24 overflow-hidden border-b border-line bg-surface">
+      <section
+        id="track"
+        className="relative scroll-mt-24 overflow-hidden border-b border-line bg-surface"
+      >
         <div
           className="dot-grid absolute inset-0 -z-0 [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_30%,transparent_100%)]"
           aria-hidden
@@ -53,8 +58,8 @@ export default async function Home() {
               </span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-muted">
-              Paste a link from Amazon, Flipkart, Walmart or any online shop. See the full price history,
-              compare stores and get an email the moment it drops.
+              Paste a link from Amazon, Flipkart, Walmart or any online shop. See the full
+              price history, compare stores and get an email the moment it drops.
             </p>
 
             <div className="mt-8 w-full max-w-xl">
@@ -69,7 +74,9 @@ export default async function Home() {
               ].map(([label, value]) => (
                 <div key={label} className="px-4 py-3">
                   <dt className="text-xs text-muted">{label}</dt>
-                  <dd className="num mt-0.5 text-xl font-semibold">{formatNumber(Number(value))}</dd>
+                  <dd className="num mt-0.5 text-xl font-semibold">
+                    {formatNumber(Number(value))}
+                  </dd>
                 </div>
               ))}
             </dl>
@@ -89,10 +96,14 @@ export default async function Home() {
             <p className="text-sm font-medium text-accent">
               {country.flag} Popular in {country.name}
             </p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-tight">Trending products</h2>
+            <h2 className="mt-2 text-3xl font-semibold tracking-tight">
+              Trending products
+            </h2>
           </div>
           {products.length > 0 && (
-            <p className="hidden text-sm text-muted sm:block">Prices update live as we re-check them.</p>
+            <p className="hidden text-sm text-muted sm:block">
+              Prices update live as we re-check them.
+            </p>
           )}
         </div>
         {products.length ? (

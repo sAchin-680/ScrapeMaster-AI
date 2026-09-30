@@ -26,7 +26,10 @@ const metaOnly = `
 
 describe('generic adapter', () => {
   it('reads schema.org JSON-LD inside @graph', () => {
-    const product = parseGenericProduct(jsonLd, 'https://www.bestbuy.com/site/buds/123.p');
+    const product = parseGenericProduct(
+      jsonLd,
+      'https://www.bestbuy.com/site/buds/123.p',
+    );
     expect(product).toMatchObject({
       store: 'bestbuy.com',
       storeName: 'Best Buy',
@@ -55,7 +58,9 @@ describe('generic adapter', () => {
   });
 
   it('rejects pages without a price', () => {
-    expect(() => parseGenericProduct('<title>Blog</title>', 'https://blog.example.com/post')).toThrow(ScrapeError);
+    expect(() =>
+      parseGenericProduct('<title>Blog</title>', 'https://blog.example.com/post'),
+    ).toThrow(ScrapeError);
   });
 
   it('names known stores', () => {

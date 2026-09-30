@@ -6,7 +6,11 @@ const config: Config = {
   darkMode: 'media',
   content: ['./app/**/*.{ts,tsx,mdx}', './components/**/*.{ts,tsx}'],
   theme: {
-    container: { center: true, padding: { DEFAULT: '1rem', md: '2rem' }, screens: { '2xl': '1280px' } },
+    container: {
+      center: true,
+      padding: { DEFAULT: '1rem', md: '2rem' },
+      screens: { '2xl': '1280px' },
+    },
     extend: {
       colors: {
         paper: token('paper'),
@@ -14,7 +18,11 @@ const config: Config = {
         ink: token('ink'),
         muted: token('muted'),
         line: token('line'),
-        accent: { DEFAULT: token('accent'), ink: token('accent-ink'), soft: token('accent-soft') },
+        accent: {
+          DEFAULT: token('accent'),
+          ink: token('accent-ink'),
+          soft: token('accent-soft'),
+        },
         up: token('up'),
         down: token('down'),
       },
@@ -25,7 +33,10 @@ const config: Config = {
       borderRadius: { xl: '0.875rem', '2xl': '1.25rem', '3xl': '1.75rem' },
       keyframes: {
         ticker: { to: { transform: 'translateX(-50%)' } },
-        rise: { from: { opacity: '0', transform: 'translateY(12px)' }, to: { opacity: '1', transform: 'none' } },
+        rise: {
+          from: { opacity: '0', transform: 'translateY(12px)' },
+          to: { opacity: '1', transform: 'none' },
+        },
         draw: { to: { strokeDashoffset: '0' } },
         pulseDot: { '0%,100%': { opacity: '1' }, '50%': { opacity: '.35' } },
         shimmer: { to: { backgroundPosition: '-200% 0' } },

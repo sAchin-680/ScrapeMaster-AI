@@ -72,7 +72,9 @@ export async function GET(request: NextRequest) {
         controller.close();
       };
 
-      send(`retry: 3000\nevent: ready\ndata: ${JSON.stringify({ at: cursor.toISOString() })}\n\n`);
+      send(
+        `retry: 3000\nevent: ready\ndata: ${JSON.stringify({ at: cursor.toISOString() })}\n\n`,
+      );
 
       const poll = async () => {
         if (closed) return;
@@ -80,7 +82,9 @@ export async function GET(request: NextRequest) {
           const changes = await fetchChanges(cursor, ids);
           for (const change of changes) {
             cursor = new Date(change.updatedAt);
-            send(`id: ${cursor.toISOString()}\nevent: product\ndata: ${JSON.stringify(change)}\n\n`);
+            send(
+              `id: ${cursor.toISOString()}\nevent: product\ndata: ${JSON.stringify(change)}\n\n`,
+            );
           }
         } catch (error) {
           console.error('[stream] poll failed', error);

@@ -13,11 +13,17 @@ export default function ProductImage({ src, alt, ...props }: ImageProps) {
 
   if (failed) {
     return (
-      <span className="absolute inset-0 grid place-items-center text-muted/60" role="img" aria-label={alt}>
+      <span
+        className="absolute inset-0 grid place-items-center text-muted/60"
+        role="img"
+        aria-label={alt}
+      >
         <ImageOff className="size-8" aria-hidden />
       </span>
     );
   }
 
-  return <Image src={src} alt={alt} unoptimized onError={() => setFailed(true)} {...props} />;
+  return (
+    <Image src={src} alt={alt} unoptimized onError={() => setFailed(true)} {...props} />
+  );
 }

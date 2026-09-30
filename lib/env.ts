@@ -23,5 +23,9 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 
-export const isEmailConfigured = Boolean(env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASSWORD);
-export const isProxyConfigured = Boolean(env.BRIGHTDATA_USERNAME && env.BRIGHTDATA_PASSWORD);
+export const isEmailConfigured = Boolean(
+  env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASSWORD,
+);
+export const isProxyConfigured = Boolean(
+  env.BRIGHTDATA_USERNAME && env.BRIGHTDATA_PASSWORD,
+);

@@ -44,32 +44,32 @@ Paste any Amazon product link → see every price we have recorded → watch cha
 
 ## Features
 
-| | |
-|---|---|
-| **One-paste tracking** | Paste any Amazon URL (`.com`, `.in`, `.co.uk`, `.de`, …). It is normalized to its `/dp/<ASIN>` form so the same product is never stored twice. |
-| **Price history chart** | Interactive, scrubbable SVG chart with lowest-price marker. No chart library, zero extra JS weight. |
-| **Live updates** | Prices stream to every open page over Server-Sent Events. Changed prices flash green/red, timestamps tick, watcher counts update in place. |
-| **Check now** | Re-scrape a product on demand, rate-limited to once per minute per product. |
-| **Email alerts** | New all-time low, 40%+ discount, or back in stock. Sent via BCC so subscribers never see each other. |
-| **Scheduled refresh** | A protected cron endpoint re-checks every product in bounded batches and tolerates partial failures. |
-| **Production ready** | Typed env validation, security headers, health checks, standalone Docker image, CI pipeline, unit tests. |
-| **Polished UI** | Light and dark themes, skeleton loading, error and 404 states, mobile bottom-sheet dialogs, reduced-motion support. |
+|                         |                                                                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **One-paste tracking**  | Paste any Amazon URL (`.com`, `.in`, `.co.uk`, `.de`, …). It is normalized to its `/dp/<ASIN>` form so the same product is never stored twice. |
+| **Price history chart** | Interactive, scrubbable SVG chart with lowest-price marker. No chart library, zero extra JS weight.                                            |
+| **Live updates**        | Prices stream to every open page over Server-Sent Events. Changed prices flash green/red, timestamps tick, watcher counts update in place.     |
+| **Check now**           | Re-scrape a product on demand, rate-limited to once per minute per product.                                                                    |
+| **Email alerts**        | New all-time low, 40%+ discount, or back in stock. Sent via BCC so subscribers never see each other.                                           |
+| **Scheduled refresh**   | A protected cron endpoint re-checks every product in bounded batches and tolerates partial failures.                                           |
+| **Production ready**    | Typed env validation, security headers, health checks, standalone Docker image, CI pipeline, unit tests.                                       |
+| **Polished UI**         | Light and dark themes, skeleton loading, error and 404 states, mobile bottom-sheet dialogs, reduced-motion support.                            |
 
 ---
 
 ## Tech stack
 
-| Layer | Choice | Why |
-|---|---|---|
-| Framework | **Next.js 15 (App Router)** | Server Components for data-heavy pages, Server Actions for mutations, Route Handlers for the stream and cron. |
-| UI | **React 19**, **Tailwind CSS 3**, **Headless UI 2**, **lucide-react** | Accessible primitives, token-based theming, tree-shaken icons. |
-| Language | **TypeScript (strict)** | End-to-end types from the Mongoose schema to components. |
-| Validation | **Zod** | Environment variables and every Server Action input. |
-| Database | **MongoDB + Mongoose 8** | Product documents with embedded price history fit the document model naturally. |
-| Scraping | **Axios + Cheerio**, optional **Bright Data** proxy | Lightweight HTML fetch and parse; the proxy is opt-in for rotating residential IPs. |
-| Email | **Nodemailer** (any SMTP provider) | Pooled transport, inline-styled responsive templates. |
-| Testing | **Vitest** | Fast unit tests for parsing, pricing, alerts and chart geometry. |
-| Delivery | **Vercel** or **Docker** | Vercel Cron out of the box; the standalone image runs anywhere. |
+| Layer      | Choice                                                                | Why                                                                                                           |
+| ---------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Framework  | **Next.js 15 (App Router)**                                           | Server Components for data-heavy pages, Server Actions for mutations, Route Handlers for the stream and cron. |
+| UI         | **React 19**, **Tailwind CSS 3**, **Headless UI 2**, **lucide-react** | Accessible primitives, token-based theming, tree-shaken icons.                                                |
+| Language   | **TypeScript (strict)**                                               | End-to-end types from the Mongoose schema to components.                                                      |
+| Validation | **Zod**                                                               | Environment variables and every Server Action input.                                                          |
+| Database   | **MongoDB + Mongoose 8**                                              | Product documents with embedded price history fit the document model naturally.                               |
+| Scraping   | **Axios + Cheerio**, optional **Bright Data** proxy                   | Lightweight HTML fetch and parse; the proxy is opt-in for rotating residential IPs.                           |
+| Email      | **Nodemailer** (any SMTP provider)                                    | Pooled transport, inline-styled responsive templates.                                                         |
+| Testing    | **Vitest**                                                            | Fast unit tests for parsing, pricing, alerts and chart geometry.                                              |
+| Delivery   | **Vercel** or **Docker**                                              | Vercel Cron out of the box; the standalone image runs anywhere.                                               |
 
 ---
 
@@ -258,23 +258,23 @@ erDiagram
 
 Evaluated in `lib/notifications.ts` by comparing the fresh scrape with the stored state:
 
-| Priority | Type | Fires when |
-|---|---|---|
-| 1 | `LOWEST_PRICE` | New price is below every recorded price (and is not a failed `0` read). |
-| 2 | `CHANGE_OF_STOCK` | Product was out of stock and is now available. |
-| 3 | `THRESHOLD_MET` | Discount **crosses** 40%. It fires once on the transition, not on every run. |
-| – | `WELCOME` | Sent immediately when someone subscribes. |
+| Priority | Type              | Fires when                                                                   |
+| -------- | ----------------- | ---------------------------------------------------------------------------- |
+| 1        | `LOWEST_PRICE`    | New price is below every recorded price (and is not a failed `0` read).      |
+| 2        | `CHANGE_OF_STOCK` | Product was out of stock and is now available.                               |
+| 3        | `THRESHOLD_MET`   | Discount **crosses** 40%. It fires once on the transition, not on every run. |
+| –        | `WELCOME`         | Sent immediately when someone subscribes.                                    |
 
 ### Design decisions and trade-offs
 
-| Decision | Alternative | Reasoning |
-|---|---|---|
-| Server Actions for mutations | REST endpoints | Type-safe calls with no client fetch layer; progressive enhancement. |
-| Dynamic rendering for product pages | ISR | Prices are the product; stale HTML defeats the purpose. Queries are indexed and lean. |
-| Hand-built SVG charts | Chart library | Saves roughly 60–100 KB of client JS; full control over styling and a11y. |
-| URL normalization to ASIN | Store raw URL | Prevents duplicates from referral/tracking params. |
-| Typed `ActionResult` | Throwing errors | Server errors are sanitized in production; explicit results give users actionable messages. |
-| BCC alert delivery | One email per user | One SMTP call per event, and subscriber privacy is preserved. |
+| Decision                            | Alternative        | Reasoning                                                                                   |
+| ----------------------------------- | ------------------ | ------------------------------------------------------------------------------------------- |
+| Server Actions for mutations        | REST endpoints     | Type-safe calls with no client fetch layer; progressive enhancement.                        |
+| Dynamic rendering for product pages | ISR                | Prices are the product; stale HTML defeats the purpose. Queries are indexed and lean.       |
+| Hand-built SVG charts               | Chart library      | Saves roughly 60–100 KB of client JS; full control over styling and a11y.                   |
+| URL normalization to ASIN           | Store raw URL      | Prevents duplicates from referral/tracking params.                                          |
+| Typed `ActionResult`                | Throwing errors    | Server errors are sanitized in production; explicit results give users actionable messages. |
+| BCC alert delivery                  | One email per user | One SMTP call per event, and subscriber privacy is preserved.                               |
 
 ### Scaling path
 
@@ -290,19 +290,19 @@ The current design comfortably serves thousands of tracked products on a single 
 
 ## API reference
 
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/stream?since=<ISO>&ids=<id,id>` | Public | SSE feed of product changes. `ids` is optional (max 50). Resumes from `Last-Event-ID`. |
-| `GET` | `/api/cron` | `Authorization: Bearer $CRON_SECRET` | Refreshes all products. Returns `{ processed, updated, failed, durationMs }`. |
-| `GET` | `/api/health` | Public | `200 {status:"ok"}` when MongoDB responds to ping, otherwise `503`. |
+| Method | Path                                  | Auth                                 | Description                                                                            |
+| ------ | ------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------- |
+| `GET`  | `/api/stream?since=<ISO>&ids=<id,id>` | Public                               | SSE feed of product changes. `ids` is optional (max 50). Resumes from `Last-Event-ID`. |
+| `GET`  | `/api/cron`                           | `Authorization: Bearer $CRON_SECRET` | Refreshes all products. Returns `{ processed, updated, failed, durationMs }`.          |
+| `GET`  | `/api/health`                         | Public                               | `200 {status:"ok"}` when MongoDB responds to ping, otherwise `503`.                    |
 
 **Server Actions** (`lib/actions/index.ts`)
 
-| Action | Input | Result |
-|---|---|---|
-| `scrapeAndStoreProduct` | Amazon URL | `{ id }` of the created or updated product |
-| `addUserEmailToProduct` | product id, email | `{ alreadyTracking }` and sends a welcome email |
-| `refreshProductNow` | product id | `{ changed }`, rate-limited to 1/min per product |
+| Action                  | Input             | Result                                           |
+| ----------------------- | ----------------- | ------------------------------------------------ |
+| `scrapeAndStoreProduct` | Amazon URL        | `{ id }` of the created or updated product       |
+| `addUserEmailToProduct` | product id, email | `{ alreadyTracking }` and sends a welcome email  |
+| `refreshProductNow`     | product id        | `{ changed }`, rate-limited to 1/min per product |
 
 **SSE event payload**
 
@@ -384,15 +384,15 @@ docker run -d --name scrapemaster-mongo -p 27017:27017 mongo:7
 
 ## Environment variables
 
-| Variable | Required | Description |
-|---|---|---|
-| `MONGODB_URI` | ✅ | MongoDB connection string. |
-| `NEXT_PUBLIC_SITE_URL` | Recommended | Public base URL for metadata, sitemap and OG image. |
-| `CRON_SECRET` | ✅ in production | Bearer token for `/api/cron`. Without it, cron is refused in production. |
-| `SMTP_HOST` / `SMTP_PORT` | For alerts | SMTP server (port `465` uses TLS). |
-| `SMTP_USER` / `SMTP_PASSWORD` | For alerts | SMTP credentials (e.g. a Gmail app password). |
-| `EMAIL_FROM` | Optional | Sender, e.g. `ScrapeMaster <alerts@yourdomain.com>`. |
-| `BRIGHTDATA_USERNAME` / `BRIGHTDATA_PASSWORD` | Optional | Residential proxy for scraping. |
+| Variable                                      | Required         | Description                                                              |
+| --------------------------------------------- | ---------------- | ------------------------------------------------------------------------ |
+| `MONGODB_URI`                                 | ✅               | MongoDB connection string.                                               |
+| `NEXT_PUBLIC_SITE_URL`                        | Recommended      | Public base URL for metadata, sitemap and OG image.                      |
+| `CRON_SECRET`                                 | ✅ in production | Bearer token for `/api/cron`. Without it, cron is refused in production. |
+| `SMTP_HOST` / `SMTP_PORT`                     | For alerts       | SMTP server (port `465` uses TLS).                                       |
+| `SMTP_USER` / `SMTP_PASSWORD`                 | For alerts       | SMTP credentials (e.g. a Gmail app password).                            |
+| `EMAIL_FROM`                                  | Optional         | Sender, e.g. `ScrapeMaster <alerts@yourdomain.com>`.                     |
+| `BRIGHTDATA_USERNAME` / `BRIGHTDATA_PASSWORD` | Optional         | Residential proxy for scraping.                                          |
 
 All variables are validated at startup in `lib/env.ts`. When email is not configured, alerts are skipped with a warning instead of crashing.
 
@@ -400,16 +400,16 @@ All variables are validated at startup in `lib/env.ts`. When email is not config
 
 ## Scripts
 
-| Command | Description |
-|---|---|
-| `npm run dev` | Start the dev server. |
-| `npm run build` | Production build (standalone output). |
-| `npm start` | Serve the production build. |
-| `npm run lint` | ESLint (Next.js core web vitals + TypeScript rules). |
-| `npm run typecheck` | `tsc --noEmit`. |
-| `npm test` | Run the Vitest suite. |
-| `npm run format` | Format with Prettier. |
-| `npm run seed` | Load demo products into `MONGODB_URI`. |
+| Command             | Description                                          |
+| ------------------- | ---------------------------------------------------- |
+| `npm run dev`       | Start the dev server.                                |
+| `npm run build`     | Production build (standalone output).                |
+| `npm start`         | Serve the production build.                          |
+| `npm run lint`      | ESLint (Next.js core web vitals + TypeScript rules). |
+| `npm run typecheck` | `tsc --noEmit`.                                      |
+| `npm test`          | Run the Vitest suite.                                |
+| `npm run format`    | Format with Prettier.                                |
+| `npm run seed`      | Load demo products into `MONGODB_URI`.               |
 
 ---
 

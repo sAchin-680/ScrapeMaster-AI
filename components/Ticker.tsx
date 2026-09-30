@@ -6,7 +6,8 @@ import { getPriceChange, truncate } from '@/lib/utils';
 
 function Change({ product }: { product: Product }) {
   const history = product.priceHistory ?? [];
-  const previous = history.length > 1 ? history[history.length - 2].price : product.originalPrice;
+  const previous =
+    history.length > 1 ? history[history.length - 2].price : product.originalPrice;
   const change = getPriceChange(previous, product.currentPrice);
   const Icon = change < 0 ? ArrowDownRight : change > 0 ? ArrowUpRight : Minus;
   const tone = change < 0 ? 'text-down' : change > 0 ? 'text-up' : 'text-muted';
@@ -29,7 +30,10 @@ export default function Ticker({ products }: { products: Product[] }) {
   const items = [...products, ...products];
 
   return (
-    <div className="mask-fade-x group hidden overflow-hidden border-b border-line bg-paper [@media(hover:hover)]:block" aria-label="Recently tracked prices">
+    <div
+      className="mask-fade-x group hidden overflow-hidden border-b border-line bg-paper [@media(hover:hover)]:block"
+      aria-label="Recently tracked prices"
+    >
       <ul className="flex w-max animate-ticker gap-10 py-2 group-hover:[animation-play-state:paused] group-focus-within:[animation-play-state:paused] group-active:[animation-play-state:paused] motion-reduce:animate-none">
         {items.map((product, i) => (
           <li key={`${product._id}-${i}`} aria-hidden={i >= products.length}>
@@ -39,7 +43,11 @@ export default function Ticker({ products }: { products: Product[] }) {
               className="flex items-center gap-3 whitespace-nowrap text-sm transition hover:opacity-70"
             >
               <span className="text-muted">{truncate(product.title, 28)}</span>
-              <Money amount={product.currentPrice} currency={product.currency} className="num font-medium" />
+              <Money
+                amount={product.currentPrice}
+                currency={product.currency}
+                className="num font-medium"
+              />
               <Change product={product} />
             </Link>
           </li>

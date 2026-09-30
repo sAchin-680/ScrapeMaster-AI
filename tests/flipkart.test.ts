@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { flipkart, parseFlipkartProduct, parseFlipkartSearch } from '@/lib/scraper/stores/flipkart';
+import {
+  flipkart,
+  parseFlipkartProduct,
+  parseFlipkartSearch,
+} from '@/lib/scraper/stores/flipkart';
 
 const product = `
 <html><body>
@@ -25,7 +29,9 @@ const search = `
 
 describe('flipkart adapter', () => {
   it('parses a product page', () => {
-    expect(parseFlipkartProduct(product, 'https://www.flipkart.com/x/p/itm1')).toMatchObject({
+    expect(
+      parseFlipkartProduct(product, 'https://www.flipkart.com/x/p/itm1'),
+    ).toMatchObject({
       store: 'flipkart',
       title: 'Apple iPhone 15 (Black, 128 GB)',
       currency: '₹',

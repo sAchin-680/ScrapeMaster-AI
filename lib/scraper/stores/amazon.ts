@@ -12,7 +12,8 @@ import {
 import { ScrapeError } from '../errors';
 import type { Region, StoreAdapter } from './types';
 
-const HOST = /(^|\.)amazon\.(com|in|co\.uk|de|fr|it|es|ca|com\.au|co\.jp|com\.mx|com\.br|nl|se|pl|sg|ae|sa)$/i;
+const HOST =
+  /(^|\.)amazon\.(com|in|co\.uk|de|fr|it|es|ca|com\.au|co\.jp|com\.mx|com\.br|nl|se|pl|sg|ae|sa)$/i;
 const ASIN = /\/(?:dp|gp\/product|gp\/aw\/d)\/([A-Z0-9]{10})/i;
 const DOMAINS: Record<Region, string> = {
   us: 'www.amazon.com',
@@ -26,7 +27,9 @@ export function parseAmazonProduct(html: string, url: string) {
 
   const title = $('#productTitle').text().trim();
   if (!title) {
-    throw new ScrapeError('Could not read the product page. The store may have served a captcha.');
+    throw new ScrapeError(
+      'Could not read the product page. The store may have served a captcha.',
+    );
   }
 
   const currentPrice = extractPrice(
@@ -60,7 +63,9 @@ export function parseAmazonProduct(html: string, url: string) {
     discountRate: original > 0 ? Math.round(((original - current) / original) * 100) : 0,
     category: extractCategory($),
     description: extractDescription($),
-    isOutOfStock: availability.includes('currently unavailable') || availability.includes('out of stock'),
+    isOutOfStock:
+      availability.includes('currently unavailable') ||
+      availability.includes('out of stock'),
     ...extractRating($),
   };
 }
@@ -76,7 +81,8 @@ export function parseAmazonSearch(html: string, pageUrl: string): Offer[] {
       const asin = item.attr('data-asin');
       const title = item.find('h2').text().replace(/\s+/g, ' ').trim();
       const price = parsePrice(item.find('.a-price .a-offscreen').first().text());
-      if (!asin || !title || !price || item.find('.puis-sponsored-label-text').length) return [];
+      if (!asin || !title || !price || item.find('.puis-sponsored-label-text').length)
+        return [];
       return [
         {
           store: 'amazon',
@@ -97,7 +103,9 @@ export const amazon: StoreAdapter = {
   matches: (url) => HOST.test(url.hostname),
   normalize(url) {
     const asin = url.pathname.match(ASIN)?.[1];
-    return asin ? `https://${url.hostname.toLowerCase()}/dp/${asin.toUpperCase()}` : url.toString();
+    return asin
+      ? `https://${url.hostname.toLowerCase()}/dp/${asin.toUpperCase()}`
+      : url.toString();
   },
   parse: parseAmazonProduct,
   search: {

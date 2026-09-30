@@ -18,11 +18,17 @@ export default function LiveBadge({ className }: { className?: string }) {
       aria-live="polite"
     >
       <span className="relative flex size-2">
-        {status === 'live' && <span className="absolute inset-0 animate-ping rounded-full bg-down/60" />}
+        {status === 'live' && (
+          <span className="absolute inset-0 animate-ping rounded-full bg-down/60" />
+        )}
         <span
           className={cn(
             'relative size-2 rounded-full',
-            status === 'live' ? 'bg-down' : status === 'connecting' ? 'bg-muted animate-pulse-dot' : 'bg-muted/50',
+            status === 'live'
+              ? 'bg-down'
+              : status === 'connecting'
+                ? 'bg-muted animate-pulse-dot'
+                : 'bg-muted/50',
           )}
         />
       </span>

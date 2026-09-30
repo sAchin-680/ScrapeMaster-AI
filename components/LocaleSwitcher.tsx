@@ -65,7 +65,8 @@ export default function LocaleSwitcher() {
                   onChange={(e) => {
                     setCountry(e.target.value);
                     // Follow the country's currency unless the viewer kept store prices.
-                    if (currency !== 'original') setCurrency(getCountry(e.target.value).currency);
+                    if (currency !== 'original')
+                      setCurrency(getCountry(e.target.value).currency);
                   }}
                 >
                   {COUNTRIES.map((c) => (
@@ -74,14 +75,21 @@ export default function LocaleSwitcher() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2" aria-hidden />
+                <ChevronDown
+                  className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2"
+                  aria-hidden
+                />
               </span>
             </label>
 
             <label className="flex flex-col gap-1.5 text-xs font-medium text-muted">
               Show prices in
               <span className="relative">
-                <select className={selectClass} value={currency} onChange={(e) => setCurrency(e.target.value)}>
+                <select
+                  className={selectClass}
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                >
                   <option value="original">Store currency (no conversion)</option>
                   {(Object.keys(CURRENCIES) as CurrencyCode[]).map((code) => (
                     <option key={code} value={code}>
@@ -89,11 +97,16 @@ export default function LocaleSwitcher() {
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2" aria-hidden />
+                <ChevronDown
+                  className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2"
+                  aria-hidden
+                />
               </span>
             </label>
 
-            <p className="text-xs text-muted">Converted prices are approximate and use daily exchange rates.</p>
+            <p className="text-xs text-muted">
+              Converted prices are approximate and use daily exchange rates.
+            </p>
 
             <button type="submit" className="btn-primary" disabled={isPending}>
               {isPending && <Loader2 className="size-4 animate-spin" aria-hidden />}

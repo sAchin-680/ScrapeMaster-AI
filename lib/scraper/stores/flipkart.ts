@@ -22,8 +22,12 @@ export function parseFlipkartProduct(html: string, url: string) {
   const $ = cheerio.load(html);
   const data = extractStructured($);
 
-  const title = $(SELECTORS.title).first().text().replace(/\s+/g, ' ').trim() || data.title;
-  if (!title) throw new ScrapeError('Could not read the Flipkart page. It may be blocked or unavailable.');
+  const title =
+    $(SELECTORS.title).first().text().replace(/\s+/g, ' ').trim() || data.title;
+  if (!title)
+    throw new ScrapeError(
+      'Could not read the Flipkart page. It may be blocked or unavailable.',
+    );
 
   const current = extractPrice($(SELECTORS.price)) || data.price || 0;
   const mrp = extractPrice($(SELECTORS.mrp)) || data.originalPrice || current;
@@ -51,7 +55,10 @@ export function parseFlipkartProduct(html: string, url: string) {
     description: highlights.join('\n') || data.description || '',
     isOutOfStock: $(SELECTORS.soldOut).length > 0 || data.inStock === false,
     stars: parseFloat($(SELECTORS.rating).first().text()) || data.stars || 0,
-    reviewsCount: Math.round(parsePrice($(SELECTORS.reviews).first().text())) || data.reviewsCount || 0,
+    reviewsCount:
+      Math.round(parsePrice($(SELECTORS.reviews).first().text())) ||
+      data.reviewsCount ||
+      0,
   };
 }
 
@@ -65,7 +72,11 @@ export function parseFlipkartSearch(html: string): Offer[] {
       const link = card.find('a[href*="/p/"]').first();
       const href = link.attr('href');
       const title =
-        card.find('div.KzDlHZ, a.wjcEIp, div._4rR01T, a.s1Q9rs, a.WKTcLC').first().text().trim() ||
+        card
+          .find('div.KzDlHZ, a.wjcEIp, div._4rR01T, a.s1Q9rs, a.WKTcLC')
+          .first()
+          .text()
+          .trim() ||
         card.find('a[title]').first().attr('title') ||
         card.find('img').first().attr('alt') ||
         '';

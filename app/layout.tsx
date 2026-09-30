@@ -26,7 +26,10 @@ const mono = localFont({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
-  title: { default: `${siteConfig.name} · ${siteConfig.tagline}`, template: `%s · ${siteConfig.name}` },
+  title: {
+    default: `${siteConfig.name} · ${siteConfig.tagline}`,
+    template: `%s · ${siteConfig.name}`,
+  },
   description: siteConfig.description,
   applicationName: siteConfig.name,
   openGraph: {
@@ -35,7 +38,11 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
   },
-  twitter: { card: 'summary_large_image', title: siteConfig.name, description: siteConfig.description },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteConfig.name,
+    description: siteConfig.description,
+  },
 };
 
 export const viewport: Viewport = {
@@ -45,7 +52,9 @@ export const viewport: Viewport = {
   ],
 };
 
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   const [preferences, rates] = await Promise.all([getPreferences(), getRates()]);
 
   return (

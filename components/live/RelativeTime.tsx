@@ -5,7 +5,13 @@ import { formatRelativeTime } from '@/lib/utils';
 import { useLiveProduct } from './LiveProvider';
 
 /** "Checked 3 minutes ago" label that keeps itself current. */
-export default function RelativeTime({ date, productId }: { date: string; productId?: string }) {
+export default function RelativeTime({
+  date,
+  productId,
+}: {
+  date: string;
+  productId?: string;
+}) {
   const update = useLiveProduct(productId ?? '');
   const value = update?.updatedAt ?? date;
   const [now, setNow] = useState(() => Date.now());
@@ -16,7 +22,11 @@ export default function RelativeTime({ date, productId }: { date: string; produc
   }, []);
 
   return (
-    <time dateTime={value} title={new Date(value).toLocaleString()} suppressHydrationWarning>
+    <time
+      dateTime={value}
+      title={new Date(value).toLocaleString()}
+      suppressHydrationWarning
+    >
       {formatRelativeTime(value, now)}
     </time>
   );

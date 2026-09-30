@@ -54,7 +54,11 @@ export function generateEmailBody(
     case 'CHANGE_OF_STOCK':
       return {
         subject: `Back in stock: ${short}`,
-        body: layout('It is back in stock', 'Grab it before it sells out again.', product),
+        body: layout(
+          'It is back in stock',
+          'Grab it before it sells out again.',
+          product,
+        ),
       };
     case 'LOWEST_PRICE':
       return {

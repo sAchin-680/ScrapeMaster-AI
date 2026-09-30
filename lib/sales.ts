@@ -110,10 +110,20 @@ export function getSaleStatus(sale: Sale, now = Date.now()): SaleStatus {
 /** Live sales first, then upcoming ones within the horizon, for a country. */
 export function getSalesFor(country: CountryCode, now = Date.now(), horizonDays = 120) {
   const horizon = now + horizonDays * 86_400_000;
-  return SALES.filter((sale) => sale.countries === 'all' || sale.countries.includes(country))
+  return SALES.filter(
+    (sale) => sale.countries === 'all' || sale.countries.includes(country),
+  )
     .map((sale) => ({ ...sale, status: getSaleStatus(sale, now) }))
-    .filter((sale) => sale.status === 'live' || (sale.status === 'upcoming' && Date.parse(sale.start) < horizon))
-    .sort((a, b) => Number(b.status === 'live') - Number(a.status === 'live') || Date.parse(a.start) - Date.parse(b.start));
+    .filter(
+      (sale) =>
+        sale.status === 'live' ||
+        (sale.status === 'upcoming' && Date.parse(sale.start) < horizon),
+    )
+    .sort(
+      (a, b) =>
+        Number(b.status === 'live') - Number(a.status === 'live') ||
+        Date.parse(a.start) - Date.parse(b.start),
+    );
 }
 
 /** Announcement bar items: live sales first, then evergreen buying tips. */
@@ -130,7 +140,15 @@ export function getAnnouncements(country: CountryCode, now = Date.now()) {
 
   return [
     ...sales,
-    { id: 'tip-alert', text: '💡 Set a price alert and we will email you at the real low, not the “sale” price.', href: '/#track', cta: 'Track a product' },
-    { id: 'tip-compare', text: '🛒 The same product is often cheaper on another store. Compare before you checkout.' },
+    {
+      id: 'tip-alert',
+      text: '💡 Set a price alert and we will email you at the real low, not the “sale” price.',
+      href: '/#track',
+      cta: 'Track a product',
+    },
+    {
+      id: 'tip-compare',
+      text: '🛒 The same product is often cheaper on another store. Compare before you checkout.',
+    },
   ];
 }

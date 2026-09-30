@@ -36,7 +36,11 @@ export function extractCurrency(element: Selection) {
 }
 
 export function extractDescription($: CheerioAPI) {
-  const selectors = ['#feature-bullets .a-list-item', '#productDescription p', '.a-expander-content p'];
+  const selectors = [
+    '#feature-bullets .a-list-item',
+    '#productDescription p',
+    '.a-expander-content p',
+  ];
 
   for (const selector of selectors) {
     const lines = $(selector)
@@ -61,11 +65,15 @@ export function extractImage($: CheerioAPI) {
       // fall through to static attributes
     }
   }
-  return $('#landingImage').attr('data-old-hires') || $('#landingImage').attr('src') || '';
+  return (
+    $('#landingImage').attr('data-old-hires') || $('#landingImage').attr('src') || ''
+  );
 }
 
 export function extractRating($: CheerioAPI) {
-  const stars = parseFloat($('#acrPopover').attr('title') ?? $('.a-icon-alt').first().text());
+  const stars = parseFloat(
+    $('#acrPopover').attr('title') ?? $('.a-icon-alt').first().text(),
+  );
   const reviews = parsePrice($('#acrCustomerReviewText').first().text());
   return {
     stars: Number.isFinite(stars) ? stars : 0,

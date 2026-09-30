@@ -1,7 +1,12 @@
 export type Point = { x: number; y: number };
 
 /** Map a list of values into SVG coordinates inside a width × height box. */
-export function toPoints(values: number[], width: number, height: number, padding = 4): Point[] {
+export function toPoints(
+  values: number[],
+  width: number,
+  height: number,
+  padding = 4,
+): Point[] {
   if (!values.length) return [];
   const series = values.length === 1 ? [values[0], values[0]] : values;
   const min = Math.min(...series);
@@ -13,7 +18,11 @@ export function toPoints(values: number[], width: number, height: number, paddin
   return series.map((value, i) => ({
     x: Math.round(i * step * 100) / 100,
     // Flat series sit in the middle rather than on the floor.
-    y: Math.round((max === min ? height / 2 : padding + innerH - ((value - min) / range) * innerH) * 100) / 100,
+    y:
+      Math.round(
+        (max === min ? height / 2 : padding + innerH - ((value - min) / range) * innerH) *
+          100,
+      ) / 100,
   }));
 }
 

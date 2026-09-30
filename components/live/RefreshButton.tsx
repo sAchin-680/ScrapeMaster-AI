@@ -25,7 +25,12 @@ export default function RefreshButton({ productId }: { productId: string }) {
 
   return (
     <div className="flex items-center gap-3">
-      <button type="button" onClick={refresh} disabled={isPending} className="btn-ghost px-3.5 py-2 text-xs">
+      <button
+        type="button"
+        onClick={refresh}
+        disabled={isPending}
+        className="btn-ghost px-3.5 py-2 text-xs"
+      >
         <RefreshCw className={cn('size-3.5', isPending && 'animate-spin')} aria-hidden />
         {isPending ? 'Checking' : 'Check now'}
       </button>

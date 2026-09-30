@@ -17,7 +17,10 @@ export default function ProductCard({
 }) {
   const history = (product.priceHistory ?? []).map((p) => p.price);
   const discount = product.discountRate > 0 ? product.discountRate : 0;
-  const verdict = getDealVerdict({ ...product, priceHistory: product.priceHistory ?? [] });
+  const verdict = getDealVerdict({
+    ...product,
+    priceHistory: product.priceHistory ?? [],
+  });
 
   return (
     <Link
@@ -38,9 +41,10 @@ export default function ProductCard({
             −{discount}%
           </span>
         )}
-        {!product.isOutOfStock && (verdict.level === 'great' || verdict.level === 'good') && (
-          <DealBadge verdict={verdict} className="absolute bottom-2 left-2 shadow-sm" />
-        )}
+        {!product.isOutOfStock &&
+          (verdict.level === 'great' || verdict.level === 'good') && (
+            <DealBadge verdict={verdict} className="absolute bottom-2 left-2 shadow-sm" />
+          )}
         {product.isOutOfStock && (
           <span className="absolute right-2 top-2 rounded-md bg-ink/80 px-2 py-0.5 text-xs font-medium text-paper backdrop-blur">
             Out of stock
@@ -50,7 +54,10 @@ export default function ProductCard({
 
       <div className="flex flex-1 flex-col gap-2 px-1 pb-1 pt-3">
         <p className="eyebrow truncate">
-          <span className="font-semibold text-ink/80">{product.storeName ?? 'Amazon'}</span> · {product.category}
+          <span className="font-semibold text-ink/80">
+            {product.storeName ?? 'Amazon'}
+          </span>{' '}
+          · {product.category}
         </p>
         <h3 className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-snug">
           {product.title}

@@ -142,7 +142,10 @@ export default async function ProductPage({ params }: Props) {
                     />
                     {savings > 0 && (
                       <span className="num text-lg text-muted line-through">
-                        <Money amount={product.originalPrice} currency={product.currency} />
+                        <Money
+                          amount={product.originalPrice}
+                          currency={product.currency}
+                        />
                       </span>
                     )}
                     {product.discountRate > 0 && (
@@ -176,7 +179,8 @@ export default async function ProductPage({ params }: Props) {
                   rel="noopener noreferrer nofollow"
                   className="btn-ghost py-3.5 text-[15px]"
                 >
-                  View on {product.storeName ?? 'store'} <ExternalLink className="size-4" aria-hidden />
+                  View on {product.storeName ?? 'store'}{' '}
+                  <ExternalLink className="size-4" aria-hidden />
                 </a>
               </div>
             </section>
@@ -185,7 +189,6 @@ export default async function ProductPage({ params }: Props) {
 
             <OfferComparison product={product} />
 
-
             <section
               aria-label="Price statistics"
               className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line"
@@ -193,18 +196,24 @@ export default async function ProductPage({ params }: Props) {
               <StatTile
                 label="Current"
                 icon={Tag}
-                value={<Money amount={product.currentPrice} currency={product.currency} />}
+                value={
+                  <Money amount={product.currentPrice} currency={product.currency} />
+                }
                 tone="accent"
               />
               <StatTile
                 label="Average"
                 icon={Sigma}
-                value={<Money amount={product.averagePrice} currency={product.currency} />}
+                value={
+                  <Money amount={product.averagePrice} currency={product.currency} />
+                }
               />
               <StatTile
                 label="Highest"
                 icon={ArrowUp}
-                value={<Money amount={product.highestPrice} currency={product.currency} />}
+                value={
+                  <Money amount={product.highestPrice} currency={product.currency} />
+                }
                 tone="up"
               />
               <StatTile

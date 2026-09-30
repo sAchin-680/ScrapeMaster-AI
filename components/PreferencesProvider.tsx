@@ -11,8 +11,13 @@ const PreferencesContext = createContext<Value>({
   rates: {},
 });
 
-export function PreferencesProvider({ children, ...value }: Value & { children: ReactNode }) {
-  return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
+export function PreferencesProvider({
+  children,
+  ...value
+}: Value & { children: ReactNode }) {
+  return (
+    <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>
+  );
 }
 
 export function usePreferences() {

@@ -21,7 +21,9 @@ export async function GET(request: NextRequest) {
 
   const startedAt = Date.now();
   await connectDB();
-  const ids = (await ProductModel.find({}).select('_id').lean()).map((p) => String(p._id));
+  const ids = (await ProductModel.find({}).select('_id').lean()).map((p) =>
+    String(p._id),
+  );
 
   const results: PromiseSettledResult<Awaited<ReturnType<typeof refreshProduct>>>[] = [];
   // Process in small batches so one slow page or a rate limit can't sink the run.
@@ -31,11 +33,15 @@ export async function GET(request: NextRequest) {
   }
 
   const failed = results.filter((r) => r.status === 'rejected');
-  failed.forEach((r) => console.error('[cron] refresh failed', (r as PromiseRejectedResult).reason));
+  failed.forEach((r) =>
+    console.error('[cron] refresh failed', (r as PromiseRejectedResult).reason),
+  );
 
   return NextResponse.json({
     processed: ids.length,
-    updated: results.filter((r) => r.status === 'fulfilled' && r.value.status === 'updated').length,
+    updated: results.filter(
+      (r) => r.status === 'fulfilled' && r.value.status === 'updated',
+    ).length,
     failed: failed.length,
     durationMs: Date.now() - startedAt,
   });
