@@ -119,7 +119,11 @@ async function loadSaleSignals(region: string): Promise<SaleFeed> {
 
   const settled = await Promise.allSettled(
     sources.map((source) =>
-      loadAndParse(homepage, source.url, (html) => parseSaleSignals(html, source)),
+      loadAndParse(homepage, source.url, (html) => parseSaleSignals(html, source), {
+        // Promotional banners load late; give them time and scroll into view.
+        settleMs: 3_500,
+        scroll: true,
+      }),
     ),
   );
   const detectedAt = new Date().toISOString();
