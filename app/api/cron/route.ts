@@ -1,65 +1,79 @@
-import Product from "@/lib/models/product.model";
-import { connectDB } from "@/lib/mogoose";
-import { generateEmailBody, sendEmail } from "@/lib/nodemailer";
-import { getAveragePrice, getEmailNotifType, getHighestPrice, getLowestPrice } from "@/lib/utils";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from 'next/server';
+import { connectDB } from '@/lib/db';
+import { env } from '@/lib/env';
+import ProductModel from '@/lib/models/product.model';
+import { getEmailNotifType } from '@/lib/notifications';
+import { generateEmailBody, sendEmail } from '@/lib/nodemailer';
+import { scrapeAmazonProduct } from '@/lib/scraper';
+import { appendPrice, getPriceStats } from '@/lib/utils';
 
-export const maxDuration = 300; // 5min
+export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
 
-export async function GET() {
-    try {
-        await connectDB();
+const CONCURRENCY = 4;
 
-        const products = await Product.find({});
-        if (!products) throw new Error("No products found");
+function isAuthorized(request: NextRequest) {
+  if (!env.CRON_SECRET) return process.env.NODE_ENV !== 'production';
+  return request.headers.get('authorization') === `Bearer ${env.CRON_SECRET}`;
+}
 
-        const updatedProducts = await Promise.all(
-            products.map(async (currentProduct) => {
-                const scrappedProduct = await currentProduct.scrapping(currentProduct.url);
-                if (!scrappedProduct) throw new Error("No product found");
+async function refreshProduct(id: string) {
+  const product = await ProductModel.findById(id);
+  if (!product) return { id, status: 'missing' as const };
 
-                const updatedPriceHistory = [
-                    ...currentProduct.priceHistory,
-                    { price: scrappedProduct.currentPrice },
-                ];
+  const scraped = await scrapeAmazonProduct(product.url);
+  if (!scraped.currentPrice) return { id, status: 'no-price' as const };
 
-                const product = {
-                    ...scrappedProduct,
-                    priceHistory: updatedPriceHistory,
-                    lowestPrice: getLowestPrice(updatedPriceHistory),
-                    highestPrice: getHighestPrice(updatedPriceHistory),
-                    averagePrice: getAveragePrice(updatedPriceHistory),
-                };
+  const notification = getEmailNotifType(scraped, {
+    priceHistory: product.priceHistory,
+    isOutOfStock: product.isOutOfStock,
+    discountRate: product.discountRate,
+  });
 
-                const updatedProduct = await Product.findOneAndUpdate(
-                    { url: product.url },
-                    product
-                );
+  const priceHistory = appendPrice(product.priceHistory, scraped.currentPrice);
+  product.set({ ...scraped, priceHistory, ...getPriceStats(priceHistory) });
+  await product.save();
 
-                const emailNotification = getEmailNotifType(scrappedProduct, currentProduct);
+  if (notification && product.users.length) {
+    const content = generateEmailBody(
+      {
+        title: product.title,
+        url: product.url,
+        image: product.image,
+        currency: product.currency,
+        currentPrice: product.currentPrice,
+      },
+      notification,
+    );
+    await sendEmail(content, product.users.map((user) => user.email));
+  }
 
-                if (emailNotification && updatedProduct.users.length > 0) {
-                    const productInfo = {
-                        title: updatedProduct.title,
-                        url: updatedProduct.url,
-                    };
+  return { id, status: 'updated' as const, notification };
+}
 
-                    const emailContent = await generateEmailBody(productInfo, emailNotification);
-                    const userEmails = updatedProduct.users.map((user: any) => user.email);
-                    await sendEmail(emailContent, userEmails);
-                }
+export async function GET(request: NextRequest) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
-                return updatedProduct;
-            })
-        );
+  const startedAt = Date.now();
+  await connectDB();
+  const ids = (await ProductModel.find({}).select('_id').lean()).map((p) => String(p._id));
 
-        return NextResponse.json({
-            message: "OK",
-            data: updatedProducts,
-        });
-    } catch (error) {
-        throw new Error(`Error in GET: ${error}`);
-    }
+  const results: PromiseSettledResult<Awaited<ReturnType<typeof refreshProduct>>>[] = [];
+  // Process in small batches so one slow page or a rate limit can't sink the run.
+  for (let i = 0; i < ids.length; i += CONCURRENCY) {
+    const batch = ids.slice(i, i + CONCURRENCY);
+    results.push(...(await Promise.allSettled(batch.map(refreshProduct))));
+  }
+
+  const failed = results.filter((r) => r.status === 'rejected');
+  failed.forEach((r) => console.error('[cron] refresh failed', (r as PromiseRejectedResult).reason));
+
+  return NextResponse.json({
+    processed: ids.length,
+    updated: results.filter((r) => r.status === 'fulfilled' && r.value.status === 'updated').length,
+    failed: failed.length,
+    durationMs: Date.now() - startedAt,
+  });
 }
