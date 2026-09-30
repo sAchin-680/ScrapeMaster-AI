@@ -6,6 +6,7 @@ import { connectDB } from '@/lib/db';
 import ProductModel from '@/lib/models/product.model';
 import { generateEmailBody, sendEmail } from '@/lib/nodemailer';
 import { scrapeAmazonProduct, ScrapeError } from '@/lib/scraper';
+import { refreshProduct } from '@/lib/services/refresh';
 import { appendPrice, getPriceStats, isValidAmazonProductURL, normalizeAmazonURL } from '@/lib/utils';
 import type { ActionResult } from '@/types';
 
@@ -93,5 +94,36 @@ export async function addUserEmailToProduct(
   } catch (error) {
     console.error('[actions] addUserEmailToProduct failed', error);
     return { ok: false, error: 'Could not save your email. Please try again.' };
+  }
+}
+
+const REFRESH_COOLDOWN_MS = 60_000;
+
+/** Re-check a product's price right now, rate-limited per product. */
+export async function refreshProductNow(
+  productId: string,
+): Promise<ActionResult<{ changed: boolean }>> {
+  if (!/^[a-f\d]{24}$/i.test(productId)) return { ok: false, error: 'Invalid product' };
+
+  try {
+    await connectDB();
+    const product = await ProductModel.findById(productId).select('updatedAt currentPrice').lean();
+    if (!product) return { ok: false, error: 'Product not found' };
+
+    const age = Date.now() - new Date(product.updatedAt).getTime();
+    if (age < REFRESH_COOLDOWN_MS) {
+      return { ok: false, error: `Checked moments ago. Try again in ${Math.ceil((REFRESH_COOLDOWN_MS - age) / 1000)}s.` };
+    }
+
+    const result = await refreshProduct(productId);
+    if (result.status !== 'updated') return { ok: false, error: 'Could not read the latest price.' };
+
+    revalidatePath('/');
+    revalidatePath(`/products/${productId}`);
+    return { ok: true, data: { changed: result.currentPrice !== product.currentPrice } };
+  } catch (error) {
+    console.error('[actions] refreshProductNow failed', error);
+    const message = error instanceof ScrapeError ? error.message : 'Refresh failed. Please try again.';
+    return { ok: false, error: message };
   }
 }
