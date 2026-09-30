@@ -16,6 +16,7 @@ export async function connectDB() {
   cache.promise ??= mongoose.connect(env.MONGODB_URI, {
     bufferCommands: false,
     maxPoolSize: 10,
+    appName: 'scrapemaster',
     serverSelectionTimeoutMS: 10_000,
   });
 
