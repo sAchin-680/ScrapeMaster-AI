@@ -1,16 +1,23 @@
 import { ArrowUpRight, CalendarClock, Radio } from 'lucide-react';
 import Countdown from '@/components/ui/Countdown';
+import StoreLogo from '@/components/ui/StoreLogo';
+import type { SaleSignal } from '@/lib/scraper/sale-signals';
 import type { Country } from '@/lib/locale';
 import type { SaleStatus, Sale } from '@/lib/sales';
 import { cn } from '@/lib/utils';
 
 const dateFormat = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short' });
 
-type Props = { country: Country; sales: (Sale & { status: SaleStatus })[] };
+type Props = {
+  country: Country;
+  sales: (Sale & { status: SaleStatus })[];
+  /** Banners detected live on store homepages. */
+  signals: SaleSignal[];
+};
 
-export default function SalesSection({ country, sales: all }: Props) {
+export default function SalesSection({ country, sales: all, signals }: Props) {
   const sales = all.slice(0, 3);
-  if (!sales.length) return null;
+  if (!sales.length && !signals.length) return null;
 
   return (
     <section
@@ -20,7 +27,7 @@ export default function SalesSection({ country, sales: all }: Props) {
     >
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-accent">{country.flag} Sale calendar</p>
+          <p className="text-sm font-medium text-accent">{country.flag} Sales</p>
           <h2 id="sales-heading" className="mt-2 text-3xl font-semibold tracking-tight">
             Big sales, live & upcoming
           </h2>
@@ -30,6 +37,43 @@ export default function SalesSection({ country, sales: all }: Props) {
           the history chart shows it.
         </p>
       </div>
+
+      {signals.length > 0 && (
+        <div className="mb-6">
+          <p className="mb-3 text-xs font-medium text-muted">
+            Live on store homepages right now
+          </p>
+          <ul className="flex flex-wrap gap-3">
+            {signals.map((signal) => (
+              <li key={`${signal.store}-${signal.text}`}>
+                <a
+                  href={signal.url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="card flex items-center gap-3 py-2 pl-2 pr-4 transition hover:border-accent/40"
+                >
+                  <StoreLogo
+                    url={signal.url}
+                    name={signal.storeName}
+                    className="size-8"
+                  />
+                  <span className="text-sm font-medium">{signal.text}</span>
+                  <span
+                    className={cn(
+                      'rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase',
+                      signal.status === 'live'
+                        ? 'bg-up text-white'
+                        : 'bg-accent-soft text-accent',
+                    )}
+                  >
+                    {signal.status === 'live' ? 'Live' : 'Soon'}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="grid gap-5 md:grid-cols-3">
         {sales.map((sale) => {
