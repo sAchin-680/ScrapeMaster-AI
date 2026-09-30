@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { PreferencesProvider } from '@/components/PreferencesProvider';
+import { getRates } from '@/lib/fx';
+import { getPreferences } from '@/lib/preferences';
 import { siteConfig } from '@/lib/site';
 import './globals.css';
 
@@ -40,7 +43,9 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const [preferences, rates] = await Promise.all([getPreferences(), getRates()]);
+
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body className="flex min-h-dvh flex-col">
@@ -50,11 +55,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Skip to content
         </a>
-        <Navbar />
-        <main id="content" className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        <PreferencesProvider preferences={preferences} rates={rates}>
+          <Navbar />
+          <main id="content" className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </PreferencesProvider>
       </body>
     </html>
   );
