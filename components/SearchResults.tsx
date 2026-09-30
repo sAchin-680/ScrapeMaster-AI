@@ -2,6 +2,7 @@ import { ExternalLink, Trophy } from 'lucide-react';
 import TrackButton from '@/components/TrackButton';
 import Money from '@/components/ui/Money';
 import ProductImage from '@/components/ui/ProductImage';
+import StoreLogo from '@/components/ui/StoreLogo';
 import type { Region } from '@/lib/scraper/stores';
 import { searchStores } from '@/lib/scraper/search';
 import { cn } from '@/lib/utils';
@@ -62,7 +63,7 @@ export default async function SearchResults({
               </div>
 
               <ul className="divide-y divide-line overflow-hidden rounded-lg border border-line text-sm">
-                {result.offers.map((offer, i) => (
+                {result.offers.map((offer) => (
                   <li key={offer.store}>
                     <a
                       href={offer.url}
@@ -70,11 +71,18 @@ export default async function SearchResults({
                       rel="noopener noreferrer nofollow"
                       className={cn(
                         'flex items-center gap-2 px-3 py-2 transition hover:bg-paper',
-                        i === 0 && result.offers.length > 1 && 'bg-accent-soft/40',
+                        offer.price === result.best.price &&
+                          result.offers.length > 1 &&
+                          'bg-accent-soft/40',
                       )}
                     >
+                      <StoreLogo
+                        url={offer.url}
+                        name={offer.storeName}
+                        className="size-7"
+                      />
                       <span className="flex-1 font-medium">{offer.storeName}</span>
-                      {i === 0 && result.offers.length > 1 && (
+                      {offer.price === result.best.price && result.offers.length > 1 && (
                         <Trophy
                           className="size-3.5 text-down"
                           aria-label="Lowest price"
