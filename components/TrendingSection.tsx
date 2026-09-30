@@ -1,18 +1,62 @@
+import { Suspense } from 'react';
 import { Crown, ExternalLink, TrendingUp } from 'lucide-react';
 import TrackButton from '@/components/TrackButton';
 import Money from '@/components/ui/Money';
 import ProductTile from '@/components/ui/ProductTile';
+import { SEARCHABLE_STORES } from '@/lib/locale';
 import type { Region } from '@/lib/scraper/stores';
 import { trendingFeed } from '@/lib/services/store-feed';
 
-/** Live bestsellers and most popular products straight from the stores. */
-export default async function TrendingSection({ region }: { region: Region }) {
+/** Store bestseller grid; streams in once the stores have responded. */
+async function TrendingGrid({ region }: { region: Region }) {
   const items = await trendingFeed(region)
     .get()
     .catch(() => []);
-  if (!items.length) return null;
-  const stores = [...new Set(items.map((i) => i.storeName))];
+  if (!items.length) {
+    return (
+      <p className="text-sm text-muted">
+        Store bestseller lists are unavailable right now. Check back soon.
+      </p>
+    );
+  }
 
+  return (
+    <ul className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
+      {items.map((item, i) => (
+        <li key={item.url} className="reveal">
+          <ProductTile
+            href={item.url}
+            external
+            image={item.image}
+            title={item.title}
+            store={{ name: item.storeName, url: item.url }}
+            currency={item.currency}
+            currentPrice={item.price}
+            priority={i < 4}
+            price={<Money amount={item.price} currency={item.currency} className="num" />}
+            badge={
+              item.rank && item.rank <= 10 ? (
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-400 px-2 py-0.5 text-[11px] font-semibold text-neutral-900 shadow-sm">
+                  <Crown className="size-3" aria-hidden />#{item.rank} Bestseller
+                </span>
+              ) : undefined
+            }
+            aside={
+              <ExternalLink
+                className="mb-1 size-4 shrink-0 text-muted transition group-hover:text-accent"
+                aria-hidden
+              />
+            }
+            actions={<TrackButton url={item.url} label="Track price" variant="soft" />}
+          />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** Live bestsellers and most popular products straight from the stores. */
+export default function TrendingSection({ region }: { region: Region }) {
   return (
     <section
       id="trending"
@@ -28,65 +72,30 @@ export default async function TrendingSection({ region }: { region: Region }) {
             id="trending-heading"
             className="mt-2 text-3xl font-semibold tracking-tight"
           >
-            Bestsellers on {stores.join(' & ')}
+            Bestsellers on {SEARCHABLE_STORES[region].join(' & ')}
           </h2>
         </div>
         <p className="max-w-sm text-sm text-muted">
           Live from the stores&apos; bestseller and popularity rankings, updated hourly.
         </p>
       </div>
-
-      <ul className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
-        {items.map((item, i) => (
-          <li key={item.url} className="reveal">
-            <ProductTile
-              href={item.url}
-              external
-              image={item.image}
-              title={item.title}
-              store={{ name: item.storeName, url: item.url }}
-              currency={item.currency}
-              currentPrice={item.price}
-              priority={i < 4}
-              price={
-                <Money amount={item.price} currency={item.currency} className="num" />
-              }
-              badge={
-                item.rank && item.rank <= 10 ? (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-400 px-2 py-0.5 text-[11px] font-semibold text-neutral-900 shadow-sm">
-                    <Crown className="size-3" aria-hidden />#{item.rank} Bestseller
-                  </span>
-                ) : undefined
-              }
-              aside={
-                <ExternalLink
-                  className="mb-1 size-4 shrink-0 text-muted transition group-hover:text-accent"
-                  aria-hidden
-                />
-              }
-              actions={<TrackButton url={item.url} label="Track price" variant="soft" />}
-            />
-          </li>
-        ))}
-      </ul>
+      <Suspense fallback={<TrendingSkeleton />}>
+        <TrendingGrid region={region} />
+      </Suspense>
     </section>
   );
 }
 
-export function TrendingSkeleton() {
+function TrendingSkeleton() {
   return (
     <div
-      className="container pt-16"
+      className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4"
       aria-busy="true"
       aria-label="Loading trending products"
     >
-      <div className="skeleton h-5 w-32" />
-      <div className="skeleton mt-3 h-9 w-72" />
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
-        {Array.from({ length: 8 }, (_, i) => (
-          <div key={i} className="skeleton aspect-[3/4] rounded-xl" />
-        ))}
-      </div>
+      {Array.from({ length: 8 }, (_, i) => (
+        <div key={i} className="skeleton aspect-[3/4] rounded-2xl" />
+      ))}
     </div>
   );
 }
