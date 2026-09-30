@@ -10,7 +10,12 @@ const cache: Cache = (globalForMongoose.mongooseCache ??= { conn: null, promise:
 
 export async function connectDB() {
   if (!env.MONGODB_URI) throw new Error('MONGODB_URI is not defined');
-  if (cache.conn) return cache.conn;
+  // readyState 1 = connected. A closed connection (0) is discarded and re-opened.
+  if (cache.conn && mongoose.connection.readyState === 1) return cache.conn;
+  if (mongoose.connection.readyState === 0) {
+    cache.conn = null;
+    cache.promise = null;
+  }
 
   mongoose.set('strictQuery', true);
   cache.promise ??= mongoose.connect(env.MONGODB_URI, {
