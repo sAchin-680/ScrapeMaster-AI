@@ -12,7 +12,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "seed": "node --env-file-if-exists=.env.local scripts/seed.mjs",
-    "db": "mkdir -p .data/db && mongod --dbpath .data/db --port 27017 --bind_ip 127.0.0.1"
+    "db": "mkdir -p .data/db && mongod --dbpath .data/db --port 27017 --bind_ip 127.0.0.1",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -33,6 +34,7 @@
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitest/coverage-v8": "^2.1.9",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.5.26",
