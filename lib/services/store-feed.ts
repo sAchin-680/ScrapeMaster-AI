@@ -54,6 +54,8 @@ async function loadTrending(region: string): Promise<TrendingItem[]> {
   const settled = await Promise.allSettled(
     sources.map((s) => loadAndParse(s.adapter, s.url, (html) => s.parse(html, s.url))),
   );
+  if (settled.every((r) => r.status === 'rejected'))
+    throw new Error('All trending sources failed');
   const lists = settled.map((r, i) => {
     if (r.status === 'rejected')
       console.error('[trending] source failed', sources[i].url, r.reason);
@@ -126,6 +128,8 @@ async function loadSaleSignals(region: string): Promise<SaleFeed> {
       }),
     ),
   );
+  if (settled.every((r) => r.status === 'rejected'))
+    throw new Error('All store homepages failed');
   const detectedAt = new Date().toISOString();
 
   return {
@@ -175,6 +179,8 @@ async function loadDeals(region: string): Promise<DealItem[]> {
     }),
   );
 
+  if (settled.every((r) => r.status === 'rejected'))
+    throw new Error('All deal sources failed');
   const lists = settled.map((r) =>
     r.status === 'fulfilled'
       ? r.value
