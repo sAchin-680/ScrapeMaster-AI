@@ -96,3 +96,37 @@ export async function getTrackerStats() {
     return { products: 0, watchers: 0, datapoints: 0 };
   }
 }
+
+/**
+ * Products priced well against their own history: at an all-time low or
+ * furthest below their average price.
+ */
+export async function getTopDeals(currency: string | null, limit = 4): Promise<Product[]> {
+  try {
+    await connectDB();
+    const deals = await ProductModel.aggregate([
+      {
+        $match: {
+          isOutOfStock: { $ne: true },
+          'priceHistory.2': { $exists: true },
+          averagePrice: { $gt: 0 },
+          ...(currency ? { currency } : {}),
+        },
+      },
+      {
+        $addFields: {
+          belowAverage: { $divide: [{ $subtract: ['$averagePrice', '$currentPrice'] }, '$averagePrice'] },
+          atLow: { $lte: ['$currentPrice', { $multiply: ['$lowestPrice', 1.02] }] },
+        },
+      },
+      { $match: { $or: [{ atLow: true }, { belowAverage: { $gte: 0.03 } }] } },
+      { $sort: { atLow: -1, belowAverage: -1 } },
+      { $limit: limit },
+      { $project: { users: 0, offers: 0, __v: 0, belowAverage: 0, atLow: 0 } },
+    ]);
+    return serialize(deals) as unknown as Product[];
+  } catch (error) {
+    console.error('[data] getTopDeals failed', error);
+    return [];
+  }
+}
