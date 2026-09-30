@@ -1,0 +1,56 @@
+import { describe, expect, it } from 'vitest';
+import { flipkart, parseFlipkartProduct, parseFlipkartSearch } from '@/lib/scraper/stores/flipkart';
+
+const product = `
+<html><body>
+  <div class="r2CdBx"><a>Home</a><a>Mobiles</a><a>Apple iPhones</a><a>iPhone 15</a></div>
+  <h1><span class="VU-ZEz">Apple iPhone 15 (Black, 128 GB)</span></h1>
+  <div class="Nx9bqj CxhGGd">₹65,999</div>
+  <div class="yRaY8j A6+E6v">₹79,900</div>
+  <img class="DByuf4" src="https://rukminim2.flixcart.com/image/iphone.jpg" />
+  <div class="XQDdHH">4.6</div>
+  <span class="Wphh3N">2,31,450 Ratings</span>
+  <ul><li class="_7eSDEz">128 GB ROM</li><li class="_7eSDEz">48MP Camera</li></ul>
+</body></html>`;
+
+const search = `
+<div data-id="MOBGTAGPTB3VS24W">
+  <a href="/apple-iphone-15-black-128-gb/p/itm6ac6485515ae4?pid=MOBGTAGPTB3VS24W&lid=x&marketplace=FLIPKART">
+    <img src="https://rukminim2.flixcart.com/a.jpg" alt="Apple iPhone 15" />
+    <div class="KzDlHZ">Apple iPhone 15 (Black, 128 GB)</div>
+    <div class="Nx9bqj">₹65,999</div>
+  </a>
+</div>
+<div data-id="ADS"><div class="KzDlHZ">No link</div></div>`;
+
+describe('flipkart adapter', () => {
+  it('parses a product page', () => {
+    expect(parseFlipkartProduct(product, 'https://www.flipkart.com/x/p/itm1')).toMatchObject({
+      store: 'flipkart',
+      title: 'Apple iPhone 15 (Black, 128 GB)',
+      currency: '₹',
+      currentPrice: 65999,
+      originalPrice: 79900,
+      discountRate: 17,
+      stars: 4.6,
+      reviewsCount: 231450,
+      category: 'Apple iPhones',
+      description: '128 GB ROM\n48MP Camera',
+    });
+  });
+
+  it('parses search results and strips tracking params', () => {
+    const offers = parseFlipkartSearch(search);
+    expect(offers).toHaveLength(1);
+    expect(offers[0]).toMatchObject({
+      price: 65999,
+      url: 'https://www.flipkart.com/apple-iphone-15-black-128-gb/p/itm6ac6485515ae4?pid=MOBGTAGPTB3VS24W',
+    });
+  });
+
+  it('normalizes product URLs to path + pid', () => {
+    const url = new URL('https://dl.flipkart.com/s/x/p/itm1?pid=ABC&lid=1&affid=me');
+    expect(flipkart.matches(url)).toBe(true);
+    expect(flipkart.normalize(url)).toBe('https://www.flipkart.com/s/x/p/itm1?pid=ABC');
+  });
+});
