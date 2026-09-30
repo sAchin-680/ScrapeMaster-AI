@@ -4,6 +4,8 @@ import Logo from '@/components/ui/Logo';
 
 const links = [
   { href: '/#track', label: 'Track' },
+  { href: '/#deals', label: 'Deals' },
+  { href: '/#sales', label: 'Sales' },
   { href: '/#trending', label: 'Trending' },
   { href: '/#how', label: 'How it works' },
 ];
