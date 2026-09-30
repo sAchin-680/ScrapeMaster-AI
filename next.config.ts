@@ -15,12 +15,6 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['mongoose'],
   images: {
     formats: ['image/avif', 'image/webp'],
-    remotePatterns: [
-      { protocol: 'https', hostname: 'm.media-amazon.com' },
-      { protocol: 'https', hostname: 'images-na.ssl-images-amazon.com' },
-      { protocol: 'https', hostname: 'images-eu.ssl-images-amazon.com' },
-      { protocol: 'https', hostname: '*.media-amazon.com' },
-    ],
   },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
