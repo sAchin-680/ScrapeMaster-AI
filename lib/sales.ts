@@ -115,3 +115,22 @@ export function getSalesFor(country: CountryCode, now = Date.now(), horizonDays 
     .filter((sale) => sale.status === 'live' || (sale.status === 'upcoming' && Date.parse(sale.start) < horizon))
     .sort((a, b) => Number(b.status === 'live') - Number(a.status === 'live') || Date.parse(a.start) - Date.parse(b.start));
 }
+
+/** Announcement bar items: live sales first, then evergreen buying tips. */
+export function getAnnouncements(country: CountryCode, now = Date.now()) {
+  const sales = getSalesFor(country, now, 21).map((sale) => ({
+    id: sale.id,
+    text:
+      sale.status === 'live'
+        ? `🔥 ${sale.name} is live on ${sale.store}. Check the price history before you buy.`
+        : `📅 ${sale.name} on ${sale.store} is coming up. Track products now to spot fake discounts.`,
+    href: '/#sales',
+    cta: sale.status === 'live' ? 'See sales' : 'View calendar',
+  }));
+
+  return [
+    ...sales,
+    { id: 'tip-alert', text: '💡 Set a price alert and we will email you at the real low, not the “sale” price.', href: '/#track', cta: 'Track a product' },
+    { id: 'tip-compare', text: '🛒 The same product is often cheaper on another store. Compare before you checkout.' },
+  ];
+}
