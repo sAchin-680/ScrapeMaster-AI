@@ -13,10 +13,9 @@
  *   MONGODB_URI=... npm run feeds:refresh -- --no-products
  */
 import mongoose from 'mongoose';
-import { connectDB } from '@/lib/db';
-import ProductModel from '@/lib/models/product.model';
-import { refreshProduct } from '@/lib/services/refresh';
+import { refreshProduct, staleProductIds } from '@/lib/services/refresh';
 import { writeSnapshot } from '@/lib/services/snapshots';
+import { isTracked, trackProduct } from '@/lib/services/track';
 import { loadDeals, loadSaleSignals, loadTrending } from '@/lib/services/store-feed';
 
 const args = process.argv.slice(2);
@@ -26,6 +25,9 @@ if (!regions.length) regions.push('in');
 
 // Keep a run comfortably inside a CI step's time slot.
 const PRODUCT_BUDGET_MS = 8 * 60_000;
+// Popular products tracked automatically: a few per run, up to a fixed catalog size.
+const NEW_PER_RUN = 6;
+const MAX_AUTO_CATALOG = 60;
 
 const feeds = [
   { name: 'deals', load: loadDeals, count: (d: unknown[]) => d.length },
@@ -38,6 +40,8 @@ const feeds = [
 ] as const;
 
 let failures = 0;
+// Top deals and bestsellers, candidates for automatic tracking.
+const popular: string[] = [];
 
 for (const region of regions) {
   for (const feed of feeds) {
@@ -47,6 +51,7 @@ for (const region of regions) {
       const count = feed.count(data as never);
       if (!count && feed.name !== 'sale-signals') throw new Error('no results');
       await writeSnapshot(`${feed.name}:${region}`, data);
+      if (Array.isArray(data)) popular.push(...data.slice(0, 6).map((item) => item.url));
       console.log(`✓ ${feed.name}:${region}  ${count} items  ${Date.now() - started}ms`);
     } catch (error) {
       failures++;
@@ -56,11 +61,8 @@ for (const region of regions) {
 }
 
 if (!flags.has('--no-products')) {
-  await connectDB();
   const started = Date.now();
-  const ids = (
-    await ProductModel.find({}).select('_id').sort({ updatedAt: 1 }).lean()
-  ).map((p) => String(p._id));
+  const ids = await staleProductIds();
 
   let updated = 0;
   let checked = 0;
@@ -80,6 +82,23 @@ if (!flags.has('--no-products')) {
   // Individual products failing (e.g. a delisted page) is normal; only fail the
   // run if nothing at all could be refreshed.
   if (checked && !updated) failures++;
+
+  // Grow a catalog of popular products so price histories build up from real
+  // data. A few per run keeps requests polite; the cap bounds the job's size.
+  if (!flags.has('--no-popular') && ids.length < MAX_AUTO_CATALOG) {
+    let added = 0;
+    for (const url of popular) {
+      if (added >= NEW_PER_RUN || ids.length + added >= MAX_AUTO_CATALOG) break;
+      try {
+        if (await isTracked(url)) continue;
+        await trackProduct(url);
+        added++;
+      } catch (error) {
+        console.error(`✗ track ${url}  ${(error as Error).message}`);
+      }
+    }
+    console.log(`✓ popular  ${added} newly tracked`);
+  }
 }
 
 await mongoose.disconnect();
