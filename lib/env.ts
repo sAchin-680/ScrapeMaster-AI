@@ -12,6 +12,9 @@ const schema = z.object({
   SMTP_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
   CRON_SECRET: z.string().optional(),
+  // Browser rendering for stores that block plain HTTP clients (e.g. Flipkart).
+  CHROME_EXECUTABLE_PATH: z.string().optional(),
+  BROWSER_WS_ENDPOINT: z.string().url().optional(),
 });
 
 const parsed = schema.safeParse(process.env);

@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   devIndicators: false,
-  serverExternalPackages: ['mongoose'],
+  serverExternalPackages: ['mongoose', 'puppeteer-core'],
   images: {
     formats: ['image/avif', 'image/webp'],
   },

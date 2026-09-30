@@ -24,6 +24,7 @@
     "mongoose": "^8.8.3",
     "next": "^15.5.26",
     "nodemailer": "^6.9.16",
+    "puppeteer-core": "^23.11.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "server-only": "^0.0.1",
