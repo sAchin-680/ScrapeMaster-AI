@@ -54,3 +54,21 @@ export async function refreshProduct(id: string) {
     currentPrice: product.currentPrice,
   };
 }
+
+const STALE_AFTER_MS = 60 * 60_000;
+const inFlight = new Set<string>();
+
+/** Refresh a product when its last check is older than an hour (deduplicated). */
+export async function refreshIfStale(id: string) {
+  if (inFlight.has(id)) return;
+  inFlight.add(id);
+  try {
+    const product = await ProductModel.findById(id).select('updatedAt').lean();
+    if (!product || Date.now() - new Date(product.updatedAt).getTime() < STALE_AFTER_MS) return;
+    await refreshProduct(id);
+  } catch (error) {
+    console.error('[refresh] on-view refresh failed', id, error);
+  } finally {
+    inFlight.delete(id);
+  }
+}
