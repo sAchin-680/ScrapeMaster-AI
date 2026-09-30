@@ -228,40 +228,49 @@ function shared<T>(
     })();
 }
 
-// Fresh results are cached for their normal lifetime; stale snapshots only
-// briefly, so live data is retried soon.
+// The scheduled refresh job saves snapshots every 30 minutes. Anything it
+// saved within this window is served as-is instead of scraping from the
+// hosting provider, where stores often block requests.
+const JOB_FRESH_MS = 45 * 60_000;
+
+// In-memory cache per server instance: short, so new snapshots from the job
+// show up within minutes; stale fallbacks even shorter so live data is retried.
 const ttl = (freshMs: number) => (result: FeedResult<unknown>) =>
   result.stale ? 2 * 60_000 : freshMs;
 
 /** Live store discounts, refreshed hourly. */
 export const dealsFeed = swrMap(
   'deals',
-  ttl(60 * 60_000),
-  withSnapshot('deals', shared('deals', 3600, loadDeals), (deals) => !deals.length),
+  ttl(10 * 60_000),
+  withSnapshot('deals', shared('deals', 3600, loadDeals), (deals) => !deals.length, {
+    preferWithinMs: JOB_FRESH_MS,
+  }),
 );
 
 /** Store bestsellers and popular lists, refreshed hourly. */
 export const trendingFeed = swrMap(
   'trending',
-  ttl(60 * 60_000),
+  ttl(10 * 60_000),
   withSnapshot(
     'trending',
     shared('trending', 3600, loadTrending),
     (items) => !items.length,
+    {
+      preferWithinMs: JOB_FRESH_MS,
+    },
   ),
 );
 
 /** Sale banners detected on store homepages, refreshed every 30 minutes. */
 export const saleSignalFeed = swrMap(
   'sale-signals',
-  ttl(30 * 60_000),
+  ttl(10 * 60_000),
   withSnapshot(
     'sale-signals',
     shared('sale-signals', 1800, loadSaleSignals),
     // Without a browser, homepages often omit their JavaScript-rendered
     // banners, so "no banners" falls back to a recent snapshot that had some.
     (feed) => !feed.signals.length,
-    undefined,
-    12 * 60 * 60_000,
+    { maxAgeMs: 12 * 60 * 60_000, preferWithinMs: JOB_FRESH_MS },
   ),
 );
