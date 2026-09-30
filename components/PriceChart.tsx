@@ -79,7 +79,7 @@ export default function PriceChart({
         >
           <defs>
             <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor="rgb(var(--accent))" stopOpacity=".45" />
+              <stop offset="0" stopColor="rgb(var(--accent))" stopOpacity=".2" />
               <stop offset="1" stopColor="rgb(var(--accent))" stopOpacity="0" />
             </linearGradient>
           </defs>
@@ -101,7 +101,7 @@ export default function PriceChart({
           <path
             d={toPath(points)}
             fill="none"
-            stroke="rgb(var(--ink))"
+            stroke="rgb(var(--accent))"
             strokeWidth={2}
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
@@ -127,7 +127,7 @@ export default function PriceChart({
           title="Lowest price"
         />
         <span
-          className="pointer-events-none absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-ink shadow transition-[left,top] duration-75"
+          className="pointer-events-none absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-surface bg-accent shadow transition-[left,top] duration-75"
           style={{ left: `${(point.x / W) * 100}%`, top: `${(point.y / H) * 100}%` }}
         />
       </div>
