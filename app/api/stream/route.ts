@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server';
+import { Types } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import ProductModel from '@/lib/models/product.model';
 import type { LiveProductUpdate } from '@/types';
@@ -16,12 +17,12 @@ function parseCursor(value: string | null) {
   return date && !Number.isNaN(date.getTime()) ? date : new Date();
 }
 
-async function fetchChanges(since: Date, ids: string[] | null) {
+async function fetchChanges(since: Date, ids: Types.ObjectId[] | null) {
   return ProductModel.aggregate<LiveProductUpdate>([
     {
       $match: {
         updatedAt: { $gt: since },
-        ...(ids ? { $expr: { $in: [{ $toString: '$_id' }, ids] } } : {}),
+        ...(ids ? { _id: { $in: ids } } : {}),
       },
     },
     { $sort: { updatedAt: 1 } },
@@ -44,7 +45,13 @@ export async function GET(request: NextRequest) {
   await connectDB();
 
   const idsParam = request.nextUrl.searchParams.get('ids');
-  const ids = idsParam ? idsParam.split(',').filter((id) => /^[a-f\d]{24}$/i.test(id)).slice(0, 50) : null;
+  const ids = idsParam
+    ? idsParam
+        .split(',')
+        .filter((id) => Types.ObjectId.isValid(id))
+        .slice(0, 50)
+        .map((id) => new Types.ObjectId(id))
+    : null;
   let cursor = parseCursor(
     request.headers.get('last-event-id') ?? request.nextUrl.searchParams.get('since'),
   );
