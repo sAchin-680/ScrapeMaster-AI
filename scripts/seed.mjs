@@ -8,16 +8,24 @@ if (!uri) {
   process.exit(1);
 }
 
+// [id, title, category, image, original, current, currency, domain]
 const products = [
-  ['B0CHX1W1XY', 'Apple iPhone 15 (128 GB) - Black', 'Smartphones', 'https://m.media-amazon.com/images/I/71657TiFeHL._SL1500_.jpg', 799, 699],
-  ['B0BSHF7WHW', 'Apple 2023 MacBook Pro Laptop M2 Pro chip with 12‑core CPU', 'Laptops', 'https://m.media-amazon.com/images/I/61lsexTCOhL._AC_SL1500_.jpg', 1999, 1749],
-  ['B09XS7JWHH', 'Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones', 'Headphones', 'https://m.media-amazon.com/images/I/61vJtKbAssL._AC_SL1500_.jpg', 399, 248],
-  ['B0BDHWDR12', 'Apple AirPods Pro (2nd Generation) Wireless Ear Buds with USB-C', 'Headphones', 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg', 249, 189],
-  ['B08N5WRWNW', 'Echo Dot (4th Gen) Smart speaker with Alexa - Charcoal', 'Smart Home', 'https://m.media-amazon.com/images/I/714Rq4k05UL._AC_SL1000_.jpg', 49, 27],
-  ['B0CX23V2ZK', 'Kindle Paperwhite (16 GB) – Our fastest Kindle ever', 'E-readers', 'https://m.media-amazon.com/images/I/71gNmsZE6lL._AC_SL1500_.jpg', 159, 139],
-  ['B07FZ8S74R', 'Instant Pot Duo 7-in-1 Electric Pressure Cooker, 6 Quart', 'Kitchen', 'https://m.media-amazon.com/images/I/71V1LrY1MSL._AC_SL1500_.jpg', 99, 79],
-  ['B0B3PSRHHN', 'Logitech MX Master 3S Wireless Performance Mouse', 'Accessories', 'https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg', 99, 89],
+  ['B0CHX1W1XY', 'Apple iPhone 15 (128 GB) - Black', 'Smartphones', 'https://m.media-amazon.com/images/I/71657TiFeHL._SL1500_.jpg', 799, 699, '$', 'www.amazon.com'],
+  ['B0BSHF7WHW', 'Apple 2023 MacBook Pro Laptop M2 Pro chip with 12‑core CPU', 'Laptops', 'https://m.media-amazon.com/images/I/61lsexTCOhL._AC_SL1500_.jpg', 1999, 1749, '$', 'www.amazon.com'],
+  ['B09XS7JWHH', 'Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones', 'Headphones', 'https://m.media-amazon.com/images/I/61vJtKbAssL._AC_SL1500_.jpg', 399, 248, '$', 'www.amazon.com'],
+  ['B0BDHWDR12', 'Apple AirPods Pro (2nd Generation) Wireless Ear Buds with USB-C', 'Headphones', 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg', 249, 189, '$', 'www.amazon.com'],
+  ['B08N5WRWNW', 'Echo Dot (4th Gen) Smart speaker with Alexa - Charcoal', 'Smart Home', 'https://m.media-amazon.com/images/I/714Rq4k05UL._AC_SL1000_.jpg', 49, 27, '$', 'www.amazon.com'],
+  ['B0CX23V2ZK', 'Kindle Paperwhite (16 GB) – Our fastest Kindle ever', 'E-readers', 'https://m.media-amazon.com/images/I/61Ww4abGclL._AC_SL1000_.jpg', 159, 139, '$', 'www.amazon.com'],
+  ['B07FZ8S74R', 'Instant Pot Duo 7-in-1 Electric Pressure Cooker, 6 Quart', 'Kitchen', 'https://m.media-amazon.com/images/I/71V1LrY1MSL._AC_SL1500_.jpg', 99, 79, '$', 'www.amazon.com'],
+  ['B0B3PSRHHN', 'Logitech MX Master 3S Wireless Performance Mouse', 'Accessories', 'https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg', 99, 89, '$', 'www.amazon.com'],
+  ['B0CHX2F5QT', 'Apple iPhone 15 (128 GB) - Blue', 'Smartphones', 'https://m.media-amazon.com/images/I/71657TiFeHL._SL1500_.jpg', 79900, 65999, '₹', 'www.amazon.in'],
+  ['B0BY8JZ22K', 'Sony WH-1000XM5 Wireless Noise Cancelling Headphones', 'Headphones', 'https://m.media-amazon.com/images/I/61vJtKbAssL._AC_SL1500_.jpg', 34990, 26990, '₹', 'www.amazon.in'],
+  ['B0CHWV2WYK', 'Apple AirPods Pro (2nd Generation) with MagSafe Case (USB-C)', 'Headphones', 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg', 24900, 18990, '₹', 'www.amazon.in'],
+  ['B0B6GN8YWS', 'Logitech MX Master 3S Wireless Performance Mouse', 'Accessories', 'https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg', 10995, 8995, '₹', 'www.amazon.in'],
 ];
+
+// Demo Flipkart listings for Indian products so the store comparison has data.
+const flipkartPrice = (price) => Math.round(price * (0.94 + Math.random() * 0.1));
 
 function history(original, current, days = 30) {
   const points = [];
@@ -33,17 +41,36 @@ function history(original, current, days = 30) {
 await mongoose.connect(uri);
 const collection = mongoose.connection.collection('products');
 
-for (const [asin, title, category, image, original, current] of products) {
+for (const [asin, title, category, image, original, current, currency, domain] of products) {
   const priceHistory = history(original, current);
   const prices = priceHistory.map((p) => p.price);
+  const url = `https://${domain}/dp/${asin}`;
+  const offers = [{ store: 'amazon', storeName: 'Amazon', title, url, price: current, currency, image }];
+  if (currency === '₹') {
+    offers.push({
+      store: 'flipkart',
+      storeName: 'Flipkart',
+      title,
+      url: `https://www.flipkart.com/search?q=${encodeURIComponent(title)}`,
+      price: flipkartPrice(current),
+      currency,
+      image,
+    });
+  }
+  offers.sort((a, b) => a.price - b.price);
+
   await collection.updateOne(
-    { url: `https://www.amazon.com/dp/${asin}` },
+    { url },
     {
       $set: {
         title,
         category,
         image,
-        currency: '$',
+        currency,
+        store: 'amazon',
+        storeName: 'Amazon',
+        offers,
+        offersCheckedAt: new Date(),
         currentPrice: current,
         originalPrice: original,
         discountRate: Math.round(((original - current) / original) * 100),
