@@ -4,7 +4,7 @@ const steps = [
   {
     icon: Link2,
     title: 'Paste a link',
-    body: 'Drop in any Amazon product URL. We normalize it, fetch the page and record the first price snapshot.',
+    body: 'Drop in a product URL from any store. We read the page, record the first price and look for the same item elsewhere.',
   },
   {
     icon: LineChart,

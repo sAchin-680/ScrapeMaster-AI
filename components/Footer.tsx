@@ -7,7 +7,7 @@ export default function Footer() {
         <div className="flex flex-col gap-2">
           <Logo />
           <p className="max-w-sm text-sm text-muted">
-            Price history and drop alerts for Amazon products. Not affiliated with Amazon.
+            Price history, store comparison and drop alerts for any online store. Not affiliated with any retailer.
           </p>
         </div>
         <p className="eyebrow">© {new Date().getFullYear()} ScrapeMaster</p>

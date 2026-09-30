@@ -27,15 +27,15 @@ export default async function Home() {
           <div className="flex animate-rise flex-col items-start">
             <LiveBadge />
             <h1 className="mt-6 text-[clamp(2.4rem,5.5vw,4rem)] font-semibold leading-[1.05] tracking-[-0.03em]">
-              Track Amazon prices.
+              Track prices on any store.
               <br />
               <span className="bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent dark:from-indigo-400 dark:to-violet-400">
                 Buy at the right time.
               </span>
             </h1>
             <p className="mt-5 max-w-lg text-lg leading-relaxed text-muted">
-              Paste a product link to see its full price history, watch updates arrive live, and get an
-              email the moment it drops.
+              Paste a link from Amazon, Flipkart, Walmart or any online shop. See the full price history,
+              compare stores and get an email the moment it drops.
             </p>
 
             <div className="mt-8 w-full max-w-xl">

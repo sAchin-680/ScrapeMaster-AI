@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-export const alt = 'ScrapeMaster — real-time Amazon price tracker';
+export const alt = 'ScrapeMaster — real-time price tracker for any store';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -25,10 +25,10 @@ export default function OpengraphImage() {
           ScrapeMaster
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', fontSize: 96, fontWeight: 700, lineHeight: 1, letterSpacing: -4 }}>
-          <span>Track Amazon prices.</span>
+          <span>Track prices on any store.</span>
           <span style={{ color: '#4f46e5', marginTop: 12 }}>Buy at the right time.</span>
         </div>
-        <div style={{ fontSize: 28, color: '#6b7280' }}>Price history, live updates and drop alerts for Amazon.</div>
+        <div style={{ fontSize: 28, color: '#6b7280' }}>Price history, store comparison and drop alerts.</div>
       </div>
     ),
     size,
