@@ -14,8 +14,11 @@ RUN npm run build
 
 FROM node:22-alpine AS runner
 WORKDIR /app
-ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
-RUN addgroup -S app && adduser -S app -G app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0 \
+    CHROME_EXECUTABLE_PATH=/usr/bin/chromium
+# Chromium renders stores that block plain HTTP clients (e.g. Flipkart).
+RUN apk add --no-cache chromium nss freetype harfbuzz ttf-freefont ca-certificates \
+ && addgroup -S app && adduser -S app -G app
 COPY --from=build --chown=app:app /app/.next/standalone ./
 COPY --from=build --chown=app:app /app/.next/static ./.next/static
 USER app
