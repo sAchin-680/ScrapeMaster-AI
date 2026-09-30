@@ -27,6 +27,14 @@ export default async function Home() {
   ]);
   const deals = localDeals.length ? localDeals : await getTopDeals(null);
 
+  // Feature the best current deal, else the product with the most recorded history.
+  const spotlight =
+    deals[0] ??
+    [...allProducts].sort(
+      (a, b) => (b.priceHistory?.length ?? 0) - (a.priceHistory?.length ?? 0),
+    )[0] ??
+    null;
+
   // Products sold in the viewer's country come first; skip ones already shown as deals.
   const dealIds = new Set(deals.map((d) => d._id));
   const products = allProducts
@@ -83,7 +91,7 @@ export default async function Home() {
           </div>
 
           <div className="animate-rise pb-6 [animation-delay:.15s]">
-            <HeroVisual />
+            <HeroVisual product={spotlight} />
           </div>
         </div>
       </section>
