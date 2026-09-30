@@ -28,7 +28,7 @@ function layout(heading: string, message: string, product: EmailProductInfo) {
       ${image}
       <p style="margin:0 0 8px;font-size:15px;font-weight:600;color:#0a0a0a">${title}</p>
       ${price}
-      <a href="${url}" style="display:inline-block;background:#0a0a0a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600;font-size:14px">View on Amazon</a>
+      <a href="${url}" style="display:inline-block;background:#0a0a0a;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;font-weight:600;font-size:14px">View product</a>
     </td></tr>
   </table>
   <p style="text-align:center;margin:20px 0 0;font-size:12px;color:#8a8a8a">You are receiving this because you asked to track this product.</p>
