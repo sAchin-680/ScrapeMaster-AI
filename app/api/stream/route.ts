@@ -41,8 +41,21 @@ async function fetchChanges(since: Date, ids: Types.ObjectId[] | null) {
   ]);
 }
 
+// Sent when the database is unreachable: tells EventSource to wait a minute
+// before reconnecting instead of hammering the server every few seconds.
+const UNAVAILABLE = 'retry: 60000\nevent: unavailable\ndata: {}\n\n';
+
 export async function GET(request: NextRequest) {
-  await connectDB();
+  try {
+    await connectDB();
+  } catch {
+    return new Response(UNAVAILABLE, {
+      headers: {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache',
+      },
+    });
+  }
 
   const idsParam = request.nextUrl.searchParams.get('ids');
   const ids = idsParam
