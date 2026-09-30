@@ -1,182 +1,208 @@
-'use server';
-import PriceInfoCard from '@/components/PriceInfoCard';
-import { getProductById, getSimilarProducts } from '@/lib/actions';
-import ProductCard from '@/components/ProductCard';
-import { formatNumber } from '@/lib/utils';
-import { Product } from '@/types';
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import Modal from '@/components/Modal';
+import { notFound } from 'next/navigation';
+import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, MessageSquare, Sigma, Star, Tag } from 'lucide-react';
+import PriceChart from '@/components/PriceChart';
+import ProductCard from '@/components/ProductCard';
+import TrackModal from '@/components/TrackModal';
+import LiveBadge from '@/components/live/LiveBadge';
+import LivePrice from '@/components/live/LivePrice';
+import { LiveProvider } from '@/components/live/LiveProvider';
+import LiveWatchers from '@/components/live/LiveWatchers';
+import RefreshButton from '@/components/live/RefreshButton';
+import RelativeTime from '@/components/live/RelativeTime';
+import StatTile from '@/components/ui/StatTile';
+import { getProductById, getSimilarProducts } from '@/lib/data/products';
+import { formatNumber, formatPrice, truncate } from '@/lib/utils';
 
-type Props = {
-  params: { id: string };
-};
-const ProductDetails = async ({ params }: Props) => {
-  const product: Product = await getProductById(params.id);
+export const dynamic = 'force-dynamic';
 
-  if (!product) redirect('/');
-  const similarProducts = await getSimilarProducts(params.id);
+type Props = { params: Promise<{ id: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProductById(id);
+  if (!product) return { title: 'Product not found' };
+
+  const title = truncate(product.title, 60);
+  const description = `${formatPrice(product.currentPrice, product.currency)} now · lowest ${formatPrice(
+    product.lowestPrice,
+    product.currency,
+  )}. Track the price history and get drop alerts.`;
+
+  return {
+    title,
+    description,
+    openGraph: { title, description, images: product.image ? [product.image] : undefined },
+  };
+}
+
+export default async function ProductPage({ params }: Props) {
+  const { id } = await params;
+  const product = await getProductById(id);
+  if (!product) notFound();
+
+  const similar = await getSimilarProducts(id);
+  const history = product.priceHistory ?? [];
+  const savings = product.originalPrice - product.currentPrice;
+  const isLowest = history.length > 1 && product.currentPrice <= product.lowestPrice;
+  const bullets = product.description?.split('\n').filter(Boolean).slice(0, 8) ?? [];
+
   return (
-    <div className='product-container'>
-      <div className='flex gap-28 xl:flex-row flex-col'>
-        <div className='product-image'>
-          <Image
-            src={product.image}
-            alt={product.title}
-            width={580}
-            height={400}
-            className='mx-auto'
-          />
-        </div>
-        <div className='flex-1 flex flex-col'>
-          <div className='flex justify-between items-start gap-5 flex-wrap pb-6'>
-            <div className='flex flex-col gap-3'>
-              <p className='text-[28px] text-secondary font-semibold'>
-                {product.title}
-              </p>
-            </div>
-            <Link
-              href={product.url}
-              target='_blank'
-              className='text-base text-black opacity-50'
-            >
-              Visit Product
-            </Link>
-          </div>
-          <div className='flex items-center gap-3'>
-            <div className='product-hearts'>
-              <Image
-                src='/assets/icons/red-heart.svg'
-                alt='heart'
-                width={20}
-                height={20}
-              />
-              <p className='text-base font-semibold text-[#D46F77]'>
-                {product.reviewsCount}
-              </p>
-            </div>
-            <div className='p-2 bg-white-200 rounded-10'>
-              <Image
-                src='/assets/icons/bookmark.svg'
-                alt='bookmark'
-                width={20}
-                height={20}
-              />
-            </div>
-            <div className='p-2 bg-white-200 rounded-10'>
-              <Image
-                src='/assets/icons/share.svg'
-                alt='share'
-                width={20}
-                height={20}
-              />
-            </div>
-          </div>
-        </div>
-        <div className='product-info'>
-          <div className='flex flex-col gap-2'>
-            <p className='text-[34px] text-secondary font-bold'>
-              {product.currency}
-              {formatNumber(product.currentPrice)}
-            </p>
-            <p className='text-[21px] text-black opacity-50 line-through'>
-              {product.currency}
-              {formatNumber(product.originalPrice)}
-            </p>
-          </div>
-          <div className='flex flex-col gap-4'>
-            <div className='flex gap-3'>
-              <div className='product-stars'>
-                <Image
-                  src='/assets/icons/star.svg'
-                  alt='star'
-                  width={16}
-                  height={16}
-                />
-                <p className='text-sm text-primary-orange font-semibold'>
-                  {product.stars || '25'}
-                </p>
-              </div>
-              <div className='product-reviews'>
-                <Image
-                  src='/assets/icons/comment.svg'
-                  alt='comment'
-                  width={16}
-                  height={16}
-                />
-                <p className='text-sm text-secondary font-semibold'>
-                  {product.reviewsCount} Reviews
-                </p>
-              </div>
-            </div>
-            <p className='text-sm text-black opacity-50'>
-              <span className='text-primary-green font-semibold'>93%</span> of
-              buyers have recommend this.
-            </p>
-          </div>
-        </div>
-        <div className='my-7 flex flex-col gap-5'>
-          <div className='flex gap-5 flex-wrap'>
-            <PriceInfoCard
-              title='Current Price'
-              iconSrc='/assets/icons/price-tag.svg'
-              value={`{product.currency} ${formatNumber(product.currentPrice)}`}
-            />
-            <PriceInfoCard
-              title='Average Price'
-              iconSrc='/assets/icons/chart.svg'
-              value={`{product.currency} ${formatNumber(product.averagePrice)}`}
-            />
-            <PriceInfoCard
-              title='Current Price'
-              iconSrc='/assets/icons/arrow-up.svg'
-              value={`{product.currency} ${formatNumber(product.highestPrice)}`}
-            />
-            <PriceInfoCard
-              title='Current Price'
-              iconSrc='/assets/icons/arrow-down.svg'
-              value={`{product.currency} ${formatNumber(product.lowestPrice)}`}
-            />
-          </div>
-        </div>
-        <Modal productId={params.id} />
-      </div>
-      <div className='flex flex-col gap-16'>
-        <div className='flex flex-col gap-5'>
-          <h3 className='text-2xl text-secondary font-semibold'>
-            Product Description
-          </h3>
-          <div className='flex flex-col gap-4'>
-            {product?.description?.split('\n').map((line, index) => (
-              <p key={index}>{line}</p>
-            ))}
-          </div>
-        </div>
-        <button className='btn w-fit mx-auto flex-center justify-center gap-3 min-w-[200px]'>
-          <Image
-            src='/assets/icons/bag.svg'
-            alt='check'
-            width={22}
-            height={22}
-          />
-          <Link href='/' className='text-base text-white'>
-            Buy Now
-          </Link>
-        </button>
-      </div>
-      {similarProducts && similarProducts.length > 0 && (
-        <div className='py-14 flex flex-col gap-2 w-full'>
-          <p className='section-text'>Similar Products</p>
-          <div className='flex gap-4 flex-wrap'>
-            {similarProducts.map((product: Product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+    <LiveProvider productIds={[product._id, ...similar.map((p) => p._id)]}>
+      <div className="container py-8 lg:py-12">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted transition hover:text-ink">
+          <ArrowLeft className="size-4" aria-hidden /> All products
+        </Link>
 
-export default ProductDetails;
+        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-12">
+          <div className="lg:sticky lg:top-24 lg:self-start">
+            <div className="card relative aspect-square overflow-hidden bg-white">
+              {product.image && (
+                <Image
+                  src={product.image}
+                  alt={product.title}
+                  fill
+                  priority
+                  sizes="(min-width: 1024px) 45vw, 100vw"
+                  className="object-contain p-10 mix-blend-multiply"
+                />
+              )}
+              {isLowest && (
+                <span className="absolute left-4 top-4 rounded-full bg-accent px-3 py-1.5 text-xs font-semibold text-accent-ink">
+                  Lowest price recorded
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex min-w-0 flex-col gap-8">
+            <header className="flex flex-col gap-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <LiveBadge />
+                <p className="eyebrow">{product.category}</p>
+              </div>
+              <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">{product.title}</h1>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
+                {product.stars > 0 && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <Star className="size-4 fill-current text-amber-500" aria-hidden />
+                    <span className="num text-ink">{product.stars.toFixed(1)}</span>
+                  </span>
+                )}
+                {product.reviewsCount > 0 && (
+                  <span className="inline-flex items-center gap-1.5">
+                    <MessageSquare className="size-4" aria-hidden />
+                    <span className="num text-ink">{formatNumber(product.reviewsCount)}</span> reviews
+                  </span>
+                )}
+                <LiveWatchers productId={product._id} initial={0} />
+              </div>
+            </header>
+
+            <section className="card p-5 sm:p-6" aria-labelledby="price-heading">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <p id="price-heading" className="eyebrow">
+                    Current price
+                  </p>
+                  <p className="mt-2 flex flex-wrap items-baseline gap-3">
+                    <LivePrice
+                      productId={product._id}
+                      price={product.currentPrice}
+                      currency={product.currency}
+                      className="text-4xl font-semibold sm:text-5xl"
+                    />
+                    {savings > 0 && (
+                      <span className="num text-lg text-muted line-through">
+                        {formatPrice(product.originalPrice, product.currency)}
+                      </span>
+                    )}
+                    {product.discountRate > 0 && (
+                      <span className="num rounded-full bg-accent px-2.5 py-1 text-sm font-semibold text-accent-ink">
+                        −{product.discountRate}%
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-2 text-sm text-muted">
+                    {product.isOutOfStock ? (
+                      <span className="text-up">Currently out of stock</span>
+                    ) : (
+                      <span className="text-down">In stock</span>
+                    )}
+                    {product.updatedAt && (
+                      <>
+                        {' · checked '}
+                        <RelativeTime date={product.updatedAt} productId={product._id} />
+                      </>
+                    )}
+                  </p>
+                </div>
+                <RefreshButton productId={product._id} />
+              </div>
+
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                <TrackModal productId={product._id} title={product.title} />
+                <a
+                  href={product.url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="btn-ghost py-3.5 text-[15px]"
+                >
+                  View on Amazon <ExternalLink className="size-4" aria-hidden />
+                </a>
+              </div>
+            </section>
+
+            <section aria-label="Price statistics" className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line">
+              <StatTile label="Current" icon={Tag} value={formatPrice(product.currentPrice, product.currency)} tone="accent" />
+              <StatTile label="Average" icon={Sigma} value={formatPrice(product.averagePrice, product.currency)} />
+              <StatTile label="Highest" icon={ArrowUp} value={formatPrice(product.highestPrice, product.currency)} tone="up" />
+              <StatTile label="Lowest" icon={ArrowDown} value={formatPrice(product.lowestPrice, product.currency)} tone="down" />
+            </section>
+
+            <section className="card p-5 sm:p-6" aria-labelledby="history-heading">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 id="history-heading" className="eyebrow">
+                  Price history
+                </h2>
+                <span className="num text-xs text-muted">{history.length} snapshots</span>
+              </div>
+              <PriceChart history={history} currency={product.currency} />
+            </section>
+
+            {bullets.length > 0 && (
+              <section aria-labelledby="about-heading">
+                <h2 id="about-heading" className="eyebrow">
+                  About this item
+                </h2>
+                <ul className="mt-4 flex flex-col gap-3 text-[15px] leading-relaxed text-muted">
+                  {bullets.map((line, i) => (
+                    <li key={i} className="flex gap-3">
+                      <span className="mt-2.5 size-1.5 shrink-0 rounded-full bg-ink/40" aria-hidden />
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
+        </div>
+
+        {similar.length > 0 && (
+          <section className="mt-20" aria-labelledby="similar-heading">
+            <h2 id="similar-heading" className="text-2xl font-semibold tracking-tight">
+              You might also track
+            </h2>
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">
+              {similar.map((item) => (
+                <ProductCard key={item._id} product={item} />
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </LiveProvider>
+  );
+}
