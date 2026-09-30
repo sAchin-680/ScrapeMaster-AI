@@ -9,7 +9,8 @@ import { getPreferences } from '@/lib/preferences';
 import { buildAnnouncements } from '@/lib/announcements';
 import { getActiveSales } from '@/lib/data/sales';
 import { getPriceSignals } from '@/lib/data/signals';
-import { CURRENCIES, getCountry } from '@/lib/locale';
+import { CURRENCIES, getCountry, regionForCountry } from '@/lib/locale';
+import { saleSignalFeed } from '@/lib/services/store-feed';
 import { filterSalesFor } from '@/lib/sales';
 import { siteConfig } from '@/lib/site';
 import './globals.css';
@@ -66,9 +67,11 @@ export default async function RootLayout({
     getActiveSales(),
     getPriceSignals(CURRENCIES[country.currency].symbol.trim()),
   ]);
+  // peek() never blocks rendering; banners appear once the feed has loaded.
   const announcements = buildAnnouncements(
     filterSalesFor(sales, country.code, Date.now(), 21),
     signals,
+    saleSignalFeed(regionForCountry(country.code)).peek() ?? [],
   );
 
   return (
