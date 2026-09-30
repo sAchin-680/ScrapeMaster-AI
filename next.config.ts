@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   devIndicators: false,
+  // Render metadata in <head> for every visitor, not only known crawlers, so
+  // link previews and audits always see descriptions and canonical URLs.
+  htmlLimitedBots: /.*/,
   serverExternalPackages: ['mongoose', 'puppeteer-core'],
   images: {
     formats: ['image/avif', 'image/webp'],
