@@ -10,6 +10,8 @@ export type User = {
 export type Product = {
   _id: string;
   url: string;
+  store: string;
+  storeName: string;
   currency: string;
   image: string;
   title: string;
@@ -27,13 +29,23 @@ export type Product = {
   isOutOfStock: boolean;
   users?: User[];
   watchers?: number;
+  offers?: Offer[];
+  offersCheckedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 };
 
 export type ScrapedProduct = Omit<
   Product,
-  '_id' | 'priceHistory' | 'highestPrice' | 'lowestPrice' | 'averagePrice' | 'users'
+  | '_id'
+  | 'priceHistory'
+  | 'highestPrice'
+  | 'lowestPrice'
+  | 'averagePrice'
+  | 'users'
+  | 'watchers'
+  | 'offers'
+  | 'offersCheckedAt'
 >;
 
 export type NotificationType = 'WELCOME' | 'CHANGE_OF_STOCK' | 'LOWEST_PRICE' | 'THRESHOLD_MET';
@@ -62,4 +74,14 @@ export type LiveProductUpdate = {
   isOutOfStock: boolean;
   watchers: number;
   updatedAt: string;
+};
+
+export type Offer = {
+  store: string;
+  storeName: string;
+  title: string;
+  url: string;
+  price: number;
+  currency: string;
+  image?: string;
 };
