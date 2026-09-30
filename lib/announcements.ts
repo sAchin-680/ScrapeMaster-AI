@@ -1,14 +1,26 @@
 import type { Announcement } from '@/components/AnnouncementBar';
 import type { PriceDrop, StoreWave } from '@/lib/data/signals';
 import type { Sale, SaleStatus } from '@/lib/sales';
+import type { SaleSignal } from '@/lib/scraper/sale-signals';
 import { truncate } from '@/lib/utils/format';
 
 /** Build announcement bar items from live sales and real price movements. */
 export function buildAnnouncements(
   sales: (Sale & { status: SaleStatus })[],
   signals: { drops: PriceDrop[]; waves: StoreWave[] },
+  storeSales: SaleSignal[] = [],
 ): Announcement[] {
   const items: Announcement[] = [];
+
+  // Straight from store homepages: the most current sale information.
+  for (const signal of storeSales.slice(0, 3)) {
+    items.push({
+      id: `store-${signal.store}-${signal.text}`,
+      text: `${signal.status === 'live' ? '🔥' : '📅'} ${signal.storeName}: ${signal.text}. Compare prices before you buy.`,
+      href: '/#sales',
+      cta: 'See sales',
+    });
+  }
 
   for (const sale of sales.slice(0, 2)) {
     items.push({

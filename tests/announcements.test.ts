@@ -6,6 +6,21 @@ describe('buildAnnouncements', () => {
     expect(buildAnnouncements([], { drops: [], waves: [] })).toEqual([]);
   });
 
+  it('puts store homepage sale banners first', () => {
+    const items = buildAnnouncements([], { drops: [], waves: [] }, [
+      {
+        store: 'flipkart',
+        storeName: 'Flipkart',
+        text: 'Upcoming Big Billion Days',
+        status: 'upcoming',
+        url: 'https://www.flipkart.com/',
+      },
+    ]);
+    expect(items[0].text).toBe(
+      '📅 Flipkart: Upcoming Big Billion Days. Compare prices before you buy.',
+    );
+  });
+
   it('orders sales, store waves, then product drops', () => {
     const items = buildAnnouncements(
       [
