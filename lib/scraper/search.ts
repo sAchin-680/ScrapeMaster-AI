@@ -1,0 +1,90 @@
+import 'server-only';
+import type { Offer } from '@/types';
+import { loadAndParse } from './load';
+import { isAccessory, MATCH_THRESHOLD, titleSimilarity, tokenize } from './match';
+import { adapters, type Region } from './stores';
+
+export type SearchResult = {
+  title: string;
+  image?: string;
+  offers: Offer[];
+  best: Offer;
+  relevance: number;
+};
+
+const CACHE_TTL_MS = 10 * 60_000;
+const cache = new Map<string, { at: number; value: Promise<SearchResponse> }>();
+
+export type SearchResponse = { results: SearchResult[]; failedStores: string[] };
+
+/** Share of the query's words that appear in a title. */
+function relevance(query: string, title: string) {
+  const q = tokenize(query);
+  if (!q.size) return 0;
+  const t = tokenize(title);
+  let hits = 0;
+  for (const token of q) if (t.has(token)) hits++;
+  return hits / q.size;
+}
+
+async function run(query: string, region: Region): Promise<SearchResponse> {
+  const stores = adapters.filter((a) => a.search?.regions.includes(region));
+  const settled = await Promise.allSettled(
+    stores.map((adapter) => {
+      const url = adapter.search!.url(query, region);
+      return loadAndParse(adapter, url, (html) => adapter.search!.parse(html, url));
+    }),
+  );
+
+  const failedStores = stores
+    .filter((_, i) => settled[i].status === 'rejected')
+    .map((a) => a.name);
+  const offers = settled
+    .flatMap((r) => (r.status === 'fulfilled' ? r.value.slice(0, 20) : []))
+    .filter((o) => !isAccessory(o.title, query) && relevance(query, o.title) >= 0.5);
+
+  // Group listings of the same product across stores.
+  const groups: Offer[][] = [];
+  for (const offer of offers) {
+    const group = groups.find(
+      (g) =>
+        !g.some((o) => o.store === offer.store) &&
+        titleSimilarity(g[0].title, offer.title) >= MATCH_THRESHOLD &&
+        offer.price >= g[0].price * 0.5 &&
+        offer.price <= g[0].price * 2,
+    );
+    if (group) group.push(offer);
+    else groups.push([offer]);
+  }
+
+  const results = groups
+    .map((group) => {
+      const sorted = [...group].sort((a, b) => a.price - b.price);
+      const lead = group[0];
+      return {
+        title: lead.title,
+        image: group.find((o) => o.image)?.image,
+        offers: sorted,
+        best: sorted[0],
+        relevance: relevance(query, lead.title),
+      };
+    })
+    // Most relevant first, then listings found on more stores.
+    .sort((a, b) => b.relevance - a.relevance || b.offers.length - a.offers.length)
+    .slice(0, 18);
+
+  return { results, failedStores };
+}
+
+/** Search every store that serves the region; results are cached briefly per query. */
+export function searchStores(query: string, region: Region) {
+  const key = `${region}:${query.trim().toLowerCase()}`;
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.value;
+
+  const value = run(query, region);
+  cache.set(key, { at: Date.now(), value });
+  value.catch(() => cache.delete(key));
+  if (cache.size > 200) cache.delete(cache.keys().next().value!);
+  return value;
+}
