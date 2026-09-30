@@ -35,9 +35,12 @@ export default async function SearchResults({
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {results.map((result) => (
-            <li key={result.best.url} className="card flex flex-col gap-4 p-4">
+            <li
+              key={result.best.url}
+              className="reveal card flex flex-col gap-4 p-4 transition-colors duration-300 hover:border-accent/30"
+            >
               <div className="flex gap-4">
-                <div className="relative size-24 shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-line/60">
+                <div className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-white">
                   <ProductImage
                     src={result.image ?? ''}
                     alt={result.title}
