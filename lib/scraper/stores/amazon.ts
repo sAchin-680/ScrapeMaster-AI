@@ -70,9 +70,19 @@ export function parseAmazonProduct(html: string, url: string) {
   };
 }
 
+/** Amazon's bot check: a captcha form instead of the requested page. */
+export function isAmazonBotCheck($: cheerio.CheerioAPI) {
+  return (
+    $('form[action*="validateCaptcha"]').length > 0 ||
+    /robot check|enter the characters you see below/i.test($('title, h4').text())
+  );
+}
+
 export function parseAmazonSearch(html: string, pageUrl: string): Offer[] {
   const $ = cheerio.load(html);
   const origin = new URL(pageUrl).origin;
+  // Raise instead of returning nothing so callers can retry in a real browser.
+  if (isAmazonBotCheck($)) throw new ScrapeError('Amazon served a bot check');
 
   return $('[data-component-type="s-search-result"][data-asin]')
     .toArray()
@@ -118,6 +128,7 @@ export function parseAmazonBestsellers(
   pageUrl: string,
 ): (Offer & { rank: number })[] {
   const $ = cheerio.load(html);
+  if (isAmazonBotCheck($)) throw new ScrapeError('Amazon served a bot check');
   const origin = new URL(pageUrl).origin;
 
   return $('[id^="gridItemRoot"]')
