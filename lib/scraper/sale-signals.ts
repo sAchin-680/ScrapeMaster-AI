@@ -12,7 +12,7 @@ export type SaleSignal = {
 
 // Known marketplace events, plus generic sale wording on banners.
 const EVENT =
-  /(big billion days|great indian festival|prime day|prime big deal days|big saving days|big bachat days|republic day sale|independence day sale|diwali sale|festive sale|big fashion festival|end of reason sale|black friday|cyber monday|mega sale|early (?:bird|deals?)[\w ]*|sale price live|\b[\w ]{0,24}\bsale\b)/i;
+  /(big billion days|great indian festival|prime day|prime big deal days|big saving days|big bachat days|republic day sale|independence day sale|diwali sale|festive sale|big fashion festival|end of reason sale|black friday|cyber monday|mega sale|early (?:bird|deals?)[\w ]*|sale price live|[\w ]{0,20}\bdeals? (?:are )?live(?: now)?|\b[\w ]{0,24}\bsale\b)/i;
 const UPCOMING =
   /(upcoming|coming soon|starts|launching|get ready|save the date|early access)/i;
 const LIVE = /(\blive\b|\bnow\b|\bshop\b|ends|last day|today)/i;

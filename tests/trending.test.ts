@@ -36,6 +36,22 @@ describe('parseSaleSignals', () => {
     ]);
   });
 
+  it('detects deals announced as live', () => {
+    const signals = parseSaleSignals('<h2>iPhone deals live now</h2>', store);
+    expect(signals).toEqual([
+      expect.objectContaining({ text: 'iPhone deals live now', status: 'live' }),
+    ]);
+  });
+
+  it('ignores first-order coupons', () => {
+    expect(
+      parseSaleSignals(
+        '<img alt="Get Extra 15% Off, On Your 1st Purchase, USE CODE NEW15" />',
+        store,
+      ),
+    ).toEqual([]);
+  });
+
   it('ignores pages without sale wording', () => {
     expect(parseSaleSignals('<img alt="Electronics" /><h1>Welcome</h1>', store)).toEqual(
       [],
