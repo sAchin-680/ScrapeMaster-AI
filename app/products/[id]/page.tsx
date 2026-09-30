@@ -11,6 +11,7 @@ import {
   Star,
   Tag,
 } from 'lucide-react';
+import OfferComparison from '@/components/OfferComparison';
 import PriceChart from '@/components/PriceChart';
 import ProductCard from '@/components/ProductCard';
 import TrackModal from '@/components/TrackModal';
@@ -170,10 +171,13 @@ export default async function ProductPage({ params }: Props) {
                   rel="noopener noreferrer nofollow"
                   className="btn-ghost py-3.5 text-[15px]"
                 >
-                  View on Amazon <ExternalLink className="size-4" aria-hidden />
+                  View on {product.storeName ?? 'store'} <ExternalLink className="size-4" aria-hidden />
                 </a>
               </div>
             </section>
+
+            <OfferComparison product={product} />
+
 
             <section
               aria-label="Price statistics"
