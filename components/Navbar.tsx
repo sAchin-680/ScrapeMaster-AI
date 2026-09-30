@@ -1,45 +1,47 @@
-import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react';
+import { Github } from 'lucide-react';
+import Logo from '@/components/ui/Logo';
 
-const navIcons = [
-  { src: '/assets/icons/search.svg', alt: 'search' },
-  { src: '/assets/icons/black-heart.svg', alt: 'heart' },
-  { src: '/assets/icons/user.svg', alt: 'user' },
+const links = [
+  { href: '/#track', label: 'Track' },
+  { href: '/#trending', label: 'Trending' },
+  { href: '/#how', label: 'How it works' },
 ];
 
-const Navbar = () => {
+export default function Navbar() {
   return (
-    <header className='w-full'>
-      <nav className='nav'>
-        <Link href='/' className='flex items-center gap-1'>
-          <Image
-            src='/assets/icons/logo.svg'
-            width={27}
-            height={27}
-            alt='logo'
-          />
-          <p className='nav-logo'>
-            Scrape<span className='text-primary-orange'>Master</span>
-          </p>
+    <header className="sticky top-0 z-40 border-b border-line/70 bg-paper/75 backdrop-blur-xl">
+      <nav className="container flex h-16 items-center justify-between" aria-label="Main">
+        <Link href="/" aria-label="ScrapeMaster home">
+          <Logo />
         </Link>
-        <div className='flex items-center gap-5'>
-          {navIcons.map((icon) => {
-            return (
-              <Image
-                key={icon.alt}
-                src={icon.src}
-                alt={icon.alt}
-                width={28}
-                height={28}
-                className='object-contain'
-              />
-            );
-          })}
+        <ul className="hidden items-center gap-1 md:flex">
+          {links.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href}
+                className="rounded-full px-4 py-2 text-sm text-muted transition hover:bg-surface hover:text-ink"
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className="flex items-center gap-2">
+          <a
+            href="https://github.com/sAchin-680/ScrapeMaster-AI"
+            target="_blank"
+            rel="noreferrer"
+            className="grid size-9 place-items-center rounded-full text-muted transition hover:bg-surface hover:text-ink"
+            aria-label="Source code on GitHub"
+          >
+            <Github className="size-[18px]" />
+          </a>
+          <Link href="/#track" className="btn-primary py-2">
+            Start tracking
+          </Link>
         </div>
       </nav>
     </header>
   );
-};
-
-export default Navbar;
+}
