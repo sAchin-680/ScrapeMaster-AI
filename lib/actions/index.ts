@@ -67,14 +67,20 @@ export async function addUserEmailToProduct(
 
   try {
     await connectDB();
-    const product = await ProductModel.findById(parsed.data.productId);
-    if (!product) return { ok: false, error: 'Product not found' };
+    const { productId: id, email: address } = parsed.data;
 
-    const alreadyTracking = product.users.some((user) => user.email === parsed.data.email);
-    if (alreadyTracking) return { ok: true, data: { alreadyTracking } };
+    // Atomic conditional push: concurrent submits can't store the same email twice.
+    const product = await ProductModel.findOneAndUpdate(
+      { _id: id, 'users.email': { $ne: address } },
+      { $push: { users: { email: address } } },
+      { new: true, projection: 'title url image currency currentPrice' },
+    ).lean();
 
-    product.users.push({ email: parsed.data.email });
-    await product.save();
+    if (!product) {
+      const exists = await ProductModel.exists({ _id: id });
+      if (!exists) return { ok: false, error: 'Product not found' };
+      return { ok: true, data: { alreadyTracking: true } };
+    }
 
     const content = generateEmailBody(
       {
@@ -86,11 +92,11 @@ export async function addUserEmailToProduct(
       },
       'WELCOME',
     );
-    await sendEmail(content, [parsed.data.email]).catch((error) =>
+    await sendEmail(content, [address]).catch((error) =>
       console.error('[actions] welcome email failed', error),
     );
 
-    return { ok: true, data: { alreadyTracking } };
+    return { ok: true, data: { alreadyTracking: false } };
   } catch (error) {
     console.error('[actions] addUserEmailToProduct failed', error);
     return { ok: false, error: 'Could not save your email. Please try again.' };
