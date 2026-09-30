@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { cn, formatPrice } from '@/lib/utils';
+import { useMoney } from '@/components/PreferencesProvider';
+import { cn } from '@/lib/utils';
 import { useLiveProduct } from './LiveProvider';
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
 /** Price that updates from the live stream and flashes on change. */
 export default function LivePrice({ productId, price, currency, className }: Props) {
   const update = useLiveProduct(productId);
+  const money = useMoney()(update?.currentPrice ?? price, update?.currency ?? currency);
   const value = update?.currentPrice ?? price;
   const previous = useRef(value);
   const [flash, setFlash] = useState<'up' | 'down' | null>(null);
@@ -34,8 +36,10 @@ export default function LivePrice({ productId, price, currency, className }: Pro
         flash === 'up' && 'bg-up/15 text-up',
         className,
       )}
+      title={money.converted ? `${money.original} at the store` : undefined}
     >
-      {formatPrice(update?.currentPrice ?? price, update?.currency ?? currency)}
+      {money.converted && <span className="mr-0.5 opacity-60">≈</span>}
+      {money.text}
     </span>
   );
 }
