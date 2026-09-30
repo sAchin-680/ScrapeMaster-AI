@@ -136,3 +136,35 @@ export async function getTopDeals(
     return [];
   }
 }
+
+export type ProductSuggestion = Pick<
+  Product,
+  '_id' | 'title' | 'image' | 'currentPrice' | 'currency' | 'storeName'
+>;
+
+/** Tracked products whose title contains every word of the query. */
+export async function findTrackedProducts(
+  query: string,
+  limit = 4,
+): Promise<ProductSuggestion[]> {
+  const words = query
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 6)
+    .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  if (!words.length) return [];
+  try {
+    await connectDB();
+    const products = await ProductModel.find({
+      $and: words.map((w) => ({ title: { $regex: w, $options: 'i' } })),
+    })
+      .select('title image currentPrice currency storeName')
+      .sort({ updatedAt: -1 })
+      .limit(limit)
+      .lean();
+    return serialize(products) as unknown as ProductSuggestion[];
+  } catch {
+    return [];
+  }
+}
