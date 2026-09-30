@@ -1,10 +1,22 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useTransition, type FormEvent } from 'react';
+import {
+  useMemo,
+  useState,
+  useTransition,
+  type FormEvent,
+  type KeyboardEvent,
+} from 'react';
 import { ArrowRight, ClipboardPaste, Loader2, Search } from 'lucide-react';
 import { scrapeAndStoreProduct } from '@/lib/actions';
 import { usePreferences } from '@/components/PreferencesProvider';
+import { clearRecent, readRecent, saveRecent } from '@/components/search/recent';
+import SuggestionList, {
+  suggestionId,
+  type SuggestionItem,
+} from '@/components/search/SuggestionList';
+import { useSuggestions } from '@/components/search/useSuggestions';
 import { getCountry, regionForCountry, SEARCHABLE_STORES } from '@/lib/locale';
 import { cn, isValidProductURL } from '@/lib/utils';
 
@@ -18,6 +30,60 @@ export default function Searchbar({ defaultValue = '' }: { defaultValue?: string
   const [step, setStep] = useState(0);
   const [isPending, startTransition] = useTransition();
   const country = getCountry(usePreferences().preferences.country);
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const [recent, setRecent] = useState<string[]>([]);
+  const suggestions = useSuggestions(url, country.code, open);
+
+  // Empty box: recent searches. Typing: matching tracked products, then searches.
+  const items = useMemo<SuggestionItem[]>(() => {
+    if (!url.trim()) return recent.map((value) => ({ kind: 'recent', value }));
+    return [
+      ...suggestions.products.map((product) => ({ kind: 'product' as const, product })),
+      ...suggestions.queries.map((value) => ({ kind: 'query' as const, value })),
+    ];
+  }, [url, recent, suggestions.products, suggestions.queries]);
+  const showList = open && items.length > 0 && !isPending;
+
+  const searchFor = (query: string) => {
+    saveRecent(query);
+    setOpen(false);
+    setUrl(query);
+    router.push(`/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const pick = (item: SuggestionItem) => {
+    if (item.kind === 'product') {
+      setOpen(false);
+      router.push(`/products/${item.product._id}`);
+    } else {
+      searchFor(item.value);
+    }
+  };
+
+  const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (!showList) {
+      if (event.key === 'ArrowDown') setOpen(true);
+      return;
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      // -1 is the text box itself; wrap around through it like browser search boxes.
+      setActiveIndex((i) => {
+        const next = i + step;
+        if (next >= items.length) return -1;
+        if (next < -1) return items.length - 1;
+        return next;
+      });
+    } else if (event.key === 'Enter' && activeIndex >= 0 && items[activeIndex]) {
+      event.preventDefault();
+      pick(items[activeIndex]);
+    } else if (event.key === 'Escape') {
+      setOpen(false);
+      setActiveIndex(-1);
+    }
+  };
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -31,6 +97,8 @@ export default function Searchbar({ defaultValue = '' }: { defaultValue?: string
         setError('Type a product name or paste a link');
         return;
       }
+      saveRecent(input);
+      setOpen(false);
       router.push(`/search?q=${encodeURIComponent(input)}`);
       return;
     }
@@ -88,13 +156,28 @@ export default function Searchbar({ defaultValue = '' }: { defaultValue?: string
           value={url}
           onChange={(e) => {
             setUrl(e.target.value);
+            setOpen(true);
+            setActiveIndex(-1);
             if (error) setError(null);
           }}
+          onFocus={() => {
+            setRecent(readRecent());
+            setOpen(true);
+          }}
+          onBlur={() => setOpen(false)}
+          onKeyDown={onKeyDown}
+          role="combobox"
+          aria-expanded={showList}
+          aria-controls="search-suggestions"
+          aria-autocomplete="list"
+          aria-activedescendant={
+            showList && activeIndex >= 0 ? suggestionId(activeIndex) : undefined
+          }
           placeholder="Search a product or paste any store link"
           aria-invalid={Boolean(error)}
           aria-describedby="product-url-status"
           disabled={isPending}
-          className="min-w-0 flex-1 bg-transparent py-2.5 text-[15px] outline-none placeholder:text-muted/80"
+          className="min-w-0 flex-1 bg-transparent py-2.5 text-[15px] outline-none placeholder:text-muted/80 focus-visible:ring-0 focus-visible:ring-offset-0 [&::-webkit-search-cancel-button]:hidden"
         />
         {!url && !isPending && (
           <button
@@ -128,6 +211,20 @@ export default function Searchbar({ defaultValue = '' }: { defaultValue?: string
                 : 'Find best price'}
           </span>
         </button>
+
+        {showList && (
+          <SuggestionList
+            items={items}
+            activeIndex={activeIndex}
+            typed={url}
+            onPick={pick}
+            onHover={setActiveIndex}
+            onClearRecent={() => {
+              clearRecent();
+              setRecent([]);
+            }}
+          />
+        )}
       </div>
 
       <p
