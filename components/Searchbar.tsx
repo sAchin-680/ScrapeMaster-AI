@@ -4,7 +4,9 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition, type FormEvent } from 'react';
 import { ArrowRight, ClipboardPaste, Link2, Loader2 } from 'lucide-react';
 import { scrapeAndStoreProduct } from '@/lib/actions';
-import { cn, isValidAmazonProductURL } from '@/lib/utils';
+import { usePreferences } from '@/components/PreferencesProvider';
+import { getCountry } from '@/lib/locale';
+import { cn, isValidProductURL } from '@/lib/utils';
 
 const STEPS = ['Fetching page', 'Reading price', 'Saving snapshot'];
 
@@ -14,13 +16,14 @@ export default function Searchbar() {
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [isPending, startTransition] = useTransition();
+  const country = getCountry(usePreferences().preferences.country);
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
 
-    if (!isValidAmazonProductURL(url)) {
-      setError('Paste a full Amazon product link, e.g. amazon.com/dp/B0CHX1W1XY');
+    if (!isValidProductURL(url)) {
+      setError('Paste the full link of a product page, starting with https://');
       return;
     }
 
@@ -58,7 +61,7 @@ export default function Searchbar() {
       >
         <Link2 className="ml-2 size-5 shrink-0 text-muted" aria-hidden />
         <label htmlFor="product-url" className="sr-only">
-          Amazon product link
+          Product link
         </label>
         <input
           id="product-url"
@@ -71,7 +74,7 @@ export default function Searchbar() {
             setUrl(e.target.value);
             if (error) setError(null);
           }}
-          placeholder="Paste an Amazon product link"
+          placeholder="Paste a product link from any store"
           aria-invalid={Boolean(error)}
           aria-describedby="product-url-status"
           disabled={isPending}
@@ -109,7 +112,10 @@ export default function Searchbar() {
         ) : error ? (
           <span className="text-up">{error}</span>
         ) : (
-          <span className="text-muted">Works with amazon.com, .in, .co.uk, .de and more.</span>
+          <span className="text-muted">
+            {country.flag} Works with {country.stores.slice(0, 3).join(', ')} and any store with product
+            pages.
+          </span>
         )}
       </p>
     </form>
