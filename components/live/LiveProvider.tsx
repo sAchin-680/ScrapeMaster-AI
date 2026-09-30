@@ -11,6 +11,9 @@ import {
 } from 'react';
 import type { LiveProductUpdate } from '@/types';
 
+/** How often open pages pull fresh server data, in addition to live price events. */
+const PAGE_REFRESH_MS = 60_000;
+
 export type LiveStatus = 'connecting' | 'live' | 'offline';
 
 type LiveContextValue = {
@@ -84,11 +87,18 @@ export function LiveProvider({ children, productIds, refreshOnUpdate = true }: P
       }
     };
 
+    // Re-fetch server-rendered data (deals, bestsellers, sales, stats) on a
+    // schedule while the tab is visible. Keeps scroll position and client state.
+    const poll = setInterval(() => {
+      if (!document.hidden) router.refresh();
+    }, PAGE_REFRESH_MS);
+
     connect();
     document.addEventListener('visibilitychange', onVisibility);
     return () => {
       document.removeEventListener('visibilitychange', onVisibility);
       clearTimeout(refreshTimer.current);
+      clearInterval(poll);
       disconnect();
     };
   }, [idsKey, refreshOnUpdate, router]);
