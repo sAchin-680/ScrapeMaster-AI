@@ -6,10 +6,11 @@ import { z } from 'zod';
 import { connectDB } from '@/lib/db';
 import ProductModel from '@/lib/models/product.model';
 import { generateEmailBody, sendEmail } from '@/lib/nodemailer';
-import { normalizeProductURL, scrapeProduct, ScrapeError } from '@/lib/scraper';
+import { ScrapeError } from '@/lib/scraper';
 import { updateOffers } from '@/lib/services/offers';
 import { refreshProduct } from '@/lib/services/refresh';
-import { appendPrice, getPriceStats, isValidProductURL } from '@/lib/utils';
+import { trackProduct } from '@/lib/services/track';
+import { isValidProductURL } from '@/lib/utils';
 import type { ActionResult } from '@/types';
 
 const urlSchema = z
@@ -25,27 +26,8 @@ export async function scrapeAndStoreProduct(
   const parsed = urlSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
 
-  const url = normalizeProductURL(parsed.data);
-
   try {
-    const scraped = await scrapeProduct(url);
-    if (!scraped.currentPrice) {
-      return { ok: false, error: 'We found the product but could not read its price.' };
-    }
-
-    await connectDB();
-    const existing = await ProductModel.findOne({ url }).select('priceHistory').lean();
-    const priceHistory = appendPrice(existing?.priceHistory ?? [], scraped.currentPrice);
-
-    const product = await ProductModel.findOneAndUpdate(
-      { url },
-      { ...scraped, priceHistory, ...getPriceStats(priceHistory) },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
-    )
-      .select('_id')
-      .lean();
-
-    const id = String(product!._id);
+    const { id } = await trackProduct(parsed.data);
     // Compare other stores after responding so tracking stays fast.
     after(() =>
       updateOffers(id).catch((error) => console.error('[actions] offers failed', error)),
