@@ -3,14 +3,19 @@
 import Image, { type ImageProps } from 'next/image';
 import { useState } from 'react';
 import { ImageOff } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, sizedImageUrl } from '@/lib/utils';
 
 /**
  * Retailer image served straight from the store's CDN (already optimized and
  * hosted on arbitrary domains). Shimmers until loaded, then fades in; shows a
  * placeholder when it fails.
  */
-export default function ProductImage({ src, alt, className, ...props }: ImageProps) {
+type Props = ImageProps & {
+  /** Request a rendition about this many pixels wide from the store's CDN. */
+  resize?: number;
+};
+
+export default function ProductImage({ src, alt, className, resize, ...props }: Props) {
   const [state, setState] = useState<'loading' | 'loaded' | 'failed'>(
     src ? 'loading' : 'failed',
   );
@@ -33,7 +38,7 @@ export default function ProductImage({ src, alt, className, ...props }: ImagePro
         <span className="skeleton absolute inset-0 rounded-none" aria-hidden />
       )}
       <Image
-        src={src}
+        src={resize && typeof src === 'string' ? sizedImageUrl(src, resize) : src}
         alt={alt}
         unoptimized
         onLoad={() => setState('loaded')}

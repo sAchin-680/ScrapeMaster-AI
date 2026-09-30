@@ -42,6 +42,7 @@ export default async function SearchResults({
               <div className="flex gap-4">
                 <div className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-white">
                   <ProductImage
+                    resize={240}
                     src={result.image ?? ''}
                     alt={result.title}
                     fill

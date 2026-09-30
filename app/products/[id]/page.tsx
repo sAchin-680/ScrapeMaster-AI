@@ -97,6 +97,7 @@ export default async function ProductPage({ params }: Props) {
           <div className="lg:sticky lg:top-24 lg:self-start">
             <div className="card relative aspect-square overflow-hidden bg-white p-4">
               <ProductImage
+                resize={800}
                 src={product.image}
                 alt={product.title}
                 fill

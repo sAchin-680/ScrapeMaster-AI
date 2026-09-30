@@ -69,6 +69,7 @@ export default function ProductTile(props: Props) {
       >
         <div className="relative aspect-square overflow-hidden rounded-xl bg-white">
           <ProductImage
+            resize={500}
             src={image ?? ''}
             alt={title}
             fill

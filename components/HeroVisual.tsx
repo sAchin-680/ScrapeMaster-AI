@@ -55,6 +55,7 @@ export default function HeroVisual({ product }: { product: Product | null }) {
           <div className="flex min-w-0 items-center gap-3">
             <span className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-white ring-1 ring-line">
               <ProductImage
+                resize={160}
                 src={product.image}
                 alt=""
                 fill
