@@ -108,6 +108,49 @@ export function parseAmazonSearch(html: string, pageUrl: string): Offer[] {
     });
 }
 
+/** Ranked items from an Amazon Best Sellers page, read by structure. */
+export function parseAmazonBestsellers(
+  html: string,
+  pageUrl: string,
+): (Offer & { rank: number })[] {
+  const $ = cheerio.load(html);
+  const origin = new URL(pageUrl).origin;
+
+  return $('[id^="gridItemRoot"]')
+    .toArray()
+    .flatMap((el, index) => {
+      const item = $(el);
+      const href = item.find('a[href*="/dp/"]').first().attr('href') ?? '';
+      const asin = href.match(/\/dp\/([A-Z0-9]{10})/i)?.[1];
+      const title = item.find('img[alt]').first().attr('alt')?.trim();
+      const priceText = item
+        .find('*')
+        .filter(
+          (_, n) =>
+            $(n).children().length === 0 &&
+            /^₹\s?[\d,]+(\.\d+)?$/.test($(n).text().trim()),
+        )
+        .first()
+        .text();
+      const price = parsePrice(priceText);
+      if (!asin || !title || !price) return [];
+      const rank =
+        Number(item.find('.zg-bdg-text').text().replace(/\D/g, '')) || index + 1;
+      return [
+        {
+          store: 'amazon',
+          storeName: 'Amazon',
+          title,
+          url: `${origin}/dp/${asin}`,
+          price,
+          currency: '₹',
+          image: item.find('img').first().attr('src'),
+          rank,
+        },
+      ];
+    });
+}
+
 export const amazon: StoreAdapter = {
   id: 'amazon',
   name: 'Amazon',
