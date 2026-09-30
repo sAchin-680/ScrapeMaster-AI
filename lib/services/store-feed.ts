@@ -144,7 +144,7 @@ async function loadSaleSignals(region: string): Promise<SaleFeed> {
 }
 
 /** Store bestsellers and popular lists, refreshed hourly. */
-export const trendingFeed = swrMap(60 * 60_000, loadTrending);
+export const trendingFeed = swrMap('trending', 60 * 60_000, loadTrending);
 
 /** Sale banners detected on store homepages, refreshed every 30 minutes. */
-export const saleSignalFeed = swrMap(30 * 60_000, loadSaleSignals);
+export const saleSignalFeed = swrMap('sale-signals', 30 * 60_000, loadSaleSignals);

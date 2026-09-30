@@ -38,14 +38,26 @@ export function swr<T>(ttlMs: number, load: () => Promise<T>) {
   };
 }
 
-/** One SWR cache per key (e.g. per region). */
-export function swrMap<T>(ttlMs: number, load: (key: string) => Promise<T>) {
-  const caches = new Map<string, ReturnType<typeof swr<T>>>();
+const registry = ((
+  globalThis as unknown as { __swrCaches?: Map<string, unknown> }
+).__swrCaches ??= new Map());
+
+/**
+ * One SWR cache per key (e.g. per region). Caches live on globalThis under
+ * `name`, so separately bundled entry points in the same server process
+ * (instrumentation, route handlers, pages) share them.
+ */
+export function swrMap<T>(
+  name: string,
+  ttlMs: number,
+  load: (key: string) => Promise<T>,
+) {
   return (key: string) => {
-    let cache = caches.get(key);
+    const id = `${name}:${key}`;
+    let cache = registry.get(id) as ReturnType<typeof swr<T>> | undefined;
     if (!cache) {
       cache = swr(ttlMs, () => load(key));
-      caches.set(key, cache);
+      registry.set(id, cache);
     }
     return cache;
   };
