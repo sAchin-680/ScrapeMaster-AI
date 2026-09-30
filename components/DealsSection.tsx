@@ -27,7 +27,9 @@ export default function DealsSection({ deals }: { deals: Product[] }) {
       </div>
       <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">
         {deals.map((product) => (
-          <ProductCard key={product._id} product={product} />
+          <div key={product._id} className="reveal">
+            <ProductCard product={product} />
+          </div>
         ))}
       </div>
     </section>

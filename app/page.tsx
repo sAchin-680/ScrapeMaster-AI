@@ -142,7 +142,9 @@ export default async function Home() {
         {products.length ? (
           <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
             {products.map((product, i) => (
-              <ProductCard key={product._id} product={product} priority={i < 4} />
+              <div key={product._id} className="reveal">
+                <ProductCard product={product} priority={i < 4} />
+              </div>
             ))}
           </div>
         ) : (

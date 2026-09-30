@@ -274,7 +274,9 @@ export default async function ProductPage({ params }: Props) {
             </h2>
             <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-4">
               {similar.map((item) => (
-                <ProductCard key={item._id} product={item} />
+                <div key={item._id} className="reveal">
+                  <ProductCard product={item} />
+                </div>
               ))}
             </div>
           </section>
