@@ -79,7 +79,18 @@ export function parseAmazonSearch(html: string, pageUrl: string): Offer[] {
     .flatMap((el) => {
       const item = $(el);
       const asin = item.attr('data-asin');
-      const title = item.find('h2').text().replace(/\s+/g, ' ').trim();
+      // Brand and title can sit in separate elements; join text nodes with spaces.
+      const title = item
+        .find('h2')
+        .find('*')
+        .addBack()
+        .contents()
+        .filter((_, node) => node.type === 'text')
+        .map((_, node) => $(node).text().trim())
+        .get()
+        .filter(Boolean)
+        .join(' ')
+        .replace(/\s+/g, ' ');
       const price = parsePrice(item.find('.a-price .a-offscreen').first().text());
       if (!asin || !title || !price || item.find('.puis-sponsored-label-text').length)
         return [];
