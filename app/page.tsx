@@ -27,8 +27,9 @@ export default async function Home() {
   ]);
   const deals = localDeals.length ? localDeals : await getTopDeals(null);
 
-  // Products sold in the viewer's country come first.
-  const products = [...allProducts].sort(
+  // Products sold in the viewer's country come first; skip ones already shown as deals.
+  const dealIds = new Set(deals.map((d) => d._id));
+  const products = allProducts.filter((p) => !dealIds.has(p._id)).sort(
     (a, b) => Number(b.currency.trim() === local) - Number(a.currency.trim() === local),
   );
 
