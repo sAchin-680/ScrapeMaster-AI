@@ -11,7 +11,22 @@ Search a product or paste a link from any store. ScrapeMaster reads live prices 
 ![Next.js 15](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript)
 
+<br />
+
+<img src="docs/screenshots/home.jpg" alt="ScrapeMaster home page with live price search, a tracked product chart and the sale announcement bar" width="100%" />
+
 </div>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/deals.jpg" alt="Live store deals with real discounts against the store's list price" /></td>
+    <td width="50%"><img src="docs/screenshots/product.jpg" alt="Product page with live price, buy-at-best-price button and store comparison" /></td>
+  </tr>
+  <tr>
+    <td align="center"><sub>Live store deals, with inflated MRPs filtered out</sub></td>
+    <td align="center"><sub>Product page with the cheapest store and comparison</sub></td>
+  </tr>
+</table>
 
 ## Features
 
@@ -20,7 +35,7 @@ Search a product or paste a link from any store. ScrapeMaster reads live prices 
 - **Real-time updates.** Prices stream to open pages over Server-Sent Events. Stale products re-check in the background when viewed.
 - **Price history and verdicts.** An interactive chart plus a "should you buy now?" score based on the product's own history.
 - **Alerts.** Emails on new lows, big discounts or restocks, each with a one-click unsubscribe.
-- **Deals and sales.** Real price drops, store-wide drop-wave detection, and a sale calendar managed via an admin API.
+- **Deals and sales.** Live store discounts (skipping inflated MRPs), store bestsellers, and a sale radar that reads banners from store homepages.
 - **Localized.** Choose country and currency, with prices converted using daily exchange rates. Defaults to India and INR.
 
 ## Architecture
