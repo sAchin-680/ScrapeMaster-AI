@@ -4,29 +4,31 @@
 
 @layer base {
   :root {
-    --paper: 244 242 236;
+    --paper: 250 250 250;
     --surface: 255 255 255;
-    --ink: 14 14 12;
-    --muted: 110 108 100;
-    --line: 222 219 210;
-    --accent: 198 244 50;
-    --accent-ink: 14 14 12;
-    --up: 214 64 45;
-    --down: 22 140 84;
+    --ink: 17 17 20;
+    --muted: 107 114 128;
+    --line: 229 231 235;
+    --accent: 79 70 229;
+    --accent-ink: 255 255 255;
+    --accent-soft: 238 242 255;
+    --up: 225 29 72;
+    --down: 5 150 105;
     color-scheme: light;
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --paper: 12 12 11;
-      --surface: 22 22 20;
-      --ink: 240 238 230;
-      --muted: 150 147 138;
-      --line: 44 43 40;
-      --accent: 206 250 70;
-      --accent-ink: 12 12 11;
-      --up: 255 107 88;
-      --down: 64 212 140;
+      --paper: 9 9 11;
+      --surface: 19 19 22;
+      --ink: 244 244 245;
+      --muted: 161 161 170;
+      --line: 39 39 42;
+      --accent: 129 140 248;
+      --accent-ink: 9 9 11;
+      --accent-soft: 30 27 75;
+      --up: 251 113 133;
+      --down: 52 211 153;
       color-scheme: dark;
     }
   }
@@ -63,34 +65,35 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition
       disabled:pointer-events-none disabled:opacity-40 active:scale-[.98];
   }
   .btn-primary {
     @apply btn bg-ink text-paper hover:bg-ink/85;
   }
   .btn-accent {
-    @apply btn bg-accent text-accent-ink hover:brightness-95;
+    @apply btn bg-accent text-accent-ink shadow-sm shadow-accent/30 hover:brightness-110;
   }
   .btn-ghost {
-    @apply btn border border-line bg-surface hover:border-ink/40;
+    @apply btn border border-line bg-surface shadow-sm hover:bg-paper;
   }
 
   .card {
-    @apply rounded-2xl border border-line bg-surface;
+    @apply rounded-xl border border-line bg-surface shadow-[0_1px_2px_rgb(0_0_0/.04)];
   }
 
   .eyebrow {
-    @apply font-mono text-[11px] font-medium uppercase tracking-[0.18em] text-muted;
+    @apply text-xs font-medium text-muted;
   }
 
   .num {
-    @apply font-mono tabular-nums tracking-tight;
+    @apply tabular-nums tracking-tight;
   }
 
   .dot-grid {
-    background-image: radial-gradient(rgb(var(--ink) / 0.12) 1px, transparent 1px);
-    background-size: 22px 22px;
+    background-image: linear-gradient(rgb(var(--line) / 0.7) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--line) / 0.7) 1px, transparent 1px);
+    background-size: 48px 48px;
   }
 
   .grain::after {

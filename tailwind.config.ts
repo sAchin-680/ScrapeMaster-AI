@@ -14,7 +14,7 @@ const config: Config = {
         ink: token('ink'),
         muted: token('muted'),
         line: token('line'),
-        accent: { DEFAULT: token('accent'), ink: token('accent-ink') },
+        accent: { DEFAULT: token('accent'), ink: token('accent-ink'), soft: token('accent-soft') },
         up: token('up'),
         down: token('down'),
       },
@@ -22,7 +22,7 @@ const config: Config = {
         sans: ['var(--font-sans)', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
       },
-      borderRadius: { xl: '1rem', '2xl': '1.5rem', '3xl': '2rem' },
+      borderRadius: { xl: '0.875rem', '2xl': '1.25rem', '3xl': '1.75rem' },
       keyframes: {
         ticker: { to: { transform: 'translateX(-50%)' } },
         rise: { from: { opacity: '0', transform: 'translateY(12px)' }, to: { opacity: '1', transform: 'none' } },
