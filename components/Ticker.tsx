@@ -24,8 +24,8 @@ export default function Ticker({ products }: { products: Product[] }) {
   const items = [...products, ...products];
 
   return (
-    <div className="mask-fade-x group overflow-hidden border-b border-line bg-surface/60" aria-label="Recently tracked prices">
-      <ul className="flex w-max animate-ticker gap-8 py-2.5 group-hover:[animation-play-state:paused]">
+    <div className="mask-fade-x group overflow-hidden border-b border-line bg-paper" aria-label="Recently tracked prices">
+      <ul className="flex w-max animate-ticker gap-10 py-2 group-hover:[animation-play-state:paused]">
         {items.map((product, i) => (
           <li key={`${product._id}-${i}`} aria-hidden={i >= products.length}>
             <Link
