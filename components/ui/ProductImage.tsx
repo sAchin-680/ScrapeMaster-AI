@@ -4,7 +4,10 @@ import Image, { type ImageProps } from 'next/image';
 import { useState } from 'react';
 import { ImageOff } from 'lucide-react';
 
-/** next/image with a neutral placeholder when the retailer image fails to load. */
+/**
+ * Retailer image served straight from the store's CDN (already optimized and
+ * hosted on arbitrary domains), with a placeholder when it fails to load.
+ */
 export default function ProductImage({ src, alt, ...props }: ImageProps) {
   const [failed, setFailed] = useState(!src);
 
@@ -16,5 +19,5 @@ export default function ProductImage({ src, alt, ...props }: ImageProps) {
     );
   }
 
-  return <Image src={src} alt={alt} onError={() => setFailed(true)} {...props} />;
+  return <Image src={src} alt={alt} unoptimized onError={() => setFailed(true)} {...props} />;
 }
