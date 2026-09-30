@@ -3,7 +3,14 @@ import type { Offer } from '@/types';
 import { swrMap } from '@/lib/cache';
 import { loadAndParse } from '@/lib/scraper/load';
 import { parseSaleSignals, type SaleSignal } from '@/lib/scraper/sale-signals';
-import { amazon, flipkart, type Region, type StoreAdapter } from '@/lib/scraper/stores';
+import { isBrowserConfigured } from '@/lib/scraper/browser';
+import {
+  amazon,
+  flipkart,
+  generic,
+  type Region,
+  type StoreAdapter,
+} from '@/lib/scraper/stores';
 import { parseAmazonBestsellers } from '@/lib/scraper/stores/amazon';
 
 const AMAZON_HOME: Record<Region, string> = {
@@ -62,25 +69,74 @@ async function loadTrending(region: string): Promise<TrendingItem[]> {
   return items.filter((o) => !seen.has(o.url) && seen.add(o.url)).slice(0, 16);
 }
 
-async function loadSaleSignals(region: string): Promise<SaleSignal[]> {
-  const homes = [
-    { adapter: amazon, id: 'amazon', name: 'Amazon', url: AMAZON_HOME[region as Region] },
-  ];
-  if (region === 'in')
-    homes.push({
-      adapter: flipkart,
-      id: 'flipkart',
-      name: 'Flipkart',
-      url: 'https://www.flipkart.com/',
-    });
+/** Store homepages checked for sale banners, per marketplace. */
+const SALE_SOURCES: Record<Region, { id: string; name: string; url: string }[]> = {
+  in: [
+    { id: 'amazon', name: 'Amazon', url: 'https://www.amazon.in/' },
+    { id: 'flipkart', name: 'Flipkart', url: 'https://www.flipkart.com/' },
+    { id: 'myntra.com', name: 'Myntra', url: 'https://www.myntra.com/' },
+    { id: 'ajio.com', name: 'AJIO', url: 'https://www.ajio.com/' },
+    { id: 'croma.com', name: 'Croma', url: 'https://www.croma.com/' },
+    {
+      id: 'reliancedigital.in',
+      name: 'Reliance Digital',
+      url: 'https://www.reliancedigital.in/',
+    },
+    { id: 'tatacliq.com', name: 'Tata CLiQ', url: 'https://www.tatacliq.com/' },
+    { id: 'nykaa.com', name: 'Nykaa', url: 'https://www.nykaa.com/' },
+  ],
+  us: [
+    { id: 'amazon', name: 'Amazon', url: 'https://www.amazon.com/' },
+    { id: 'walmart.com', name: 'Walmart', url: 'https://www.walmart.com/' },
+    { id: 'bestbuy.com', name: 'Best Buy', url: 'https://www.bestbuy.com/' },
+    { id: 'target.com', name: 'Target', url: 'https://www.target.com/' },
+  ],
+  uk: [
+    { id: 'amazon', name: 'Amazon', url: 'https://www.amazon.co.uk/' },
+    { id: 'currys.co.uk', name: 'Currys', url: 'https://www.currys.co.uk/' },
+    { id: 'argos.co.uk', name: 'Argos', url: 'https://www.argos.co.uk/' },
+  ],
+  de: [
+    { id: 'amazon', name: 'Amazon', url: 'https://www.amazon.de/' },
+    { id: 'mediamarkt.de', name: 'MediaMarkt', url: 'https://www.mediamarkt.de/' },
+    { id: 'otto.de', name: 'OTTO', url: 'https://www.otto.de/' },
+  ],
+};
+
+export type SaleFeed = {
+  signals: SaleSignal[];
+  /** Every store checked, so the UI can show which have no sale right now. */
+  checked: { id: string; name: string; url: string; ok: boolean }[];
+};
+
+async function loadSaleSignals(region: string): Promise<SaleFeed> {
+  const sources = SALE_SOURCES[region as Region] ?? SALE_SOURCES.in;
+  // Homepages render banners with JavaScript, so use the browser when available.
+  const homepage = {
+    ...generic,
+    fetchMode: isBrowserConfigured ? ('browser' as const) : ('http' as const),
+  };
 
   const settled = await Promise.allSettled(
-    homes.map((h) => loadAndParse(h.adapter, h.url, (html) => parseSaleSignals(html, h))),
+    sources.map((source) =>
+      loadAndParse(homepage, source.url, (html) => parseSaleSignals(html, source)),
+    ),
   );
   const detectedAt = new Date().toISOString();
-  return settled.flatMap((r) =>
-    r.status === 'fulfilled' ? r.value.map((signal) => ({ ...signal, detectedAt })) : [],
-  );
+
+  return {
+    signals: settled.flatMap((r) =>
+      r.status === 'fulfilled'
+        ? r.value.map((signal) => ({ ...signal, detectedAt }))
+        : [],
+    ),
+    checked: sources.map((source, i) => {
+      const result = settled[i];
+      if (result.status === 'rejected')
+        console.error('[sales] homepage failed', source.url, result.reason);
+      return { ...source, ok: result.status === 'fulfilled' };
+    }),
+  };
 }
 
 /** Store bestsellers and popular lists, refreshed hourly. */
