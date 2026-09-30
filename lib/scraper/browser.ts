@@ -7,6 +7,7 @@ import { throttle } from './throttle';
 const MAX_PAGES = 3;
 const NAV_TIMEOUT_MS = 30_000;
 const SETTLE_MS = 1_500;
+const PIXEL = Buffer.from('R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==', 'base64');
 
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
@@ -68,7 +69,11 @@ export async function renderHtml(url: string) {
     await page.setRequestInterception(true);
     page.on('request', (request) => {
       const type = request.resourceType();
-      if (type === 'image' || type === 'font' || type === 'media') request.abort();
+      // Answer images with a 1x1 pixel instead of aborting: lazy loaders then
+      // swap placeholders for real image URLs without downloading them.
+      if (type === 'image')
+        request.respond({ status: 200, contentType: 'image/gif', body: PIXEL });
+      else if (type === 'font' || type === 'media') request.abort();
       else request.continue();
     });
 
