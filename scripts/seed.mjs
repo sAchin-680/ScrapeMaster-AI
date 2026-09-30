@@ -1,5 +1,11 @@
 // Seed a local database with demo products and synthetic price history.
-// Usage: MONGODB_URI=mongodb://localhost:27017/scrapemaster npm run seed
+//
+//   npm run seed            upsert demo products
+//   npm run seed -- --reset delete all products first
+//
+// Demo products link to a store search for their exact title rather than a
+// product id, so every "View on store" link shows the right item. Track real
+// products by pasting their links in the app.
 import mongoose from 'mongoose';
 
 const uri = process.env.MONGODB_URI;
@@ -8,32 +14,31 @@ if (!uri) {
   process.exit(1);
 }
 
-// [id, title, category, image, original, current, currency, domain]
+const IMG = 'https://m.media-amazon.com/images/I';
+
+// [title, category, image, mrp, current price, Flipkart price or null]
 const products = [
-  ['B0CHX1W1XY', 'Apple iPhone 15 (128 GB) - Black', 'Smartphones', 'https://m.media-amazon.com/images/I/71657TiFeHL._SL1500_.jpg', 799, 699, '$', 'www.amazon.com'],
-  ['B0BSHF7WHW', 'Apple 2023 MacBook Pro Laptop M2 Pro chip with 12‑core CPU', 'Laptops', 'https://m.media-amazon.com/images/I/61lsexTCOhL._AC_SL1500_.jpg', 1999, 1749, '$', 'www.amazon.com'],
-  ['B09XS7JWHH', 'Sony WH-1000XM5 Wireless Industry Leading Noise Canceling Headphones', 'Headphones', 'https://m.media-amazon.com/images/I/61vJtKbAssL._AC_SL1500_.jpg', 399, 248, '$', 'www.amazon.com'],
-  ['B0BDHWDR12', 'Apple AirPods Pro (2nd Generation) Wireless Ear Buds with USB-C', 'Headphones', 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg', 249, 189, '$', 'www.amazon.com'],
-  ['B08N5WRWNW', 'Echo Dot (4th Gen) Smart speaker with Alexa - Charcoal', 'Smart Home', 'https://m.media-amazon.com/images/I/714Rq4k05UL._AC_SL1000_.jpg', 49, 27, '$', 'www.amazon.com'],
-  ['B0CX23V2ZK', 'Kindle Paperwhite (16 GB) – Our fastest Kindle ever', 'E-readers', 'https://m.media-amazon.com/images/I/61Ww4abGclL._AC_SL1000_.jpg', 159, 139, '$', 'www.amazon.com'],
-  ['B07FZ8S74R', 'Instant Pot Duo 7-in-1 Electric Pressure Cooker, 6 Quart', 'Kitchen', 'https://m.media-amazon.com/images/I/71V1LrY1MSL._AC_SL1500_.jpg', 99, 79, '$', 'www.amazon.com'],
-  ['B0B3PSRHHN', 'Logitech MX Master 3S Wireless Performance Mouse', 'Accessories', 'https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg', 99, 89, '$', 'www.amazon.com'],
-  ['B0CHX2F5QT', 'Apple iPhone 15 (128 GB) - Blue', 'Smartphones', 'https://m.media-amazon.com/images/I/71657TiFeHL._SL1500_.jpg', 79900, 65999, '₹', 'www.amazon.in'],
-  ['B0BY8JZ22K', 'Sony WH-1000XM5 Wireless Noise Cancelling Headphones', 'Headphones', 'https://m.media-amazon.com/images/I/61vJtKbAssL._AC_SL1500_.jpg', 34990, 26990, '₹', 'www.amazon.in'],
-  ['B0CHWV2WYK', 'Apple AirPods Pro (2nd Generation) with MagSafe Case (USB-C)', 'Headphones', 'https://m.media-amazon.com/images/I/61SUj2aKoEL._AC_SL1500_.jpg', 24900, 18990, '₹', 'www.amazon.in'],
-  ['B0B6GN8YWS', 'Logitech MX Master 3S Wireless Performance Mouse', 'Accessories', 'https://m.media-amazon.com/images/I/61ni3t1ryQL._AC_SL1500_.jpg', 10995, 8995, '₹', 'www.amazon.in'],
+  ['Apple iPhone 15 (128 GB) - Black', 'Smartphones', `${IMG}/71657TiFeHL._SL1500_.jpg`, 79900, 65999, 64999],
+  ['Sony WH-1000XM5 Wireless Noise Cancelling Headphones', 'Headphones', `${IMG}/61vJtKbAssL._AC_SL1500_.jpg`, 34990, 26990, 27490],
+  ['Apple AirPods Pro (2nd Generation) with MagSafe Case (USB-C)', 'Headphones', `${IMG}/61SUj2aKoEL._AC_SL1500_.jpg`, 24900, 18990, 19900],
+  ['Logitech MX Master 3S Wireless Performance Mouse', 'Computer Accessories', `${IMG}/61ni3t1ryQL._AC_SL1500_.jpg`, 10995, 8995, 9299],
+  ['Apple 2023 MacBook Pro (14-inch, M2 Pro, 16GB RAM, 512GB SSD)', 'Laptops', `${IMG}/61lsexTCOhL._AC_SL1500_.jpg`, 199900, 169990, 172990],
+  ['Kindle Paperwhite (16 GB) – 7" display, adjustable warm light', 'E-readers', `${IMG}/61Ww4abGclL._AC_SL1000_.jpg`, 16999, 13999, null],
+  ['Echo Dot (4th Gen) Smart speaker with Alexa - Charcoal', 'Smart Home', `${IMG}/714Rq4k05UL._AC_SL1000_.jpg`, 4499, 2449, null],
+  ['Instant Pot Duo 7-in-1 Electric Pressure Cooker, 5.7 L', 'Kitchen Appliances', `${IMG}/71V1LrY1MSL._AC_SL1500_.jpg`, 12999, 8499, 8999],
 ];
 
-// Demo Flipkart listings for Indian products so the store comparison has data.
-const flipkartPrice = (price) => Math.round(price * (0.94 + Math.random() * 0.1));
+const amazonSearch = (title) => `https://www.amazon.in/s?k=${encodeURIComponent(title)}`;
+const flipkartSearch = (title) => `https://www.flipkart.com/search?q=${encodeURIComponent(title)}`;
 
-function history(original, current, days = 30) {
+/** Random walk from around the MRP down to today's price. */
+function history(mrp, current, days = 45) {
   const points = [];
-  let price = original * 0.95;
+  let price = mrp * 0.92;
   for (let i = days; i >= 0; i--) {
     const drift = (current - price) / Math.max(i, 1);
-    price = Math.max(current * 0.9, price + drift + (Math.random() - 0.5) * original * 0.04);
-    points.push({ price: Math.round(i === 0 ? current : price), date: new Date(Date.now() - i * 86_400_000) });
+    price = Math.max(current * 0.97, price + drift + (Math.random() - 0.5) * mrp * 0.03);
+    points.push({ price: i === 0 ? current : Math.round(price), date: new Date(Date.now() - i * 86_400_000) });
   }
   return points;
 }
@@ -41,23 +46,24 @@ function history(original, current, days = 30) {
 await mongoose.connect(uri);
 const collection = mongoose.connection.collection('products');
 
-for (const [asin, title, category, image, original, current, currency, domain] of products) {
-  const priceHistory = history(original, current);
+if (process.argv.includes('--reset')) {
+  const { deletedCount } = await collection.deleteMany({});
+  console.log(`Removed ${deletedCount} products`);
+}
+
+for (const [i, [title, category, image, mrp, current, flipkartPrice]] of products.entries()) {
+  const priceHistory = history(mrp, current);
   const prices = priceHistory.map((p) => p.price);
-  const url = `https://${domain}/dp/${asin}`;
-  const offers = [{ store: 'amazon', storeName: 'Amazon', title, url, price: current, currency, image }];
-  if (currency === '₹') {
-    offers.push({
-      store: 'flipkart',
-      storeName: 'Flipkart',
-      title,
-      url: `https://www.flipkart.com/search?q=${encodeURIComponent(title)}`,
-      price: flipkartPrice(current),
-      currency,
-      image,
-    });
+  const url = amazonSearch(title);
+
+  const offers = [{ store: 'amazon', storeName: 'Amazon', title, url, price: current, currency: '₹', image }];
+  if (flipkartPrice) {
+    offers.push({ store: 'flipkart', storeName: 'Flipkart', title, url: flipkartSearch(title), price: flipkartPrice, currency: '₹', image });
   }
   offers.sort((a, b) => a.price - b.price);
+
+  // Stagger creation times so the grid has a stable, meaningful order.
+  const createdAt = new Date(Date.now() - (products.length - i) * 3_600_000);
 
   await collection.updateOne(
     { url },
@@ -66,25 +72,25 @@ for (const [asin, title, category, image, original, current, currency, domain] o
         title,
         category,
         image,
-        currency,
         store: 'amazon',
         storeName: 'Amazon',
-        offers,
-        offersCheckedAt: new Date(),
+        currency: '₹',
         currentPrice: current,
-        originalPrice: original,
-        discountRate: Math.round(((original - current) / original) * 100),
+        originalPrice: mrp,
+        discountRate: Math.round(((mrp - current) / mrp) * 100),
         priceHistory,
         lowestPrice: Math.min(...prices),
         highestPrice: Math.max(...prices),
         averagePrice: Math.round(prices.reduce((a, b) => a + b, 0) / prices.length),
-        description: `${title}\nFree returns within 30 days\nShips from and sold by Amazon`,
-        stars: 4 + Math.round(Math.random() * 9) / 10,
-        reviewsCount: Math.round(Math.random() * 40_000),
+        description: `${title}\nDemo listing with synthetic price history`,
+        stars: 4.2 + Math.round(Math.random() * 6) / 10,
+        reviewsCount: 500 + Math.round(Math.random() * 30_000),
         isOutOfStock: false,
+        offers,
+        offersCheckedAt: new Date(),
         updatedAt: new Date(),
       },
-      $setOnInsert: { users: [], createdAt: new Date() },
+      $setOnInsert: { users: [], createdAt },
     },
     { upsert: true },
   );
