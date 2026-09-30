@@ -58,9 +58,10 @@ export default function OfferComparison({ product }: { product: Product }) {
                         <Trophy className="size-3" aria-hidden /> Best
                       </span>
                     )}
-                    {offer.store === product.store && <span className="text-xs font-normal text-muted">(this listing)</span>}
                   </span>
-                  <span className="block truncate text-xs text-muted">{offer.title}</span>
+                  <span className="block truncate text-xs text-muted">
+                    {offer.store === product.store ? 'This listing' : offer.title}
+                  </span>
                 </span>
                 <Money amount={offer.price} currency={offer.currency} className="num shrink-0 font-semibold" />
                 <ExternalLink className="size-4 shrink-0 text-muted" aria-hidden />
