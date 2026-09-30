@@ -3,7 +3,7 @@ import EmptyState from '@/components/EmptyState';
 import HeroVisual from '@/components/HeroVisual';
 import HowItWorks from '@/components/HowItWorks';
 import SalesSection from '@/components/SalesSection';
-import TrendingSection, { TrendingSkeleton } from '@/components/TrendingSection';
+import TrendingSection from '@/components/TrendingSection';
 import { Suspense, type ComponentProps } from 'react';
 import type { Region } from '@/lib/scraper/stores';
 import ProductCard from '@/components/ProductCard';
@@ -119,11 +119,9 @@ export default async function Home() {
         </div>
       </section>
 
-      <DealsSection deals={deals} />
+      <DealsSection tracked={deals} region={region} />
 
-      <Suspense fallback={<TrendingSkeleton />}>
-        <TrendingSection region={region} />
-      </Suspense>
+      <TrendingSection region={region} />
 
       <section id="tracked" className="container scroll-mt-24 py-16">
         <div className="mb-8 flex items-end justify-between gap-4">
@@ -154,9 +152,11 @@ export default async function Home() {
         )}
       </section>
 
-      <Suspense fallback={null}>
-        <LiveSales country={country} sales={sales} region={region} />
-      </Suspense>
+      <div id="sales" className="scroll-mt-24">
+        <Suspense fallback={null}>
+          <LiveSales country={country} sales={sales} region={region} />
+        </Suspense>
+      </div>
 
       <HowItWorks />
     </LiveProvider>
