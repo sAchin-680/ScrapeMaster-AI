@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import Navbar from '@/components/Navbar';
+import AnnouncementBar from '@/components/AnnouncementBar';
 import Footer from '@/components/Footer';
 import { PreferencesProvider } from '@/components/PreferencesProvider';
 import { getRates } from '@/lib/fx';
 import { getPreferences } from '@/lib/preferences';
+import { getAnnouncements } from '@/lib/sales';
 import { siteConfig } from '@/lib/site';
 import './globals.css';
 
@@ -56,6 +58,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           Skip to content
         </a>
         <PreferencesProvider preferences={preferences} rates={rates}>
+          <AnnouncementBar items={getAnnouncements(preferences.country)} />
           <Navbar />
           <main id="content" className="flex-1">
             {children}
