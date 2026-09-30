@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { after } from 'next/server';
 import {
   ArrowDown,
   ArrowLeft,
@@ -27,6 +28,7 @@ import ProductImage from '@/components/ui/ProductImage';
 import StatTile from '@/components/ui/StatTile';
 import { getProductById, getSimilarProducts } from '@/lib/data/products';
 import { getDealVerdict } from '@/lib/deal';
+import { refreshIfStale } from '@/lib/services/refresh';
 import { formatNumber, formatPrice, truncate } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
@@ -59,6 +61,9 @@ export default async function ProductPage({ params }: Props) {
   const { id } = await params;
   const product = await getProductById(id);
   if (!product) notFound();
+
+  // Re-check stale prices after responding; the live stream pushes any change.
+  after(() => refreshIfStale(id));
 
   const similar = await getSimilarProducts(id);
   const history = product.priceHistory ?? [];
