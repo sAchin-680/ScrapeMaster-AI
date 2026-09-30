@@ -1,7 +1,7 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
 import LivePrice from '@/components/live/LivePrice';
+import ProductImage from '@/components/ui/ProductImage';
 import Sparkline from '@/components/ui/Sparkline';
 import type { Product } from '@/types';
 import { formatPrice } from '@/lib/utils';
@@ -16,8 +16,8 @@ export default function ProductCard({ product, priority }: { product: Product; p
       className="card group relative flex flex-col overflow-hidden p-3 transition duration-300 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-lg hover:shadow-indigo-950/5"
     >
       <div className="relative aspect-square overflow-hidden rounded-lg bg-white ring-1 ring-line/60">
-        {product.image && (
-          <Image
+        {(
+          <ProductImage
             src={product.image}
             alt={product.title}
             fill

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowDown, ArrowLeft, ArrowUp, ExternalLink, MessageSquare, Sigma, Star, Tag } from 'lucide-react';
@@ -12,6 +11,7 @@ import { LiveProvider } from '@/components/live/LiveProvider';
 import LiveWatchers from '@/components/live/LiveWatchers';
 import RefreshButton from '@/components/live/RefreshButton';
 import RelativeTime from '@/components/live/RelativeTime';
+import ProductImage from '@/components/ui/ProductImage';
 import StatTile from '@/components/ui/StatTile';
 import { getProductById, getSimilarProducts } from '@/lib/data/products';
 import { formatNumber, formatPrice, truncate } from '@/lib/utils';
@@ -59,8 +59,8 @@ export default async function ProductPage({ params }: Props) {
         <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-12">
           <div className="lg:sticky lg:top-24 lg:self-start">
             <div className="card relative aspect-square overflow-hidden bg-white p-4">
-              {product.image && (
-                <Image
+              {(
+                <ProductImage
                   src={product.image}
                   alt={product.title}
                   fill
