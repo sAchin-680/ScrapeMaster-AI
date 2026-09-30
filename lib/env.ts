@@ -12,6 +12,8 @@ const schema = z.object({
   SMTP_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
   CRON_SECRET: z.string().optional(),
+  // Signs unsubscribe links. Required in production.
+  APP_SECRET: z.string().min(16).optional(),
   // Bearer token for admin endpoints (sale calendar management).
   ADMIN_TOKEN: z.string().min(16).optional(),
   // Browser rendering for stores that block plain HTTP clients (e.g. Flipkart).
