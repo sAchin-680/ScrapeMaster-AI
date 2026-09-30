@@ -35,6 +35,8 @@
 
   html {
     scroll-behavior: smooth;
+    /* Keep anchored sections clear of the sticky header. */
+    scroll-padding-top: 5rem;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -64,6 +66,26 @@
 }
 
 @layer components {
+  /* Scroll-revealed content: pure CSS, off the main thread, progressive. */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .reveal {
+        animation: reveal linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 35%;
+      }
+    }
+  }
+
+  .page-enter {
+    animation: page-enter 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+
+  /* Shared hover lift for interactive cards. */
+  .lift {
+    @apply transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-950/[0.07] active:translate-y-0 active:duration-100;
+  }
+
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition
       disabled:pointer-events-none disabled:opacity-40 active:scale-[.98];
@@ -117,5 +139,27 @@
 
   .mask-fade-x {
     mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
