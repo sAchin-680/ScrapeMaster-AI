@@ -154,7 +154,7 @@ function CalendarSale({ sale }: { sale: Sale & { status: SaleStatus } }) {
 }
 
 export default function SalesSection({ country, sales, signals, checked }: Props) {
-  if (!sales.length && !signals.length) return null;
+  if (!sales.length && !signals.length && !checked.length) return null;
   const visibleSales = sales.slice(0, 4);
   const quiet = checked.filter((c) => c.ok && !signals.some((s) => s.store === c.id));
 
@@ -169,11 +169,7 @@ export default function SalesSection({ country, sales, signals, checked }: Props
   );
 
   return (
-    <section
-      id="sales"
-      className="container scroll-mt-24 py-16"
-      aria-labelledby="sales-heading"
-    >
+    <section className="container py-16" aria-labelledby="sales-heading">
       <div className="relative overflow-hidden rounded-3xl border border-line bg-surface p-6 sm:p-10">
         <div
           className="absolute -right-24 -top-24 size-72 rounded-full bg-gradient-to-br from-indigo-500/20 to-violet-500/10 blur-3xl"
@@ -212,6 +208,13 @@ export default function SalesSection({ country, sales, signals, checked }: Props
           </div>
 
           <div className="flex flex-col gap-6">
+            {!stores.length && !visibleSales.length && (
+              <div className="card flex items-center gap-3 p-5 text-sm text-muted">
+                <Radar className="size-5 shrink-0 text-accent" aria-hidden />
+                No store is promoting a sale on its homepage right now. We check again
+                every 30 minutes.
+              </div>
+            )}
             <div className="grid gap-4 sm:grid-cols-2">
               {stores.map((group) => (
                 <StoreSales
@@ -228,7 +231,9 @@ export default function SalesSection({ country, sales, signals, checked }: Props
             {quiet.length > 0 && (
               <div>
                 <p className="mb-2 text-xs font-medium text-muted">
-                  Also checked, no sale promoted right now
+                  {stores.length
+                    ? 'Also checked, no sale promoted right now'
+                    : 'Stores checked'}
                 </p>
                 <ul className="flex flex-wrap gap-2">
                   {quiet.map((store) => (
