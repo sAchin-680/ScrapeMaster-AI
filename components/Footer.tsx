@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import Logo from '@/components/ui/Logo';
 
 export default function Footer() {
@@ -11,7 +12,20 @@ export default function Footer() {
             affiliated with any retailer.
           </p>
         </div>
-        <p className="eyebrow">© {new Date().getFullYear()} ScrapeMaster</p>
+        <div className="flex flex-col gap-2 md:items-end">
+          <nav aria-label="Legal" className="flex gap-4 text-sm">
+            <Link href="/privacy" className="text-muted hover:text-ink">
+              Privacy
+            </Link>
+            <Link href="/terms" className="text-muted hover:text-ink">
+              Terms
+            </Link>
+          </nav>
+          <p className="text-xs text-muted">
+            © {new Date().getFullYear()} ScrapeMaster. Store names and logos are
+            trademarks of their owners.
+          </p>
+        </div>
       </div>
     </footer>
   );
