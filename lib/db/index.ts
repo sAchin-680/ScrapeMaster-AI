@@ -1,4 +1,5 @@
 import 'server-only';
+import { attachDatabasePool } from '@vercel/functions';
 import mongoose from 'mongoose';
 import { env } from '@/lib/env';
 
@@ -31,6 +32,8 @@ export async function connectDB() {
   cache.promise ??= mongoose.connect(env.MONGODB_URI, {
     bufferCommands: false,
     maxPoolSize: 10,
+    // Release idle sockets instead of holding them while an instance sleeps.
+    maxIdleTimeMS: 60_000,
     appName: 'scrapemaster',
     serverSelectionTimeoutMS: 10_000,
   });
@@ -38,6 +41,9 @@ export async function connectDB() {
   try {
     cache.conn = await cache.promise;
     cache.failedAt = undefined;
+    // On Vercel, let the platform keep this pool alive across invocations of
+    // the same function instance instead of reconnecting each time.
+    if (process.env.VERCEL) attachDatabasePool(cache.conn.connection.getClient());
   } catch (error) {
     cache.promise = null;
     cache.failedAt = Date.now();
