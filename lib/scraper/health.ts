@@ -144,3 +144,26 @@ export class HealthRegistry {
     return this.run;
   }
 }
+
+// One registry per process. Request handlers use it in memory only; the
+// scheduled refresh job loads persisted state first and saves it afterwards.
+let registry = new HealthRegistry();
+
+export function getHealthRegistry() {
+  return registry;
+}
+
+export function setHealthRegistry(next: HealthRegistry) {
+  registry = next;
+}
+
+/** Page kind used to separate sources within a store. */
+export function pageKind(url: string) {
+  const { pathname, search } = new URL(url);
+  if (pathname === '/' && !search) return 'homepage';
+  if (/\/(gp\/bestsellers|zgbs)\b/.test(pathname) || /sort=popularity/.test(search))
+    return 'bestsellers';
+  if (pathname === '/s' || pathname.startsWith('/s/') || pathname.startsWith('/search'))
+    return 'search';
+  return 'product';
+}

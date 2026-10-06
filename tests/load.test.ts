@@ -13,7 +13,11 @@ vi.mock('@/lib/scraper/browser', () => ({
   },
 }));
 
-const { loadAndParse } = await import('@/lib/scraper/load');
+const { loadAndParse, loadRetry } = await import('@/lib/scraper/load');
+const { HealthRegistry, getHealthRegistry, setHealthRegistry, CircuitOpenError } =
+  await import('@/lib/scraper/health');
+loadRetry.baseDelayMs = 1;
+loadRetry.maxDelayMs = 2;
 const httpStore = {
   id: 'amazon',
   name: 'Amazon',
@@ -31,6 +35,7 @@ describe('loadAndParse', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     browser.configured = true;
+    setHealthRegistry(new HealthRegistry());
   });
 
   it('uses plain HTTP when it parses', async () => {
@@ -63,5 +68,51 @@ describe('loadAndParse', () => {
       '<rendered>',
     );
     expect(fetchHtml).not.toHaveBeenCalled();
+  });
+
+  it('retries transient failures and records one success', async () => {
+    browser.configured = false;
+    fetchHtml
+      .mockRejectedValueOnce(new ScrapeError('busy', 'rate-limited'))
+      .mockResolvedValue('<ok>');
+    await expect(
+      loadAndParse(httpStore, 'https://www.amazon.in/s?k=jbl', parse),
+    ).resolves.toBe('<ok>');
+    expect(fetchHtml).toHaveBeenCalledTimes(2);
+    const [entry] = getHealthRegistry().all();
+    expect(entry).toMatchObject({
+      source: 'amazon:search',
+      storeName: 'Amazon',
+      recent: [true],
+    });
+    expect(getHealthRegistry().runStats().get('amazon:search')?.retries).toBe(1);
+  });
+
+  it('does not retry permanent failures', async () => {
+    fetchHtml.mockRejectedValue(new ScrapeError('gone', 'not-found'));
+    await expect(
+      loadAndParse(httpStore, 'https://www.amazon.in/dp/X', parse),
+    ).rejects.toThrow('gone');
+    expect(fetchHtml).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the circuit after repeated failures and then skips the source', async () => {
+    browser.configured = false;
+    fetchHtml.mockRejectedValue(new ScrapeError('captcha', 'blocked'));
+    for (let i = 0; i < 3; i++) {
+      await expect(
+        loadAndParse(httpStore, 'https://www.amazon.in/dp/X', parse),
+      ).rejects.toThrow();
+    }
+    const calls = fetchHtml.mock.calls.length;
+    await expect(
+      loadAndParse(httpStore, 'https://www.amazon.in/dp/Y', parse),
+    ).rejects.toBeInstanceOf(CircuitOpenError);
+    expect(fetchHtml).toHaveBeenCalledTimes(calls);
+    // Other page kinds of the same store are unaffected.
+    fetchHtml.mockResolvedValue('<ok>');
+    await expect(
+      loadAndParse(httpStore, 'https://www.amazon.in/gp/bestsellers/', parse),
+    ).resolves.toBe('<ok>');
   });
 });
