@@ -5,13 +5,7 @@ import { loadSnapshot, type FeedResult } from '@/lib/services/snapshots';
 import { loadAndParse } from '@/lib/scraper/load';
 import { parseSaleSignals, type SaleSignal } from '@/lib/scraper/sale-signals';
 import { isBrowserConfigured } from '@/lib/scraper/browser';
-import {
-  amazon,
-  flipkart,
-  generic,
-  type Region,
-  type StoreAdapter,
-} from '@/lib/scraper/stores';
+import { amazon, generic, type Region, type StoreAdapter } from '@/lib/scraper/stores';
 import { parseAmazonBestsellers } from '@/lib/scraper/stores/amazon';
 
 const AMAZON_HOME: Record<Region, string> = {
@@ -27,7 +21,8 @@ type Source = {
   parse: (html: string, url: string) => Offer[];
 };
 
-// Pages that list what is popular right now on each marketplace.
+// Pages that list what is popular right now on each marketplace. Flipkart's
+// popularity-sorted search pages are excluded by its robots.txt.
 function trendingSources(region: Region): Source[] {
   const sources: Source[] = [
     {
@@ -36,15 +31,6 @@ function trendingSources(region: Region): Source[] {
       parse: parseAmazonBestsellers,
     },
   ];
-  if (region === 'in') {
-    for (const q of ['smartphones', 'headphones', 'smart watches']) {
-      sources.push({
-        adapter: flipkart,
-        url: `https://www.flipkart.com/search?q=${encodeURIComponent(q)}&sort=popularity`,
-        parse: (html) => flipkart.search!.parse(html, ''),
-      });
-    }
-  }
   return sources;
 }
 
