@@ -3,6 +3,20 @@ import { attachDatabasePool } from '@vercel/functions';
 import mongoose from 'mongoose';
 import { env } from '@/lib/env';
 
+/** Thrown when no database is configured, e.g. in CI builds. Not worth logging. */
+export class DatabaseNotConfiguredError extends Error {
+  constructor() {
+    super('MONGODB_URI is not defined');
+    this.name = 'DatabaseNotConfiguredError';
+  }
+}
+
+/** Log a data-layer failure unless it's just a missing database configuration. */
+export function logDataError(scope: string, error: unknown) {
+  if (error instanceof DatabaseNotConfiguredError) return;
+  console.error(`[data] ${scope} failed`, error);
+}
+
 type Cache = {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
@@ -19,7 +33,7 @@ const globalForMongoose = globalThis as unknown as { mongooseCache?: Cache };
 const cache: Cache = (globalForMongoose.mongooseCache ??= { conn: null, promise: null });
 
 export async function connectDB() {
-  if (!env.MONGODB_URI) throw new Error('MONGODB_URI is not defined');
+  if (!env.MONGODB_URI) throw new DatabaseNotConfiguredError();
   // readyState 1 = connected. A closed connection (0) is discarded and re-opened.
   if (cache.conn && mongoose.connection.readyState === 1) return cache.conn;
   if (cache.failedAt && Date.now() - cache.failedAt < RETRY_AFTER_MS) throw cache.error;

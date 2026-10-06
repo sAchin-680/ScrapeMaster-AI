@@ -1,5 +1,5 @@
 import 'server-only';
-import { connectDB } from '@/lib/db';
+import { connectDB, logDataError } from '@/lib/db';
 import SaleModel from '@/lib/models/sale.model';
 import type { Sale } from '@/lib/sales';
 
@@ -23,7 +23,7 @@ export async function getActiveSales(): Promise<Sale[]> {
       tagline: s.tagline,
     }));
   } catch (error) {
-    console.error('[data] getActiveSales failed', error);
+    logDataError('getActiveSales', error);
     return [];
   }
 }

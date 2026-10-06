@@ -1,5 +1,5 @@
 import 'server-only';
-import { connectDB } from '@/lib/db';
+import { connectDB, logDataError } from '@/lib/db';
 import ProductModel from '@/lib/models/product.model';
 
 export type PriceDrop = {
@@ -94,7 +94,7 @@ export async function getPriceSignals(currency: string | null) {
 
     return { drops, waves };
   } catch (error) {
-    console.error('[data] getPriceSignals failed', error);
+    logDataError('getPriceSignals', error);
     return { drops: [], waves: [] };
   }
 }

@@ -1,7 +1,7 @@
 import 'server-only';
 import { cache } from 'react';
 import { isValidObjectId } from 'mongoose';
-import { connectDB } from '@/lib/db';
+import { connectDB, logDataError } from '@/lib/db';
 import ProductModel from '@/lib/models/product.model';
 import type { Product } from '@/types';
 
@@ -23,7 +23,7 @@ export async function getAllProducts(limit = 24): Promise<Product[]> {
       .lean();
     return serialize(products) as unknown as Product[];
   } catch (error) {
-    console.error('[data] getAllProducts failed', error);
+    logDataError('getAllProducts', error);
     return [];
   }
 }
@@ -38,7 +38,7 @@ export const getProductById = cache(async (id: string): Promise<Product | null> 
     const { users, ...rest } = product;
     return serialize({ ...rest, watchers: users?.length ?? 0 }) as unknown as Product;
   } catch (error) {
-    console.error('[data] getProductById failed', error);
+    logDataError('getProductById', error);
     return null;
   }
 });
@@ -70,7 +70,7 @@ export async function getSimilarProducts(id: string, limit = 4): Promise<Product
       .lean();
     return serialize([...products, ...filler]) as unknown as Product[];
   } catch (error) {
-    console.error('[data] getSimilarProducts failed', error);
+    logDataError('getSimilarProducts', error);
     return [];
   }
 }
@@ -132,7 +132,7 @@ export async function getTopDeals(
     ]);
     return serialize(deals) as unknown as Product[];
   } catch (error) {
-    console.error('[data] getTopDeals failed', error);
+    logDataError('getTopDeals', error);
     return [];
   }
 }
