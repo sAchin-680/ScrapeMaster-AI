@@ -49,6 +49,10 @@ function trendingSources(region: Region): Source[] {
   return sources;
 }
 
+// Expected store failures are tracked in source health; log one line, not a stack.
+const reasonOf = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
+
 export type TrendingItem = Offer & { source: string; rank?: number };
 
 export async function loadTrending(region: string): Promise<TrendingItem[]> {
@@ -60,7 +64,7 @@ export async function loadTrending(region: string): Promise<TrendingItem[]> {
     throw new Error('All trending sources failed');
   const lists = settled.map((r, i) => {
     if (r.status === 'rejected')
-      console.error('[trending] source failed', sources[i].url, r.reason);
+      console.warn(`[trending] ${sources[i].url}: ${reasonOf(r.reason)}`);
     return r.status === 'fulfilled'
       ? r.value.slice(0, 8).map((o) => ({ ...o, source: sources[i].url }))
       : [];
@@ -143,7 +147,7 @@ export async function loadSaleSignals(region: string): Promise<SaleFeed> {
     checked: sources.map((source, i) => {
       const result = settled[i];
       if (result.status === 'rejected')
-        console.error('[sales] homepage failed', source.url, result.reason);
+        console.warn(`[sales] ${source.url}: ${reasonOf(result.reason)}`);
       return { ...source, ok: result.status === 'fulfilled' };
     }),
   };
