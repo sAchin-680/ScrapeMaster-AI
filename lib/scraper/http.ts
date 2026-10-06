@@ -4,6 +4,7 @@ import { isIP } from 'node:net';
 import axios, { type AxiosRequestConfig } from 'axios';
 import { USER_AGENT } from './agent';
 import { kindForStatus, ScrapeError } from './errors';
+import { assertRobotsAllowed } from './robots';
 import { throttle } from './throttle';
 
 export { ScrapeError };
@@ -81,6 +82,7 @@ const REQUEST_CONFIG: AxiosRequestConfig = {
 
 export async function fetchHtml(url: string) {
   await assertPublicURL(url);
+  await assertRobotsAllowed(url);
   await throttle(url);
   try {
     const response = await axios.get<string>(url, REQUEST_CONFIG);

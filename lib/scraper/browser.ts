@@ -2,6 +2,7 @@ import 'server-only';
 import type { Browser } from 'puppeteer-core';
 import { env } from '@/lib/env';
 import { kindForStatus, ScrapeError } from './errors';
+import { assertRobotsAllowed } from './robots';
 import { throttle } from './throttle';
 import { USER_AGENT } from './agent';
 
@@ -67,6 +68,7 @@ export async function renderHtml(
     );
   }
 
+  await assertRobotsAllowed(url);
   await throttle(url);
   await acquire();
   const browser = await getBrowser();
