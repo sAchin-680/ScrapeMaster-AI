@@ -20,6 +20,9 @@ export default function Footer() {
             <Link href="/terms" className="text-muted hover:text-ink">
               Terms
             </Link>
+            <Link href="/bot" className="text-muted hover:text-ink">
+              Our crawler
+            </Link>
           </nav>
           <p className="text-xs text-muted">
             © {new Date().getFullYear()} ScrapeMaster. Store names and logos are
