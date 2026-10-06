@@ -1,8 +1,7 @@
 import 'server-only';
-import { unstable_cache } from 'next/cache';
 import type { Offer } from '@/types';
 import { swrMap } from '@/lib/cache';
-import { withSnapshot, type FeedResult } from '@/lib/services/snapshots';
+import { loadSnapshot, type FeedResult } from '@/lib/services/snapshots';
 import { loadAndParse } from '@/lib/scraper/load';
 import { parseSaleSignals, type SaleSignal } from '@/lib/scraper/sale-signals';
 import { isBrowserConfigured } from '@/lib/scraper/browser';
@@ -214,69 +213,43 @@ export async function loadDeals(region: string): Promise<DealItem[]> {
     .slice(0, 12);
 }
 
-/**
- * Persist a feed in Next's data cache, which is shared across all server
- * instances on Vercel (in-memory caches are per instance). Failed loads throw
- * and are never stored. The in-memory SWR layer on top serves repeat hits
- * without a cache round-trip.
- */
-function shared<T>(
-  name: string,
-  revalidateSeconds: number,
-  load: (key: string) => Promise<T>,
-) {
-  return (key: string) =>
-    unstable_cache(() => load(key), ['store-feed', name, key], {
-      revalidate: revalidateSeconds,
-      tags: [`store-feed:${name}`],
-    })();
-}
-
-// The scheduled refresh job saves snapshots every 30 minutes. Anything it
-// saved within this window is served as-is instead of scraping from the
-// hosting provider, where stores often block requests.
+// The scheduled refresh job saves snapshots every 30 minutes. Older than
+// this means runs were missed, and pages say how old the data is.
 const JOB_FRESH_MS = 45 * 60_000;
 
-// Pages re-fetch every 60 seconds, so a new snapshot is visible within a minute.
+// Pages regenerate at most once a minute, so this is all the caching needed.
 const FEED_CACHE_MS = 60_000;
 
-// In-memory cache per server instance, kept short so new data appears quickly.
-const ttl = (freshMs: number) => (result: FeedResult<unknown>) =>
-  result.stale ? Math.min(freshMs, 60_000) : freshMs;
+/**
+ * Feeds as pages see them: the latest snapshot saved by the refresh job.
+ * Pages never contact stores or start a browser while a visitor waits.
+ */
+function snapshotFeed<T>(
+  name: string,
+  isEmpty: (data: T) => boolean,
+  maxAgeMs = Infinity,
+) {
+  return swrMap(name, FEED_CACHE_MS, async (region): Promise<FeedResult<T>> => {
+    const snapshot = await loadSnapshot<T>(`${name}:${region}`);
+    if (!snapshot || isEmpty(snapshot.data)) throw new Error(`No ${name} snapshot yet`);
+    const age = Date.now() - Date.parse(snapshot.updatedAt);
+    if (age > maxAgeMs) throw new Error(`${name} snapshot is too old to show`);
+    return { ...snapshot, stale: age > JOB_FRESH_MS };
+  });
+}
 
-/** Live store discounts, refreshed hourly. */
-export const dealsFeed = swrMap(
-  'deals',
-  ttl(FEED_CACHE_MS),
-  withSnapshot('deals', shared('deals', 3600, loadDeals), (deals) => !deals.length, {
-    preferWithinMs: JOB_FRESH_MS,
-  }),
-);
+/** Live store discounts. */
+export const dealsFeed = snapshotFeed<DealItem[]>('deals', (deals) => !deals.length);
 
-/** Store bestsellers and popular lists, refreshed hourly. */
-export const trendingFeed = swrMap(
+/** Store bestsellers and popular lists. */
+export const trendingFeed = snapshotFeed<TrendingItem[]>(
   'trending',
-  ttl(FEED_CACHE_MS),
-  withSnapshot(
-    'trending',
-    shared('trending', 3600, loadTrending),
-    (items) => !items.length,
-    {
-      preferWithinMs: JOB_FRESH_MS,
-    },
-  ),
+  (items) => !items.length,
 );
 
-/** Sale banners detected on store homepages, refreshed every 30 minutes. */
-export const saleSignalFeed = swrMap(
+/** Sale banners detected on store homepages; hidden once they are half a day old. */
+export const saleSignalFeed = snapshotFeed<SaleFeed>(
   'sale-signals',
-  ttl(FEED_CACHE_MS),
-  withSnapshot(
-    'sale-signals',
-    shared('sale-signals', 1800, loadSaleSignals),
-    // Without a browser, homepages often omit their JavaScript-rendered
-    // banners, so "no banners" falls back to a recent snapshot that had some.
-    (feed) => !feed.signals.length,
-    { maxAgeMs: 12 * 60 * 60_000, preferWithinMs: JOB_FRESH_MS },
-  ),
+  (feed) => !feed.checked.length,
+  12 * 60 * 60_000,
 );
