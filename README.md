@@ -87,7 +87,6 @@ Search for a product on the home page to start tracking.
 | `CHROME_EXECUTABLE_PATH`                                         | Local Chrome/Chromium for browser-rendered stores      |
 | `BROWSER_WS_ENDPOINT`                                            | Remote browser (e.g. Browserless) for serverless hosts |
 | `SMTP_HOST` `SMTP_PORT` `SMTP_USER` `SMTP_PASSWORD` `EMAIL_FROM` | Alert email delivery                                   |
-| `BRIGHTDATA_USERNAME` `BRIGHTDATA_PASSWORD`                      | Optional rotating proxy                                |
 
 ## API
 

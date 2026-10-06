@@ -30,8 +30,7 @@ describe('readEnv', () => {
   });
 
   it('accepts alternative variable names', () => {
-    expect(readEnv({ BRIGHT_DATA_USERNAME: 'user', EMAIL_PASSWORD: 'pw' })).toEqual({
-      BRIGHTDATA_USERNAME: 'user',
+    expect(readEnv({ EMAIL_PASSWORD: 'pw' })).toEqual({
       SMTP_PASSWORD: 'pw',
     });
   });

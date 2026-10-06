@@ -12,9 +12,6 @@ const fields = {
   MONGODB_URI: z
     .string()
     .regex(/^mongodb(\+srv)?:\/\//, 'must start with mongodb:// or mongodb+srv://'),
-  BRIGHTDATA_USERNAME: z.string(),
-  BRIGHTDATA_PASSWORD: z.string(),
-  BRIGHTDATA_PORT: z.coerce.number().int().positive(),
   SMTP_HOST: z.string(),
   SMTP_PORT: z.coerce.number().int().positive(),
   SMTP_USER: z.string(),
@@ -32,8 +29,6 @@ const fields = {
 
 // Alternative names accepted for convenience (older or common spellings).
 const ALIASES: Partial<Record<keyof typeof fields, string[]>> = {
-  BRIGHTDATA_USERNAME: ['BRIGHT_DATA_USERNAME'],
-  BRIGHTDATA_PASSWORD: ['BRIGHT_DATA_PASSWORD'],
   SMTP_PASSWORD: ['EMAIL_PASSWORD'],
 };
 
@@ -67,9 +62,6 @@ export const env = {
 
 export const isEmailConfigured = Boolean(
   env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASSWORD,
-);
-export const isProxyConfigured = Boolean(
-  env.BRIGHTDATA_USERNAME && env.BRIGHTDATA_PASSWORD,
 );
 
 export { readEnv };

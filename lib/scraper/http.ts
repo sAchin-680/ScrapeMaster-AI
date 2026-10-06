@@ -2,7 +2,6 @@ import 'server-only';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import axios, { type AxiosRequestConfig } from 'axios';
-import { env, isProxyConfigured } from '@/lib/env';
 
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
@@ -65,63 +64,33 @@ export async function assertPublicURL(input: string | URL) {
   return url;
 }
 
-// Set when the proxy rejects our credentials, so later requests go direct
-// instead of failing one by one.
-let proxyDisabled = false;
-
-function requestConfig(useProxy: boolean): AxiosRequestConfig {
-  const config: AxiosRequestConfig = {
-    timeout: 20_000,
-    maxRedirects: 3,
-    maxContentLength: 8 * 1024 * 1024,
-    responseType: 'text',
-    headers: {
-      'User-Agent': USER_AGENT,
-      'Accept-Language': 'en-US,en;q=0.9',
-      Accept: 'text/html,application/xhtml+xml',
-    },
-    beforeRedirect: (options) => {
-      const host = String(options.hostname ?? '');
-      if (host === 'localhost' || (isIP(host) && isPrivateAddress(host))) {
-        throw new ScrapeError('Redirect to a private address was blocked', 'disallowed');
-      }
-    },
-  };
-
-  if (useProxy) {
-    config.proxy = {
-      protocol: 'http',
-      host: 'brd.superproxy.io',
-      port: env.BRIGHTDATA_PORT ?? 33335,
-      auth: {
-        username: `${env.BRIGHTDATA_USERNAME}-session-${Math.floor(Math.random() * 1_000_000)}`,
-        password: env.BRIGHTDATA_PASSWORD!,
-      },
-    };
-  }
-  return config;
-}
+const REQUEST_CONFIG: AxiosRequestConfig = {
+  timeout: 20_000,
+  maxRedirects: 3,
+  maxContentLength: 8 * 1024 * 1024,
+  responseType: 'text',
+  headers: {
+    'User-Agent': USER_AGENT,
+    'Accept-Language': 'en-US,en;q=0.9',
+    Accept: 'text/html,application/xhtml+xml',
+  },
+  beforeRedirect: (options) => {
+    const host = String(options.hostname ?? '');
+    if (host === 'localhost' || (isIP(host) && isPrivateAddress(host))) {
+      throw new ScrapeError('Redirect to a private address was blocked', 'disallowed');
+    }
+  },
+};
 
 export async function fetchHtml(url: string) {
   await assertPublicURL(url);
   await throttle(url);
-  const useProxy = isProxyConfigured && !proxyDisabled;
   try {
-    const response = await axios.get<string>(url, requestConfig(useProxy));
+    const response = await axios.get<string>(url, REQUEST_CONFIG);
     return response.data;
   } catch (error) {
     if (error instanceof ScrapeError) throw error;
     const status = axios.isAxiosError(error) ? error.response?.status : undefined;
-
-    // 407: the proxy rejected the credentials. Stop using it and retry directly.
-    if (useProxy && status === 407) {
-      proxyDisabled = true;
-      console.warn(
-        '[scraper] Proxy rejected credentials (HTTP 407); falling back to direct requests',
-      );
-      return fetchHtml(url);
-    }
-
     const timedOut = axios.isAxiosError(error) && error.code === 'ECONNABORTED';
     throw new ScrapeError(
       status === 403 || status === 503
