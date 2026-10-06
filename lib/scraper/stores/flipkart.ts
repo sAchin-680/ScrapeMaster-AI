@@ -27,6 +27,7 @@ export function parseFlipkartProduct(html: string, url: string) {
   if (!title)
     throw new ScrapeError(
       'Could not read the Flipkart page. It may be blocked or unavailable.',
+      'blocked',
     );
 
   const current = extractPrice($(SELECTORS.price)) || data.price || 0;

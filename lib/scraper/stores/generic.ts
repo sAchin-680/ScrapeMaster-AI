@@ -47,6 +47,7 @@ export function parseGenericProduct(html: string, url: string) {
   if (!data.title || !data.price) {
     throw new ScrapeError(
       `Could not find product details on ${store.name}. The page may not be a product page.`,
+      'parse',
     );
   }
 

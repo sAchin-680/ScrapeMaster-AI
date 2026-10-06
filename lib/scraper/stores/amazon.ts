@@ -29,6 +29,7 @@ export function parseAmazonProduct(html: string, url: string) {
   if (!title) {
     throw new ScrapeError(
       'Could not read the product page. The store may have served a captcha.',
+      'blocked',
     );
   }
 
@@ -82,7 +83,7 @@ export function parseAmazonSearch(html: string, pageUrl: string): Offer[] {
   const $ = cheerio.load(html);
   const origin = new URL(pageUrl).origin;
   // Raise instead of returning nothing so callers can retry in a real browser.
-  if (isAmazonBotCheck($)) throw new ScrapeError('Amazon served a bot check');
+  if (isAmazonBotCheck($)) throw new ScrapeError('Amazon served a bot check', 'blocked');
 
   return $('[data-component-type="s-search-result"][data-asin]')
     .toArray()
@@ -128,7 +129,7 @@ export function parseAmazonBestsellers(
   pageUrl: string,
 ): (Offer & { rank: number })[] {
   const $ = cheerio.load(html);
-  if (isAmazonBotCheck($)) throw new ScrapeError('Amazon served a bot check');
+  if (isAmazonBotCheck($)) throw new ScrapeError('Amazon served a bot check', 'blocked');
   const origin = new URL(pageUrl).origin;
 
   return $('[id^="gridItemRoot"]')

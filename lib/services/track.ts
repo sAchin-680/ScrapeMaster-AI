@@ -12,7 +12,7 @@ export async function trackProduct(input: string) {
   const url = normalizeProductURL(input);
   const scraped = await scrapeProduct(url);
   if (!scraped.currentPrice) {
-    throw new ScrapeError('We found the product but could not read its price.');
+    throw new ScrapeError('We found the product but could not read its price.', 'parse');
   }
 
   await connectDB();

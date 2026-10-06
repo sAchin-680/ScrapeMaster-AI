@@ -7,7 +7,7 @@ import { env, isProxyConfigured } from '@/lib/env';
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
 
-import { ScrapeError } from './errors';
+import { kindForStatus, ScrapeError } from './errors';
 import { throttle } from './throttle';
 
 export { ScrapeError };
@@ -44,23 +44,24 @@ export function isPrivateAddress(address: string) {
 export async function assertPublicURL(input: string | URL) {
   const url = new URL(input);
   if (url.protocol !== 'https:' && url.protocol !== 'http:')
-    throw new ScrapeError('Only http(s) links are supported');
+    throw new ScrapeError('Only http(s) links are supported', 'disallowed');
   if (url.port && url.port !== '80' && url.port !== '443')
-    throw new ScrapeError('Unsupported port');
+    throw new ScrapeError('Unsupported port', 'disallowed');
   if (url.username || url.password)
-    throw new ScrapeError('Links with credentials are not supported');
+    throw new ScrapeError('Links with credentials are not supported', 'disallowed');
 
   const host = url.hostname.replace(/^\[|\]$/g, '');
   if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.internal')) {
-    throw new ScrapeError('That address is not allowed');
+    throw new ScrapeError('That address is not allowed', 'disallowed');
   }
 
   const addresses = isIP(host)
     ? [{ address: host }]
     : await lookup(host, { all: true }).catch(() => []);
-  if (!addresses.length) throw new ScrapeError('Could not resolve that website');
+  if (!addresses.length)
+    throw new ScrapeError('Could not resolve that website', 'not-found');
   if (addresses.some(({ address }) => isPrivateAddress(address)))
-    throw new ScrapeError('That address is not allowed');
+    throw new ScrapeError('That address is not allowed', 'disallowed');
   return url;
 }
 
@@ -82,7 +83,7 @@ function requestConfig(useProxy: boolean): AxiosRequestConfig {
     beforeRedirect: (options) => {
       const host = String(options.hostname ?? '');
       if (host === 'localhost' || (isIP(host) && isPrivateAddress(host))) {
-        throw new ScrapeError('Redirect to a private address was blocked');
+        throw new ScrapeError('Redirect to a private address was blocked', 'disallowed');
       }
     },
   };
@@ -121,10 +122,14 @@ export async function fetchHtml(url: string) {
       return fetchHtml(url);
     }
 
+    const timedOut = axios.isAxiosError(error) && error.code === 'ECONNABORTED';
     throw new ScrapeError(
       status === 403 || status === 503
         ? 'The store blocked the request. Try again shortly.'
-        : `Could not load the page${status ? ` (HTTP ${status})` : ''}`,
+        : timedOut
+          ? 'The store took too long to respond.'
+          : `Could not load the page${status ? ` (HTTP ${status})` : ''}`,
+      timedOut ? 'timeout' : status === 503 ? 'blocked' : kindForStatus(status),
     );
   }
 }

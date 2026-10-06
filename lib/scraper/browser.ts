@@ -1,7 +1,7 @@
 import 'server-only';
 import type { Browser } from 'puppeteer-core';
 import { env } from '@/lib/env';
-import { ScrapeError } from './errors';
+import { kindForStatus, ScrapeError } from './errors';
 import { throttle } from './throttle';
 
 const MAX_PAGES = 3;
@@ -59,6 +59,7 @@ export async function renderHtml(
   if (!isBrowserConfigured) {
     throw new ScrapeError(
       'This store needs browser rendering. Set CHROME_EXECUTABLE_PATH or BROWSER_WS_ENDPOINT.',
+      'unsupported',
     );
   }
 
@@ -85,7 +86,10 @@ export async function renderHtml(
       timeout: NAV_TIMEOUT_MS,
     });
     if (response && response.status() >= 400) {
-      throw new ScrapeError(`Could not load the page (HTTP ${response.status()})`);
+      throw new ScrapeError(
+        `Could not load the page (HTTP ${response.status()})`,
+        kindForStatus(response.status()),
+      );
     }
     if (scroll) {
       // Trigger lazily rendered banners and carousels further down the page.
@@ -97,7 +101,10 @@ export async function renderHtml(
     return await page.content();
   } catch (error) {
     if (error instanceof ScrapeError) throw error;
-    throw new ScrapeError('The page took too long to load. Try again shortly.');
+    throw new ScrapeError(
+      'The page took too long to load. Try again shortly.',
+      'timeout',
+    );
   } finally {
     await page.close().catch(() => {});
     release();
