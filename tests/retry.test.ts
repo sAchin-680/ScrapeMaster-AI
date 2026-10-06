@@ -34,7 +34,7 @@ describe('retry', () => {
   });
 
   it('waits the jittered backoff between attempts', async () => {
-    const sleep = vi.fn(noSleep);
+    const sleep = vi.fn<(ms: number) => Promise<void>>(() => Promise.resolve());
     const fn = vi
       .fn()
       .mockRejectedValueOnce(1)
