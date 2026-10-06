@@ -2,10 +2,7 @@ import 'server-only';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import axios, { type AxiosRequestConfig } from 'axios';
-
-const USER_AGENT =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
-
+import { USER_AGENT } from './agent';
 import { kindForStatus, ScrapeError } from './errors';
 import { throttle } from './throttle';
 

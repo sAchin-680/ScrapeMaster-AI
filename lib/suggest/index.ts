@@ -1,6 +1,7 @@
 import 'server-only';
 import axios from 'axios';
 import type { Region } from '@/lib/scraper/stores';
+import { USER_AGENT } from '@/lib/scraper/agent';
 import {
   mergeSuggestions,
   parseAmazonSuggestions,
@@ -10,8 +11,6 @@ import {
 
 const TIMEOUT_MS = 1_500;
 const CACHE_TTL_MS = 10 * 60_000;
-const USER_AGENT =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
 
 const AMAZON_MARKETPLACE: Partial<Record<Region, string>> = {
   us: 'ATVPDKIKX0DER',

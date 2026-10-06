@@ -3,14 +3,12 @@ import type { Browser } from 'puppeteer-core';
 import { env } from '@/lib/env';
 import { kindForStatus, ScrapeError } from './errors';
 import { throttle } from './throttle';
+import { USER_AGENT } from './agent';
 
 const MAX_PAGES = 3;
 const NAV_TIMEOUT_MS = 30_000;
 const SETTLE_MS = 1_500;
 const PIXEL = Buffer.from('R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==', 'base64');
-
-const USER_AGENT =
-  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
 
 // Inside the Next.js server (NEXT_RUNTIME is set) a browser would sit on a
 // visitor's request path, so it is off unless explicitly enabled. Scheduled
