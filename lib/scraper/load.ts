@@ -4,6 +4,7 @@ import { isBrowserConfigured, renderHtml } from './browser';
 import { isTransient, ScrapeError } from './errors';
 import { getHealthRegistry, pageKind } from './health';
 import { assertPublicURL, fetchHtml } from './http';
+import { adapters } from './stores';
 import { storeFromHost } from './stores/generic';
 import type { StoreAdapter } from './stores/types';
 
@@ -17,10 +18,14 @@ export const loadRetry: RetryOptions = {
 };
 
 function sourceFor(adapter: StoreAdapter, url: string) {
-  const store =
-    adapter.id === 'generic'
-      ? storeFromHost(new URL(url).hostname)
-      : { id: adapter.id, name: adapter.name };
+  // Attribute to the dedicated store when one matches (e.g. a homepage check
+  // via the generic adapter still counts as Amazon), else to the domain.
+  const parsed = new URL(url);
+  const dedicated =
+    adapter.id === 'generic' ? adapters.find((a) => a.matches(parsed)) : adapter;
+  const store = dedicated
+    ? { id: dedicated.id, name: dedicated.name }
+    : storeFromHost(parsed.hostname);
   const kind = pageKind(url);
   return { source: `${store.id}:${kind}`, store: store.id, storeName: store.name, kind };
 }
