@@ -12,9 +12,15 @@ const PIXEL = Buffer.from('R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==', 'b
 const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36';
 
-export const isBrowserConfigured = Boolean(
-  env.BROWSER_WS_ENDPOINT || env.CHROME_EXECUTABLE_PATH,
-);
+// Inside the Next.js server (NEXT_RUNTIME is set) a browser would sit on a
+// visitor's request path, so it is off unless explicitly enabled. Scheduled
+// jobs and scripts run outside Next.js and keep using it.
+const onRequestPath = Boolean(process.env.NEXT_RUNTIME);
+const allowOnRequestPath = process.env.BROWSER_ON_REQUEST === 'true';
+
+export const isBrowserConfigured =
+  Boolean(env.BROWSER_WS_ENDPOINT || env.CHROME_EXECUTABLE_PATH) &&
+  (!onRequestPath || allowOnRequestPath);
 
 const globalForBrowser = globalThis as unknown as { browser?: Promise<Browser> };
 let openPages = 0;
