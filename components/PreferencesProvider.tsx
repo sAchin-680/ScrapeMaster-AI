@@ -1,23 +1,55 @@
 'use client';
 
-import { createContext, useCallback, useContext, type ReactNode } from 'react';
-import { DEFAULT_PREFERENCES, getCountry, type Preferences } from '@/lib/locale';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  DEFAULT_PREFERENCES,
+  getCountry,
+  parsePreferences,
+  PREFERENCES_COOKIE,
+  type Preferences,
+} from '@/lib/locale';
 import { formatMoney, type RateTable } from '@/lib/utils/money';
 
-type Value = { preferences: Preferences; rates: RateTable };
+type Value = {
+  preferences: Preferences;
+  rates: RateTable;
+  setPreferences: (next: Preferences) => void;
+};
 
 const PreferencesContext = createContext<Value>({
   preferences: DEFAULT_PREFERENCES,
   rates: {},
+  setPreferences: () => {},
 });
 
-export function PreferencesProvider({
-  children,
-  ...value
-}: Value & { children: ReactNode }) {
-  return (
-    <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>
-  );
+function readCookie(name: string) {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : undefined;
+}
+
+/**
+ * Preferences are read from the cookie in the browser rather than on the
+ * server, so pages stay identical for every visitor and can be served
+ * statically. Visitors with saved preferences switch over right after load.
+ */
+export function PreferencesProvider({ children, rates }: { children: ReactNode; rates: RateTable }) {
+  const [preferences, setPreferences] = useState<Preferences>(DEFAULT_PREFERENCES);
+
+  useEffect(() => {
+    const saved = readCookie(PREFERENCES_COOKIE);
+    if (saved) setPreferences(parsePreferences(saved));
+  }, []);
+
+  const value = useMemo(() => ({ preferences, rates, setPreferences }), [preferences, rates]);
+  return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
 }
 
 export function usePreferences() {

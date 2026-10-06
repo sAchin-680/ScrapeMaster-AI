@@ -1,11 +1,17 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/react';
 import { ChevronDown, Globe, Loader2 } from 'lucide-react';
 import { savePreferences } from '@/lib/actions/preferences';
-import { COUNTRIES, CURRENCIES, getCountry, type CurrencyCode } from '@/lib/locale';
+import {
+  COUNTRIES,
+  CURRENCIES,
+  getCountry,
+  parsePreferences,
+  type CurrencyCode,
+} from '@/lib/locale';
 import { usePreferences } from './PreferencesProvider';
 
 const selectClass =
@@ -13,15 +19,24 @@ const selectClass =
 
 export default function LocaleSwitcher() {
   const router = useRouter();
-  const { preferences } = usePreferences();
+  const { preferences, setPreferences } = usePreferences();
   const [country, setCountry] = useState<string>(preferences.country);
   const [currency, setCurrency] = useState<string>(preferences.currency);
   const [isPending, startTransition] = useTransition();
   const current = getCountry(preferences.country);
 
+  // Saved preferences are read in the browser after load; keep the form in sync.
+  useEffect(() => {
+    setCountry(preferences.country);
+    setCurrency(preferences.currency);
+  }, [preferences.country, preferences.currency]);
+
   const save = (close: () => void) =>
     startTransition(async () => {
       await savePreferences({ country, currency });
+      // Update prices on this page immediately; refresh re-renders pages that
+      // depend on the country server-side (such as search).
+      setPreferences(parsePreferences(JSON.stringify({ country, currency })));
       router.refresh();
       close();
     });
