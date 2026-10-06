@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   flipkart,
   parseFlipkartProduct,
-  parseFlipkartSearch,
+  parseFlipkartAffiliateSearch,
 } from '@/lib/scraper/stores/flipkart';
 
 const product = `
@@ -17,15 +17,24 @@ const product = `
   <ul><li class="_7eSDEz">128 GB ROM</li><li class="_7eSDEz">48MP Camera</li></ul>
 </body></html>`;
 
-const search = `
-<div data-id="MOBGTAGPTB3VS24W">
-  <a href="/apple-iphone-15-black-128-gb/p/itm6ac6485515ae4?pid=MOBGTAGPTB3VS24W&lid=x&marketplace=FLIPKART">
-    <img src="https://rukminim2.flixcart.com/a.jpg" alt="Apple iPhone 15" />
-    <div class="KzDlHZ">Apple iPhone 15 (Black, 128 GB)</div>
-    <div class="Nx9bqj">₹65,999</div>
-  </a>
-</div>
-<div data-id="ADS"><div class="KzDlHZ">No link</div></div>`;
+const affiliate = JSON.stringify({
+  products: [
+    {
+      productBaseInfoV1: {
+        title: 'Apple iPhone 15  (Black, 128 GB)',
+        productUrl:
+          'http://dl.flipkart.com/dl/apple-iphone-15-black-128-gb/p/itm6ac6485515ae4?pid=MOBGTAGPTB3VS24W&affid=me',
+        imageUrls: { '200x200': 'https://img/200.jpg', '400x400': 'https://img/400.jpg' },
+        maximumRetailPrice: { amount: 79900, currency: 'INR' },
+        flipkartSellingPrice: { amount: 69900, currency: 'INR' },
+        flipkartSpecialPrice: { amount: 65999, currency: 'INR' },
+        inStock: true,
+      },
+    },
+    { productBaseInfoV1: { title: 'Sold out', productUrl: '/x/p/1', inStock: false } },
+    { productBaseInfoV1: { title: 'No price', productUrl: '/x/p/2' } },
+  ],
+});
 
 describe('flipkart adapter', () => {
   it('parses a product page', () => {
@@ -45,45 +54,32 @@ describe('flipkart adapter', () => {
     });
   });
 
-  it('parses search results and strips tracking params', () => {
-    const offers = parseFlipkartSearch(search);
-    expect(offers).toHaveLength(1);
-    expect(offers[0]).toMatchObject({
-      price: 65999,
-      url: 'https://www.flipkart.com/apple-iphone-15-black-128-gb/p/itm6ac6485515ae4?pid=MOBGTAGPTB3VS24W',
-    });
+  it('reads Affiliate API search results as canonical offers', () => {
+    expect(parseFlipkartAffiliateSearch(affiliate)).toEqual([
+      {
+        store: 'flipkart',
+        storeName: 'Flipkart',
+        title: 'Apple iPhone 15 (Black, 128 GB)',
+        url: 'https://www.flipkart.com/apple-iphone-15-black-128-gb/p/itm6ac6485515ae4?pid=MOBGTAGPTB3VS24W',
+        price: 65999,
+        originalPrice: 79900,
+        currency: '₹',
+        image: 'https://img/400.jpg',
+      },
+    ]);
+  });
+
+  it('rejects an unreadable API response', () => {
+    expect(() => parseFlipkartAffiliateSearch('<html>')).toThrow(/unreadable/);
+  });
+
+  it('only searches when affiliate credentials are configured', () => {
+    expect(flipkart.search?.enabled?.()).toBe(false);
   });
 
   it('normalizes product URLs to path + pid', () => {
     const url = new URL('https://dl.flipkart.com/s/x/p/itm1?pid=ABC&lid=1&affid=me');
     expect(flipkart.matches(url)).toBe(true);
     expect(flipkart.normalize(url)).toBe('https://www.flipkart.com/s/x/p/itm1?pid=ABC');
-  });
-});
-
-describe('flipkart search parsing is class-agnostic', () => {
-  it('reads cards with unknown class names', () => {
-    const html = `
-      <div class="zz1"><div class="zz2">
-        <a class="q9" href="/apple-iphone-15-green-128-gb/p/itm235cd318bde73?pid=MOBGTAGPYYWZRUJX&lid=L1">
-          <img alt="Apple iPhone 15 (Green, 128 GB)" src="https://rukminim2.flixcart.com/g.jpg" />
-        </a>
-        <div class="r1"><div class="r2">₹59,900</div><div class="r3">₹69,900</div></div>
-      </div></div>
-      <div class="zz1"><div class="zz2">
-        <a href="/apple-iphone-15-pink-128-gb/p/itm7579ed94ca647?pid=MOBGTAGPNMZA5PU5"><img alt="Apple iPhone 15 (Pink, 128 GB)" src="//static-assets-web.flixcart.com/img/placeholder_fcebae.svg" /></a>
-        <a href="/apple-iphone-15-pink-128-gb/p/itm7579ed94ca647?pid=MOBGTAGPNMZA5PU5&ref=x">Apple iPhone 15 (Pink, 128 GB)</a>
-        <span>₹61,499</span>
-      </div></div>`;
-    const offers = parseFlipkartSearch(html);
-    expect(offers.map((o) => [o.title, o.price])).toEqual([
-      ['Apple iPhone 15 (Green, 128 GB)', 59900],
-      ['Apple iPhone 15 (Pink, 128 GB)', 61499],
-    ]);
-    expect(offers[0].image).toBe('https://rukminim2.flixcart.com/g.jpg');
-    expect(offers[1].image).toBeUndefined();
-    expect(offers[0].url).toBe(
-      'https://www.flipkart.com/apple-iphone-15-green-128-gb/p/itm235cd318bde73?pid=MOBGTAGPYYWZRUJX',
-    );
   });
 });

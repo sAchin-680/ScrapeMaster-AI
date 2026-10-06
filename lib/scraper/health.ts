@@ -163,7 +163,11 @@ export function pageKind(url: string) {
   if (pathname === '/' && !search) return 'homepage';
   if (/\/(gp\/bestsellers|zgbs)\b/.test(pathname) || /sort=popularity/.test(search))
     return 'bestsellers';
-  if (pathname === '/s' || pathname.startsWith('/s/') || pathname.startsWith('/search'))
+  if (
+    pathname === '/s' ||
+    pathname.startsWith('/s/') ||
+    /^\/search\b|\/search\.json$/.test(pathname)
+  )
     return 'search';
   return 'product';
 }

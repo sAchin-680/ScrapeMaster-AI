@@ -12,6 +12,9 @@ const fields = {
   MONGODB_URI: z
     .string()
     .regex(/^mongodb(\+srv)?:\/\//, 'must start with mongodb:// or mongodb+srv://'),
+  // Flipkart Affiliate API, the permitted way to search Flipkart.
+  FLIPKART_AFFILIATE_ID: z.string(),
+  FLIPKART_AFFILIATE_TOKEN: z.string(),
   SMTP_HOST: z.string(),
   SMTP_PORT: z.coerce.number().int().positive(),
   SMTP_USER: z.string(),
@@ -62,6 +65,9 @@ export const env = {
 
 export const isEmailConfigured = Boolean(
   env.SMTP_HOST && env.SMTP_USER && env.SMTP_PASSWORD,
+);
+export const isFlipkartAffiliateConfigured = Boolean(
+  env.FLIPKART_AFFILIATE_ID && env.FLIPKART_AFFILIATE_TOKEN,
 );
 
 export { readEnv };

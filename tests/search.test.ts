@@ -20,6 +20,12 @@ vi.mock('@/lib/scraper/load', () => ({
   }),
 }));
 
+// Flipkart search runs through its Affiliate API, which needs credentials.
+vi.mock('@/lib/env', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/lib/env')>()),
+  isFlipkartAffiliateConfigured: true,
+}));
+
 const { searchStores } = await import('@/lib/scraper/search');
 
 describe('searchStores', () => {

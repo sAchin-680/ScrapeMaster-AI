@@ -3,6 +3,7 @@ import type { Offer } from '@/types';
 import { extractPrice, parsePrice } from '../extract';
 import { ScrapeError } from '../errors';
 import { extractStructured } from '../structured';
+import { env, isFlipkartAffiliateConfigured } from '@/lib/env';
 import type { StoreAdapter } from './types';
 
 // Flipkart ships obfuscated class names that change periodically; keep current and legacy ones.
@@ -63,80 +64,62 @@ export function parseFlipkartProduct(html: string, url: string) {
   };
 }
 
-const pidOf = (href: string) => {
-  const url = new URL(href, 'https://www.flipkart.com');
-  return url.searchParams.get('pid') ?? url.pathname;
+type Money = { amount?: number; currency?: string };
+type AffiliateProduct = {
+  productBaseInfoV1?: {
+    title?: string;
+    productUrl?: string;
+    imageUrls?: Record<string, string>;
+    maximumRetailPrice?: Money;
+    flipkartSellingPrice?: Money;
+    flipkartSpecialPrice?: Money;
+    inStock?: boolean;
+  };
 };
 
-const PRICE_TEXT = /^₹\s?[\d,]+(\.\d{1,2})?$/;
+/** Canonical product URL (path + pid) from an affiliate deep link. */
+function canonicalUrl(link: string) {
+  const url = new URL(link, 'https://www.flipkart.com');
+  const pid = url.searchParams.get('pid');
+  const path = url.pathname.replace(/^\/dl(?=\/)/, '');
+  return `https://www.flipkart.com${path}${pid ? `?pid=${pid}` : ''}`;
+}
 
 /**
- * Parse search results by structure rather than class names, which Flipkart
- * rotates often: for each product link, climb to the largest ancestor that
- * still contains only that product, then read its title and first price.
+ * Search results from Flipkart's official Affiliate API. Flipkart's
+ * robots.txt asks crawlers not to fetch its search pages, so search only
+ * runs through this API, when affiliate credentials are configured.
  */
-export function parseFlipkartSearch(html: string): Offer[] {
-  const $ = cheerio.load(html);
-  const seen = new Set<string>();
-  const offers: Offer[] = [];
-
-  $('a[href*="/p/"]').each((_, anchor) => {
-    const href = $(anchor).attr('href');
-    if (!href) return;
-    const pid = pidOf(href);
-    if (seen.has(pid)) return;
-
-    let card = $(anchor);
-    for (let depth = 0; depth < 8; depth++) {
-      const parent = card.parent();
-      if (!parent.length) break;
-      const pids = new Set(
-        parent
-          .find('a[href*="/p/"]')
-          .map((_, a) => pidOf($(a).attr('href') ?? ''))
-          .get(),
-      );
-      if (pids.size > 1) break;
-      card = parent;
-    }
-
-    const prices = card
-      .find('*')
-      .filter(
-        (_, node) =>
-          $(node).children().length === 0 && PRICE_TEXT.test($(node).text().trim()),
-      )
-      .map((_, node) => parsePrice($(node).text()))
-      .get();
-    const title = (
-      card.find('img[alt]').first().attr('alt') ||
-      $(anchor).attr('title') ||
-      $(anchor).text()
-    )
-      .replace(/\s+/g, ' ')
-      .trim();
-    if (!prices.length || !title) return;
-
-    seen.add(pid);
-    const url = new URL(href, 'https://www.flipkart.com');
-    url.search = url.searchParams.get('pid') ? `?pid=${url.searchParams.get('pid')}` : '';
-    offers.push({
-      store: 'flipkart',
-      storeName: 'Flipkart',
-      title,
-      url: url.toString(),
-      price: prices[0],
-      currency: '₹',
-      image: card
-        .find('img')
-        .map((_, img) => $(img).attr('src') ?? '')
-        .get()
-        .find((src) => /^https?:\/\//.test(src) && !/placeholder/i.test(src)),
-    });
+export function parseFlipkartAffiliateSearch(body: string): Offer[] {
+  let data: { products?: AffiliateProduct[] };
+  try {
+    data = JSON.parse(body);
+  } catch {
+    throw new ScrapeError('Flipkart returned an unreadable response', 'parse');
+  }
+  return (data.products ?? []).flatMap(({ productBaseInfoV1: info }) => {
+    if (!info?.title || !info.productUrl || info.inStock === false) return [];
+    const price =
+      info.flipkartSpecialPrice?.amount || info.flipkartSellingPrice?.amount || 0;
+    const mrp = info.maximumRetailPrice?.amount ?? 0;
+    if (!price) return [];
+    const images = info.imageUrls ?? {};
+    return [
+      {
+        store: 'flipkart',
+        storeName: 'Flipkart',
+        title: info.title.replace(/\s+/g, ' ').trim(),
+        url: canonicalUrl(info.productUrl),
+        price,
+        originalPrice: mrp > price ? mrp : undefined,
+        currency: '₹',
+        image: images['400x400'] ?? images['200x200'] ?? Object.values(images)[0],
+      },
+    ];
   });
-
-  return offers;
 }
+
+const AFFILIATE_SEARCH = 'https://affiliate-api.flipkart.net/affiliate/1.0/search.json';
 
 export const flipkart: StoreAdapter = {
   id: 'flipkart',
@@ -151,7 +134,14 @@ export const flipkart: StoreAdapter = {
   parse: parseFlipkartProduct,
   search: {
     regions: ['in'],
-    url: (query) => `https://www.flipkart.com/search?q=${encodeURIComponent(query)}`,
-    parse: parseFlipkartSearch,
+    enabled: () => isFlipkartAffiliateConfigured,
+    url: (query) =>
+      `${AFFILIATE_SEARCH}?query=${encodeURIComponent(query)}&resultCount=10`,
+    parse: parseFlipkartAffiliateSearch,
+    headers: () => ({
+      'Fk-Affiliate-Id': env.FLIPKART_AFFILIATE_ID!,
+      'Fk-Affiliate-Token': env.FLIPKART_AFFILIATE_TOKEN!,
+      Accept: 'application/json',
+    }),
   },
 };

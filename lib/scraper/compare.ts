@@ -8,7 +8,7 @@ import {
   searchQuery,
   titleSimilarity,
 } from './match';
-import { adapters, regionFromCurrency } from './stores';
+import { regionFromCurrency, searchableStores } from './stores';
 
 /**
  * Search every store that supports the product's region for the same item
@@ -22,13 +22,16 @@ export async function findOffers(
 ) {
   const region = regionFromCurrency(product.currency);
   const query = searchQuery(product.title);
-  const stores = adapters.filter((a) => a.search?.regions.includes(region));
+  const stores = searchableStores(region);
 
   const results = await Promise.allSettled(
     stores.map(async (adapter) => {
       const url = adapter.search!.url(query, region);
-      const offers = await loadAndParse(adapter, url, (html) =>
-        adapter.search!.parse(html, url),
+      const offers = await loadAndParse(
+        adapter,
+        url,
+        (html) => adapter.search!.parse(html, url),
+        { headers: adapter.search!.headers?.() },
       );
       const ranked = offers
         .map((offer) => ({ offer, score: titleSimilarity(product.title, offer.title) }))

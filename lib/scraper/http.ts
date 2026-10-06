@@ -80,12 +80,18 @@ const REQUEST_CONFIG: AxiosRequestConfig = {
   },
 };
 
-export async function fetchHtml(url: string) {
+/** Fetch a page (or an official API's response) as text. */
+export async function fetchHtml(url: string, headers?: Record<string, string>) {
   await assertPublicURL(url);
   await assertRobotsAllowed(url);
   await throttle(url);
   try {
-    const response = await axios.get<string>(url, REQUEST_CONFIG);
+    const response = await axios.get<string>(
+      url,
+      headers
+        ? { ...REQUEST_CONFIG, headers: { ...REQUEST_CONFIG.headers, ...headers } }
+        : REQUEST_CONFIG,
+    );
     return response.data;
   } catch (error) {
     if (error instanceof ScrapeError) throw error;

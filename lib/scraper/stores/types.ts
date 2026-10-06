@@ -14,8 +14,12 @@ export interface StoreAdapter {
   /** Optional: search the store for comparable offers. */
   search?: {
     regions: Region[];
+    /** False when search needs credentials that aren't configured. */
+    enabled?: () => boolean;
     url(query: string, region: Region): string;
-    parse(html: string, pageUrl: string): Offer[];
+    parse(body: string, pageUrl: string): Offer[];
+    /** Set for an official API: fetched over plain HTTP with these headers. */
+    headers?: () => Record<string, string>;
   };
 }
 

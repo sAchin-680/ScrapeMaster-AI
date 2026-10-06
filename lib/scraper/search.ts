@@ -2,7 +2,7 @@ import 'server-only';
 import type { Offer } from '@/types';
 import { loadAndParse } from './load';
 import { isAccessory, MATCH_THRESHOLD, titleSimilarity, tokenize } from './match';
-import { adapters, type Region } from './stores';
+import { searchableStores, type Region } from './stores';
 
 export type SearchResult = {
   title: string;
@@ -28,11 +28,13 @@ function relevance(query: string, title: string) {
 }
 
 async function run(query: string, region: Region): Promise<SearchResponse> {
-  const stores = adapters.filter((a) => a.search?.regions.includes(region));
+  const stores = searchableStores(region);
   const settled = await Promise.allSettled(
     stores.map((adapter) => {
       const url = adapter.search!.url(query, region);
-      return loadAndParse(adapter, url, (html) => adapter.search!.parse(html, url));
+      return loadAndParse(adapter, url, (html) => adapter.search!.parse(html, url), {
+        headers: adapter.search!.headers?.(),
+      });
     }),
   );
 

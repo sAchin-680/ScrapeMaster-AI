@@ -8,7 +8,10 @@ import { adapters } from './stores';
 import { storeFromHost } from './stores/generic';
 import type { StoreAdapter } from './stores/types';
 
-type RenderOptions = Parameters<typeof renderHtml>[1];
+type LoadOptions = Parameters<typeof renderHtml>[1] & {
+  /** Fetch over plain HTTP with these headers (official APIs). */
+  headers?: Record<string, string>;
+};
 
 /** Retry policy for store requests; tests shorten the delays. */
 export const loadRetry: RetryOptions = {
@@ -34,8 +37,9 @@ async function attempt<T>(
   adapter: StoreAdapter,
   url: string,
   parse: (html: string) => T,
-  render?: RenderOptions,
+  { headers, ...render }: LoadOptions = {},
 ) {
+  if (headers) return parse(await fetchHtml(url, headers));
   if (adapter.fetchMode === 'browser') {
     await assertPublicURL(url);
     return parse(await renderHtml(url, render));
@@ -60,14 +64,14 @@ export async function loadAndParse<T>(
   adapter: StoreAdapter,
   url: string,
   parse: (html: string) => T,
-  render?: RenderOptions,
+  options?: LoadOptions,
 ) {
   const health = getHealthRegistry();
   const ref = sourceFor(adapter, url);
   health.assertCanAttempt(ref.source);
 
   try {
-    const result = await retry(() => attempt(adapter, url, parse, render), {
+    const result = await retry(() => attempt(adapter, url, parse, options), {
       ...loadRetry,
       shouldRetry: isTransient,
       onRetry: () => health.retried(ref.source),
