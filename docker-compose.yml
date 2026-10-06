@@ -17,6 +17,8 @@ services:
     env_file: .env
     environment:
       MONGODB_URI: mongodb://mongo:27017/scrapemaster
+      # The scheduled refresh runs inside this server, so allow its bundled browser.
+      BROWSER_ON_REQUEST: 'true'
     depends_on:
       mongo:
         condition: service_healthy
