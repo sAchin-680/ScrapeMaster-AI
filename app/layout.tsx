@@ -5,11 +5,10 @@ import AnnouncementBar from '@/components/AnnouncementBar';
 import Footer from '@/components/Footer';
 import { PreferencesProvider } from '@/components/PreferencesProvider';
 import { getRates } from '@/lib/fx';
-import { getPreferences } from '@/lib/preferences';
 import { buildAnnouncements } from '@/lib/announcements';
 import { getActiveSales } from '@/lib/data/sales';
 import { getPriceSignals } from '@/lib/data/signals';
-import { CURRENCIES, getCountry, regionForCountry } from '@/lib/locale';
+import { CURRENCIES, DEFAULT_PREFERENCES, getCountry, regionForCountry } from '@/lib/locale';
 import { saleSignalFeed } from '@/lib/services/store-feed';
 import { filterSalesFor } from '@/lib/sales';
 import { withTimeout } from '@/lib/utils/timeout';
@@ -62,8 +61,9 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const preferences = await getPreferences();
-  const country = getCountry(preferences.country);
+  // No cookies or headers here: the layout must stay static so pages can be
+  // served from the CDN. Announcements target the default marketplace.
+  const country = getCountry(DEFAULT_PREFERENCES.country);
   const [rates, sales, signals] = await Promise.all([
     getRates(),
     // Announcements are optional: never let them hold up a page.
@@ -89,7 +89,7 @@ export default async function RootLayout({
         >
           Skip to content
         </a>
-        <PreferencesProvider preferences={preferences} rates={rates}>
+        <PreferencesProvider rates={rates}>
           <AnnouncementBar items={announcements} />
           <Navbar />
           <main id="content" className="flex-1">

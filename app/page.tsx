@@ -15,17 +15,16 @@ import { LiveProvider } from '@/components/live/LiveProvider';
 import { getAllProducts, getTopDeals, getTrackerStats } from '@/lib/data/products';
 import { getActiveSales } from '@/lib/data/sales';
 import { filterSalesFor } from '@/lib/sales';
-import { CURRENCIES, getCountry, regionForCountry } from '@/lib/locale';
+import { CURRENCIES, DEFAULT_PREFERENCES, getCountry, regionForCountry } from '@/lib/locale';
 import { saleSignalFeed } from '@/lib/services/store-feed';
 import { FEED_TIMEOUT_MS, withTimeout } from '@/lib/utils/timeout';
-import { getPreferences } from '@/lib/preferences';
 import { formatNumber } from '@/lib/utils';
 
-export const dynamic = 'force-dynamic';
+// Static page regenerated in the background at most once a minute (ISR):
+// visitors get cached HTML instantly while fresh data is prepared.
+export const revalidate = 60;
 
 export const metadata: Metadata = { alternates: { canonical: '/' } };
-// Room for streamed store data; Vercel Hobby defaults to 10 seconds.
-export const maxDuration = 60;
 
 /** Streams in once store homepages have been checked for sale banners. */
 async function LiveSales({
@@ -45,8 +44,9 @@ async function LiveSales({
 }
 
 export default async function Home() {
-  const preferences = await getPreferences();
-  const country = getCountry(preferences.country);
+  // Rendered once for everyone, so it uses the default marketplace; prices
+  // are converted to each visitor's currency in the browser.
+  const country = getCountry(DEFAULT_PREFERENCES.country);
   const local = CURRENCIES[country.currency].symbol.trim();
 
   const [allProducts, stats, localDeals, activeSales] = await Promise.all([
