@@ -20,6 +20,9 @@ export default function Footer() {
             <Link href="/terms" className="text-muted hover:text-ink">
               Terms
             </Link>
+            <Link href="/status" className="text-muted hover:text-ink">
+              Status
+            </Link>
             <Link href="/bot" className="text-muted hover:text-ink">
               Our crawler
             </Link>

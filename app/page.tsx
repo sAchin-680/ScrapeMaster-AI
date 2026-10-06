@@ -3,6 +3,7 @@ import DealsSection from '@/components/DealsSection';
 import HashScroll from '@/components/HashScroll';
 import HeroVisual from '@/components/HeroVisual';
 import HowItWorks from '@/components/HowItWorks';
+import ReliabilityPanel from '@/components/ReliabilityPanel';
 import SalesSection from '@/components/SalesSection';
 import TrendingSection from '@/components/TrendingSection';
 import { Suspense, type ComponentProps } from 'react';
@@ -13,9 +14,15 @@ import Ticker from '@/components/Ticker';
 import LiveBadge from '@/components/live/LiveBadge';
 import { LiveProvider } from '@/components/live/LiveProvider';
 import { getAllProducts, getTopDeals, getTrackerStats } from '@/lib/data/products';
+import { getStoreReliability } from '@/lib/data/reliability';
 import { getActiveSales } from '@/lib/data/sales';
 import { filterSalesFor } from '@/lib/sales';
-import { CURRENCIES, DEFAULT_PREFERENCES, getCountry, regionForCountry } from '@/lib/locale';
+import {
+  CURRENCIES,
+  DEFAULT_PREFERENCES,
+  getCountry,
+  regionForCountry,
+} from '@/lib/locale';
 import { saleSignalFeed } from '@/lib/services/store-feed';
 import { FEED_TIMEOUT_MS, withTimeout } from '@/lib/utils/timeout';
 import { formatNumber } from '@/lib/utils';
@@ -49,11 +56,12 @@ export default async function Home() {
   const country = getCountry(DEFAULT_PREFERENCES.country);
   const local = CURRENCIES[country.currency].symbol.trim();
 
-  const [allProducts, stats, localDeals, activeSales] = await Promise.all([
+  const [allProducts, stats, localDeals, activeSales, reliability] = await Promise.all([
     getAllProducts(),
     getTrackerStats(),
     getTopDeals(local),
     getActiveSales(),
+    getStoreReliability(),
   ]);
   const sales = filterSalesFor(activeSales, country.code);
   const region = regionForCountry(country.code);
@@ -168,6 +176,7 @@ export default async function Home() {
       )}
 
       <HowItWorks />
+      <ReliabilityPanel stores={reliability} />
     </LiveProvider>
   );
 }
