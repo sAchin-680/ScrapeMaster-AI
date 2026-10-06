@@ -1,32 +1,7 @@
-/** Pure parsers for store and search-engine autocomplete responses. */
-
-type Json = Record<string, unknown>;
+/** Pure parsers for search-engine autocomplete responses. */
 
 const clean = (value: unknown) =>
   typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().toLowerCase() : '';
-
-/** Flipkart autosuggest: query and store-query widgets carry the suggestion text. */
-export function parseFlipkartSuggestions(body: unknown): string[] {
-  const suggestions = ((body as Json)?.RESPONSE as Json)?.suggestions;
-  if (!Array.isArray(suggestions)) return [];
-  return suggestions.flatMap((s: Json) => {
-    const type = String(s?.type ?? '');
-    if (!/QUERY/.test(type)) return [];
-    const value = ((s?.data as Json)?.component as Json)?.value as Json | undefined;
-    const text = clean(value?.query);
-    return text ? [text] : [];
-  });
-}
-
-/** Amazon completion API. */
-export function parseAmazonSuggestions(body: unknown): string[] {
-  const suggestions = (body as Json)?.suggestions;
-  if (!Array.isArray(suggestions)) return [];
-  return suggestions.flatMap((s: Json) => {
-    const text = s?.type === 'KEYWORD' ? clean(s.value) : '';
-    return text ? [text] : [];
-  });
-}
 
 // Search-engine suggestions include non-shopping intents; drop the obvious ones.
 const NON_SHOPPING =
