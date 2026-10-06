@@ -7,4 +7,4 @@ export const NAV_LINKS = [
   { href: '/#how', label: 'How it works' },
 ] as const;
 
-export const REPO_URL = 'https://github.com/sAchin-680/ScrapeMaster-AI';
+export const REPO_URL = 'https://github.com/sAchin-680/ScrapeMaster';

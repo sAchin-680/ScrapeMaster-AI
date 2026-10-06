@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import LegalPage from '@/components/legal/LegalPage';
+import { REPO_URL } from '@/components/nav-links';
 import { siteConfig } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -67,8 +68,7 @@ export default function PrivacyPage() {
       <section>
         <h2>Contact</h2>
         <p>
-          Questions or deletion requests:{' '}
-          <a href="https://github.com/sAchin-680/ScrapeMaster-AI/issues">open an issue</a>{' '}
+          Questions or deletion requests: <a href={`${REPO_URL}/issues`}>open an issue</a>{' '}
           on the project repository.
         </p>
       </section>

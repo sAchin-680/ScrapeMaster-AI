@@ -6,8 +6,8 @@
 
 Search a product or paste a link from any store. ScrapeMaster reads live prices from Amazon, Flipkart and any site that publishes product data, shows where it's cheapest, records price history, and emails you when it drops.
 
-[![CI](https://github.com/sAchin-680/ScrapeMaster-AI/actions/workflows/ci.yml/badge.svg)](https://github.com/sAchin-680/ScrapeMaster-AI/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/sAchin-680/ScrapeMaster-AI/actions/workflows/codeql.yml/badge.svg)](https://github.com/sAchin-680/ScrapeMaster-AI/actions/workflows/codeql.yml)
+[![CI](https://github.com/sAchin-680/ScrapeMaster/actions/workflows/ci.yml/badge.svg)](https://github.com/sAchin-680/ScrapeMaster/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/sAchin-680/ScrapeMaster/actions/workflows/codeql.yml/badge.svg)](https://github.com/sAchin-680/ScrapeMaster/actions/workflows/codeql.yml)
 ![Next.js 15](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript)
 
