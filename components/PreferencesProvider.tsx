@@ -40,7 +40,13 @@ function readCookie(name: string) {
  * server, so pages stay identical for every visitor and can be served
  * statically. Visitors with saved preferences switch over right after load.
  */
-export function PreferencesProvider({ children, rates }: { children: ReactNode; rates: RateTable }) {
+export function PreferencesProvider({
+  children,
+  rates,
+}: {
+  children: ReactNode;
+  rates: RateTable;
+}) {
   const [preferences, setPreferences] = useState<Preferences>(DEFAULT_PREFERENCES);
 
   useEffect(() => {
@@ -48,8 +54,13 @@ export function PreferencesProvider({ children, rates }: { children: ReactNode; 
     if (saved) setPreferences(parsePreferences(saved));
   }, []);
 
-  const value = useMemo(() => ({ preferences, rates, setPreferences }), [preferences, rates]);
-  return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;
+  const value = useMemo(
+    () => ({ preferences, rates, setPreferences }),
+    [preferences, rates],
+  );
+  return (
+    <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>
+  );
 }
 
 export function usePreferences() {

@@ -8,7 +8,12 @@ import { getRates } from '@/lib/fx';
 import { buildAnnouncements } from '@/lib/announcements';
 import { getActiveSales } from '@/lib/data/sales';
 import { getPriceSignals } from '@/lib/data/signals';
-import { CURRENCIES, DEFAULT_PREFERENCES, getCountry, regionForCountry } from '@/lib/locale';
+import {
+  CURRENCIES,
+  DEFAULT_PREFERENCES,
+  getCountry,
+  regionForCountry,
+} from '@/lib/locale';
 import { saleSignalFeed } from '@/lib/services/store-feed';
 import { filterSalesFor } from '@/lib/sales';
 import { withTimeout } from '@/lib/utils/timeout';
